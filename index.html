@@ -1,0 +1,26 @@
+<!doctype html>
+<html lang="en">
+	<head>
+		<meta charset="utf-8">
+
+		<title>Cotranscriptional folding</title>
+
+        <link rel='stylesheet' type='text/css' href='css/fornac.css' />
+        <link rel='stylesheet' type='text/css' href='css/treemap.css' />
+        <script type='text/javascript' src='js/jquery.js'></script>
+        <script type='text/javascript' src='js/d3.js'></script>
+        <script type='text/javascript' src='js/fornac.js'></script>
+        <script type='text/javascript' src='js/cotranscriptional.js'></script>
+
+	</head>
+
+	<body>
+                    <h5>A visual exploration of co-transcriptional folding</h5>
+                    <div id='rna_ss5' style="margin: 0 auto; width: 75%;" ></div>
+                    <script type='text/javascript'>
+
+        createCotranscriptionalTreemap('#rna_ss5', 'data/pete.growing');
+                    </script>
+
+	</body>
+</html>
