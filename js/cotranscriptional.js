@@ -26,19 +26,19 @@ var options = {'applyForce': false,
         "initialSize": [800,800],
         "transitionDuration": 0 }
 
-var margin = {top: 10, right: 60, bottom: 40, left: 10},
+var margin = {top: 10, right: 60, bottom: 40, left: 50},
     totalWidth = 800
     totalHeight = 500
 
-    treemapWidth = totalWidth * 0.75 - margin.left - margin.right,
-    treemapHeight = totalHeight - margin.top - margin.bottom,
+    treemapWidth = totalWidth - margin.left - margin.right,
+    treemapHeight = totalHeight * 0.75 - margin.top - margin.bottom,
 
-    lineChartWidth = totalWidth - treemapWidth - margin.left - margin.right,
-    lineChartHeight = totalHeight - margin.top - margin.bottom;
+    lineChartWidth = totalWidth - margin.left - margin.right,
+    lineChartHeight = totalHeight - treemapHeight - margin.top - margin.bottom;
 
 
 var lineX = d3.scale.linear().range([0, lineChartWidth]);
-var lineY = d3.scale.linear().range([0, lineChartHeight]);
+var lineY = d3.scale.linear().range([lineChartHeight, 0]);
 
 
 
@@ -51,8 +51,8 @@ var treemap = d3.layout.treemap()
 
 var wholeDiv = d3.select(element).append("div")
     .style("position", "relative")
-    .style("width", (treemapWidth + lineChartWidth + margin.left + margin.right) + "px")
-    .style("height", (treemapHeight + margin.top + margin.bottom) + "px")
+    .style("width", (treemapWidth + margin.left + margin.right) + "px")
+    .style("height", (treemapHeight + lineChartHeight + margin.top + margin.bottom) + "px")
     .style("left", margin.left + "px")
     .style("top", margin.top + "px");
 
@@ -60,26 +60,26 @@ var treemapDiv = wholeDiv.append("div")
     .style("position", "absolute")
     .style("width", (treemapWidth) + "px")
     .style("height", (treemapHeight + margin.bottom) + "px")
-    .style("left", 0 + "px")
+    .style("left", margin.left + "px")
     .style("top", margin.top + "px");
 
 var lineChartDiv = wholeDiv.append("div")
     .style("position", "absolute")
     .style("width", (lineChartWidth + margin.right) + "px")
     .style("height", (lineChartHeight + margin.bottom + margin.top) + "px")
-    .style("left", treemapWidth + "px")
-    .style("top", 0 + "px");
+    .style("left", 0 + "px")
+    .style("top", treemapHeight + "px");
 
 var svg = lineChartDiv.append("svg")
 .attr("width", lineChartWidth)
 .attr("height", lineChartHeight)
 .append("g")
-.attr('transform', "translate(0," + margin.top + ")");
+.attr('transform', "translate(" + margin.left + "," + margin.top + ")");
 
 var line = d3.svg.line()
     .interpolate("basis")
-    .x(function(d) { return lineX(+d.conc); })
-    .y(function(d) { return lineY(+d.time); });
+    .x(function(d) { return lineX(+d.time); })
+    .y(function(d) { return lineY(+d.conc); });
 
 
 function divName(d) {
@@ -99,8 +99,8 @@ function drawCotranscriptionalLine() {
 
         color.domain(d3.set(data.map(function(d) { return d.id })).values());
 
-        lineX.domain(d3.extent(data, function(d) { return +d.conc; }));
-        lineY.domain(d3.extent(data, function(d) { return +d.time; }));
+        lineX.domain(d3.extent(data, function(d) { return +d.time; }));
+        lineY.domain(d3.extent(data, function(d) { return +d.conc; }));
 
     var xAxis = d3.svg.axis()
         .scale(lineX)
@@ -108,8 +108,7 @@ function drawCotranscriptionalLine() {
 
     var yAxis = d3.svg.axis()
         .scale(lineY)
-        .orient("right");
-        console.log('extent:', d3.extent(data, function(d) { return +d.time}));
+        .orient("left");
         
     svg.append("g")
     .attr("class", "x axis")
@@ -118,15 +117,26 @@ function drawCotranscriptionalLine() {
 
     svg.append("g")
     .attr("class", "y axis")
-    .attr("transform", "translate(" + (lineChartWidth) + ",0)")
+    .attr("transform", "translate(" + (0) + ",0)")
+    .call(yAxis)
+    .append("text")
+    .attr('x', lineChartWidth /2)
+    .attr("y", lineChartHeight + 25)
+    .attr("dy", ".71em")
+    .style("text-anchor", "middle")
+    .text("Time (Seconds)");
+
+    svg.append("g")
+    .attr("class", "y axis")
+    .attr("transform", "translate(" + (0) + ",0)")
     .call(yAxis)
     .append("text")
     .attr("transform", "rotate(-90)")
-    .attr('x', -10)
-    .attr("y", 35)
+    .attr('x', -0)
+    .attr("y", -45)
     .attr("dy", ".71em")
     .style("text-anchor", "end")
-    .text("Time (Seconds)");
+    .text("Population Density");
 
         var nestedData = d3.nest().key(function(d) { return +d.id; }).entries(data)
         var concProfile = svg.selectAll(".concProfile")
@@ -210,7 +220,7 @@ function drawCotranscriptionalLine() {
             }
 
             function mousemove() {
-                var y0 = lineY.invert(d3.mouse(this)[1]);
+                var y0 = lineX.invert(d3.mouse(this)[0]);
                 i = bisectTime(data, y0, 1);
                 var values = nestedData.map(function(data) { 
                         var i = bisectTime(data.values, y0, 0)
@@ -245,8 +255,8 @@ drawCotranscriptionalLine();
 function position() {
   this.style("left", function(d) {  return d.x + "px"; })
       .style("top", function(d) { return d.y + "px"; })
-      .style("width", function(d) { return Math.max(0, d.dx - 1) + "px"; })
-      .style("height", function(d) { return Math.max(0, d.dy - 1) + "px"; });
+      .style("width", function(d) { return Math.max(0, d.dx - 0) + "px"; })
+      .style("height", function(d) { return Math.max(0, d.dy - 0) + "px"; });
 }
     }
 
