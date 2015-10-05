@@ -20,182 +20,182 @@ function doStepwiseAnimation(elementName, structs, duration) {
 }
 
 function createCotranscriptionalTreemap(element, filename) {
-var options = {'applyForce': false, 
+    var options = {'applyForce': false, 
         'allowPanningAndZooming': true,
         "labelInterval":0,
         "initialSize": [800,800],
         "transitionDuration": 0 }
 
-var margin = {top: 10, right: 60, bottom: 40, left: 50},
-    totalWidth = 700 
-    totalHeight = 500
+        var margin = {top: 10, right: 60, bottom: 40, left: 50},
+        totalWidth = 700 
+        totalHeight = 500
 
-    treemapWidth = totalWidth - margin.left - margin.right,
-    treemapHeight = totalHeight * 0.75 - margin.top - margin.bottom,
+        treemapWidth = totalWidth - margin.left - margin.right,
+        treemapHeight = totalHeight * 0.75 - margin.top - margin.bottom,
 
-    lineChartWidth = totalWidth - margin.left - margin.right,
-    lineChartHeight = totalHeight - treemapHeight - margin.top - margin.bottom;
-
-
-var lineX = d3.scale.linear().range([0, lineChartWidth]);
-var lineY = d3.scale.linear().range([lineChartHeight, 0]);
+        lineChartWidth = totalWidth - margin.left - margin.right,
+        lineChartHeight = totalHeight - treemapHeight - margin.top - margin.bottom;
 
 
-
-var color = d3.scale.category20();
-
-var treemap = d3.layout.treemap()
-    .size([treemapWidth, treemapHeight])
-    .sticky(false)
-    .value(function(d) { return d.size; });
-
-var wholeDiv = d3.select(element).append("div")
-    .style("position", "relative")
-    .style("width", (treemapWidth + margin.left + margin.right) + "px")
-    .style("height", (treemapHeight + lineChartHeight + margin.top + margin.bottom) + "px")
-    .style("left", margin.left + "px")
-    .style("top", margin.top + "px")
-    .attr('id', 'whole-div');
-
-var treemapDiv = wholeDiv.append("div")
-    .style("position", "absolute")
-    .style("width", (treemapWidth) + "px")
-    .style("height", (treemapHeight + margin.bottom) + "px")
-    .style("left", margin.left + "px")
-    .style("top", margin.top + "px");
-
-var lineChartDiv = wholeDiv.append("div")
-    .style("position", "absolute")
-    .style("width", (lineChartWidth + margin.right) + "px")
-    .style("height", (lineChartHeight + margin.bottom + margin.top) + "px")
-    .style("left", 0 + "px")
-    .style("top", treemapHeight + "px");
-
-var svg = lineChartDiv.append("svg")
-.attr("width", lineChartWidth)
-.attr("height", lineChartHeight)
-.append("g")
-.attr('transform', "translate(" + margin.left + "," + margin.top + ")");
-
-var line = d3.svg.line()
-    .interpolate("basis")
-    .x(function(d) { return lineX(+d.time); })
-    .y(function(d) { return lineY(+d.conc); });
+        var lineX = d3.scale.linear().range([0, lineChartWidth]);
+        var lineY = d3.scale.linear().range([lineChartHeight, 0]);
 
 
-function divName(d) {
-    return "div" + d.name;
-}
 
-var bisectTime = d3.bisector(function(d) { return d.time; }).left;
+        var color = d3.scale.category20();
 
-function drawCotranscriptionalLine() {
-    d3.dsv(" ", 'text/plain')(filename, function(error, data) {
-            data.forEach(function(d) {
-                d.time = +d.time;
-                d.conc = +d.conc;
-                //d.full_id = d.id + '-' + d.struct.length;
-                //console.log('d.full_id', d.full_id);
-                    });
+        var treemap = d3.layout.treemap()
+        .size([treemapWidth, treemapHeight])
+        .sticky(false)
+        .value(function(d) { return d.size; });
 
-        color.domain(d3.set(data.map(function(d) { return d.id })).values());
+        var wholeDiv = d3.select(element).append("div")
+        .style("position", "relative")
+        .style("width", (treemapWidth + margin.left + margin.right) + "px")
+        .style("height", (treemapHeight + lineChartHeight + margin.top + margin.bottom) + "px")
+        .style("left", margin.left + "px")
+        .style("top", margin.top + "px")
+        .attr('id', 'whole-div');
 
-        lineX.domain(d3.extent(data, function(d) { return +d.time; }));
-        lineY.domain(d3.extent(data, function(d) { return +d.conc; }));
+        var treemapDiv = wholeDiv.append("div")
+        .style("position", "absolute")
+        .style("width", (treemapWidth) + "px")
+        .style("height", (treemapHeight + margin.bottom) + "px")
+        .style("left", margin.left + "px")
+        .style("top", margin.top + "px");
 
-    var xAxis = d3.svg.axis()
-        .scale(lineX)
-        .orient("bottom");
+        var lineChartDiv = wholeDiv.append("div")
+        .style("position", "absolute")
+        .style("width", (lineChartWidth + margin.right) + "px")
+        .style("height", (lineChartHeight + margin.bottom + margin.top) + "px")
+        .style("left", 0 + "px")
+        .style("top", treemapHeight + "px");
 
-    var yAxis = d3.svg.axis()
-        .scale(lineY)
-        .orient("left");
-    var _xCoord = 0;
-    var runAnimation = false;
-        
-    svg.append("g")
-    .attr("class", "x axis")
-    .attr("transform", "translate(0," + lineChartHeight + ")")
-    .call(xAxis);
+        var svg = lineChartDiv.append("svg")
+        .attr("width", lineChartWidth)
+        .attr("height", lineChartHeight)
+        .append("g")
+        .attr('transform', "translate(" + margin.left + "," + margin.top + ")");
 
-    svg.append("g")
-    .attr("class", "y axis")
-    .attr("transform", "translate(" + (0) + ",0)")
-    .call(yAxis)
-    .append("text")
-    .attr('x', lineChartWidth /2)
-    .attr("y", lineChartHeight + 25)
-    .attr("dy", ".71em")
-    .style("text-anchor", "middle")
-    .text("Time (Seconds)");
+        var line = d3.svg.line()
+        .interpolate("basis")
+        .x(function(d) { return lineX(+d.time); })
+        .y(function(d) { return lineY(+d.conc); });
 
-    svg.append("g")
-    .attr("class", "y axis")
-    .attr("transform", "translate(" + (0) + ",0)")
-    .call(yAxis)
-    .append("text")
-    .attr("transform", "rotate(-90)")
-    .attr('x', -0)
-    .attr("y", -45)
-    .attr("dy", ".71em")
-    .style("text-anchor", "end")
-    .text("Population Density");
 
-    var currentTimeIndicatorLine = svg.append('line')
-    .attr('x1', 0)
-    .attr('y1', 0)
-    .attr('x2', 0)
-    .attr('y2', lineChartHeight)
-    .classed('time-indicator', true);
-
-        var nestedData = d3.nest().key(function(d) { return +d.id; }).entries(data)
-        var concProfile = svg.selectAll(".concProfile")
-        .data(nestedData)
-        .enter().append("g")
-        .attr("class", "concProfile");
-
-        function createInitialRoot(nestedData) {
-          var root = {"name": "graph",
-              "children": nestedData.map(function(d) { return {"name": d.key, "struct": 
-                        d.values[0].struct, "size": 1 / nestedData.length};})};
-          return root;
-
+        function divName(d) {
+            return "div" + d.name;
         }
-        var root = createInitialRoot(nestedData);
 
-      var containers = {};
+        var bisectTime = d3.bisector(function(d) { return d.time; }).left;
 
-      var node = treemapDiv.datum(root).selectAll(".treemapNode")
-          .data(treemap.nodes)
-        .enter().append("div")
-          .attr("class", "treemapNode")
-          .attr("id", divName)
-          .call(position)
-          //.style("background", function(d) { return d.children ? color(d.name) : null; })
-          //.text(function(d) { return d.children ? null : d.name; })
-          .each(function(d) { 
-                  if (typeof d.struct != 'undefined') {
-                  containers[divName(d)] = new FornaContainer("#" + divName(d), options);
-                  containers[divName(d)].transitionRNA(d.struct);
-                  containers[divName(d)].setOutlineColor(color(d.name));
-                  }
-                  } );
+        function drawCotranscriptionalLine() {
+            d3.dsv(" ", 'text/plain')(filename, function(error, data) {
+                data.forEach(function(d) {
+                    d.time = +d.time;
+                    d.conc = +d.conc;
+                    //d.full_id = d.id + '-' + d.struct.length;
+                    //console.log('d.full_id', d.full_id);
+                });
 
-        concProfile.append("path")
-        .attr("class", "line")
-        .attr("d", function(d) { return line(d.values); })
-        .style("stroke", function(d) { 
-            return color(d.key); 
-            });
+                color.domain(d3.set(data.map(function(d) { return d.id })).values());
 
-            svg.append("rect")
-            .attr("class", "overlay")
-            .attr("width", lineChartWidth)
-            .attr("height", lineChartHeight)
-            .on("mouseover", function() { })
-            .on("mousemove", mousemove);
+                lineX.domain(d3.extent(data, function(d) { return +d.time; }));
+                lineY.domain(d3.extent(data, function(d) { return +d.conc; }));
 
-            wholeDiv
+                var xAxis = d3.svg.axis()
+                .scale(lineX)
+                .orient("bottom");
+
+                var yAxis = d3.svg.axis()
+                .scale(lineY)
+                .orient("left");
+                var _xCoord = 0;
+                var runAnimation = false;
+
+                svg.append("g")
+                .attr("class", "x axis")
+                .attr("transform", "translate(0," + lineChartHeight + ")")
+                .call(xAxis);
+
+                svg.append("g")
+                .attr("class", "y axis")
+                .attr("transform", "translate(" + (0) + ",0)")
+                .call(yAxis)
+                .append("text")
+                .attr('x', lineChartWidth /2)
+                .attr("y", lineChartHeight + 25)
+                .attr("dy", ".71em")
+                .style("text-anchor", "middle")
+                .text("Time (Seconds)");
+
+                svg.append("g")
+                .attr("class", "y axis")
+                .attr("transform", "translate(" + (0) + ",0)")
+                .call(yAxis)
+                .append("text")
+                .attr("transform", "rotate(-90)")
+                .attr('x', -0)
+                .attr("y", -45)
+                .attr("dy", ".71em")
+                .style("text-anchor", "end")
+                .text("Population Density");
+
+                var currentTimeIndicatorLine = svg.append('line')
+                .attr('x1', 0)
+                .attr('y1', 0)
+                .attr('x2', 0)
+                .attr('y2', lineChartHeight)
+                .classed('time-indicator', true);
+
+                var nestedData = d3.nest().key(function(d) { return +d.id; }).entries(data)
+                var concProfile = svg.selectAll(".concProfile")
+                .data(nestedData)
+                .enter().append("g")
+                .attr("class", "concProfile");
+
+                function createInitialRoot(nestedData) {
+                    var root = {"name": "graph",
+                        "children": nestedData.map(function(d) { return {"name": d.key, "struct": 
+                                                   d.values[0].struct, "size": 1 / nestedData.length};})};
+                        return root;
+
+                }
+                var root = createInitialRoot(nestedData);
+
+                var containers = {};
+
+                var node = treemapDiv.datum(root).selectAll(".treemapNode")
+                .data(treemap.nodes)
+                .enter().append("div")
+                .attr("class", "treemapNode")
+                .attr("id", divName)
+                .call(position)
+                //.style("background", function(d) { return d.children ? color(d.name) : null; })
+                //.text(function(d) { return d.children ? null : d.name; })
+                .each(function(d) { 
+                    if (typeof d.struct != 'undefined') {
+                        containers[divName(d)] = new FornaContainer("#" + divName(d), options);
+                        containers[divName(d)].transitionRNA(d.struct);
+                        containers[divName(d)].setOutlineColor(color(d.name));
+                    }
+                } );
+
+                concProfile.append("path")
+                .attr("class", "line")
+                .attr("d", function(d) { return line(d.values); })
+                .style("stroke", function(d) { 
+                    return color(d.key); 
+                });
+
+                svg.append("rect")
+                .attr("class", "overlay")
+                .attr("width", lineChartWidth)
+                .attr("height", lineChartHeight)
+                .on("mouseover", function() { })
+                .on("mousemove", mousemove);
+
+                wholeDiv
                 .on("mouseenter", function() {
                     runAnimation = false;
                 })
@@ -204,15 +204,15 @@ function drawCotranscriptionalLine() {
 
                     updateCurrentTime(_xCoord);
                     /*
-                    console.log('mouseleave');
+                       console.log('mouseleave');
 
-                    var xy = d3.mouse(this);
+                       var xy = d3.mouse(this);
 
-                    if (xy[0] > treemapWidth + lineChartWidth) {
-                        var root = createInitialRoot(nestedData);
-                        updateTreemap(root);
-                    }
-                    */
+                       if (xy[0] > treemapWidth + lineChartWidth) {
+                       var root = createInitialRoot(nestedData);
+                       updateTreemap(root);
+                       }
+                       */
                 })
 
                 function updateTreemap(root) {
@@ -266,7 +266,7 @@ function drawCotranscriptionalLine() {
 
                         if (runAnimation) {
                             _xCoord += lineChartWidth / 100;
-                            setTimeout(function() { updateCurrentTime(_xCoord); }, 1000);
+                            setTimeout(function() { updateCurrentTime(_xCoord); }, 300);
                         }
 
                 }
@@ -276,8 +276,8 @@ function drawCotranscriptionalLine() {
 
                     updateCurrentTime(_xCoord);
                 }
-    });
-}
+            });
+        }
 
 drawCotranscriptionalLine();
 
