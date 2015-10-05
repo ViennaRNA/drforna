@@ -27,7 +27,7 @@ var options = {'applyForce': false,
         "transitionDuration": 0 }
 
 var margin = {top: 10, right: 60, bottom: 40, left: 50},
-    totalWidth = 800
+    totalWidth = 700 
     totalHeight = 500
 
     treemapWidth = totalWidth - margin.left - margin.right,
@@ -54,7 +54,8 @@ var wholeDiv = d3.select(element).append("div")
     .style("width", (treemapWidth + margin.left + margin.right) + "px")
     .style("height", (treemapHeight + lineChartHeight + margin.top + margin.bottom) + "px")
     .style("left", margin.left + "px")
-    .style("top", margin.top + "px");
+    .style("top", margin.top + "px")
+    .attr('id', 'whole-div');
 
 var treemapDiv = wholeDiv.append("div")
     .style("position", "absolute")
@@ -109,6 +110,8 @@ function drawCotranscriptionalLine() {
     var yAxis = d3.svg.axis()
         .scale(lineY)
         .orient("left");
+    var _xCoord = 0;
+    var runAnimation = false;
         
     svg.append("g")
     .attr("class", "x axis")
@@ -137,6 +140,13 @@ function drawCotranscriptionalLine() {
     .attr("dy", ".71em")
     .style("text-anchor", "end")
     .text("Population Density");
+
+    var currentTimeIndicatorLine = svg.append('line')
+    .attr('x1', 0)
+    .attr('y1', 0)
+    .attr('x2', 0)
+    .attr('y2', lineChartHeight)
+    .classed('time-indicator', true);
 
         var nestedData = d3.nest().key(function(d) { return +d.id; }).entries(data)
         var concProfile = svg.selectAll(".concProfile")
@@ -186,43 +196,47 @@ function drawCotranscriptionalLine() {
             .on("mousemove", mousemove);
 
             wholeDiv
-                .on("mouseout", function() { 
-                        var xy = d3.mouse(this);
+                .on("mouseenter", function() {
+                    runAnimation = false;
+                })
+                .on("mouseleave", function() { 
+                    runAnimation = true;
 
-                        /*
-                        if (xy[0] < 0 || xy[1] < margin.top || 
-                                xy[0] > treemapWidth + lineChartWidth ||
-                                xy[1] > treemapHeight + margin.top) {
-                        */
-                        if (xy[0] > treemapWidth + lineChartWidth) {
-                        /*
-                           console.log('d3.mouse(this)', d3.mouse(this));
-                           console.log('this', this, treemapHeight + margin.top, treemapWidth + lineChartWidth);
-                         */
+                    updateCurrentTime(_xCoord);
+                    /*
+                    console.log('mouseleave');
 
+                    var xy = d3.mouse(this);
+
+                    if (xy[0] > treemapWidth + lineChartWidth) {
                         var root = createInitialRoot(nestedData);
                         updateTreemap(root);
-                        }
-                        })
+                    }
+                    */
+                })
 
-            function updateTreemap(root) {
-                var node = treemapDiv.datum(root).selectAll(".treemapNode")
+                function updateTreemap(root) {
+                    var node = treemapDiv.datum(root).selectAll(".treemapNode")
                     .data(treemap.nodes)
                     .call(position)
                     .each(function(d) { 
-                            if (typeof d.struct != 'undefined') {
-                                var cont = containers[divName(d)];
-                                cont.setSize();
+                        if (typeof d.struct != 'undefined') {
+                            var cont = containers[divName(d)];
+                            cont.setSize();
 
-                                cont.setOutlineColor(color(d.name));
-                            }
+                            cont.setOutlineColor(color(d.name));
+                        }
                     });
-            }
+                }
 
-            function mousemove() {
-                var y0 = lineX.invert(d3.mouse(this)[0]);
-                i = bisectTime(data, y0, 1);
-                var values = nestedData.map(function(data) { 
+                function updateCurrentTime(xCoord) {
+                    //saveSvgAsPng(document.getElementById('whole-div'), 'rnax.png', 4);
+
+                    var y0 = lineX.invert(xCoord);
+                    console.log('y0', y0);
+
+                    i = bisectTime(data, y0, 1);
+                    var values = nestedData.map(function(data) { 
                         var i = bisectTime(data.values, y0, 0)
 
                         if (i >= data.values.length || i == 0)
@@ -240,13 +254,28 @@ function drawCotranscriptionalLine() {
                         var retVal= {"name": data.key, "struct": data.values[0].struct, "size": +value};
                         containers[divName(retVal)].transitionRNA(data.values[i].struct)
                         return retVal;
-                        });
+                    });
 
-                var root = {"name": "graph",
-                    "children": values };
+                    var root = {"name": "graph",
+                        "children": values };
 
-                updateTreemap(root);
-            }
+                        updateTreemap(root);
+
+                        currentTimeIndicatorLine.attr('x1', xCoord)
+                        .attr('x2', xCoord);
+
+                        if (runAnimation) {
+                            _xCoord += lineChartWidth / 100;
+                            setTimeout(function() { updateCurrentTime(_xCoord); }, 1000);
+                        }
+
+                }
+
+                function mousemove() {
+                    _xCoord = (d3.mouse(this)[0]);
+
+                    updateCurrentTime(_xCoord);
+                }
     });
 }
 
