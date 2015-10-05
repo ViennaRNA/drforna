@@ -15,7 +15,8 @@ function FornaContainer(element, passedOptions) {
         "applyForce": true,
         "initialSize": [200,200],
         "allowPanningAndZooming": true,
-        "transitionDuration": 500,
+        "cssFileLocation": "css/fornac.css",
+        "transitionDuration": 500
     };
 
     if (arguments.length > 1) {
@@ -31,9 +32,9 @@ function FornaContainer(element, passedOptions) {
     var fill = d3.scale.category20();
 
     // mouse event vars
-    var mousedown_link = null,
-        mousedown_node = null,
-        mouseup_node = null;
+    var mousedownLink = null,
+        mousedownNode = null,
+        mouseupNode = null;
 
     var xScale = d3.scale.linear()
     .domain([0,self.options.svgW]).range([0,self.options.svgW]);
@@ -47,8 +48,8 @@ function FornaContainer(element, passedOptions) {
     
     self.linkStrengths = {
         "pseudoknot": 0.00,
-        "protein_chain": 0.00,
-        "chain_chain": 0.00,
+        "proteinChain": 0.00,
+        "chainChain": 0.00,
         "intermolecule": 10.00,
         "other": 10.00
     };
@@ -80,7 +81,8 @@ function FornaContainer(element, passedOptions) {
                         'positions': [],
                         'labelInterval': self.options.labelInterval,
                         'avoidOthers': true,
-                        'uids': []
+                        'uids': [],
+                        'circularizeExternal': true
                       };
 
         if (arguments.length == 2) {
@@ -91,12 +93,13 @@ function FornaContainer(element, passedOptions) {
         }
 
         rg = new RNAGraph(options.sequence, structure, options.name);
+        rg.circularizeExternal = options.circularizeExternal;
 
         rnaJson = rg.recalculateElements();
 
         if (options.positions.length === 0) {
             // no provided positions means we need to calculate an initial layout
-            options.positions = simple_xy_coordinates(rnaJson.pairtable);
+            options.positions = simpleXyCoordinates(rnaJson.pairtable);
         }
 
         rnaJson = rnaJson.elementsToJson()
@@ -131,19 +134,19 @@ function FornaContainer(element, passedOptions) {
         // Each RNA will have uid to identify it
         // when it is modified, it is replaced in the global list of RNAs
         //
-        var max_x, min_x;
+        var maxX, minX;
 
         if (avoidOthers) {
             if (self.graph.nodes.length > 0)
-                max_x = d3.max(self.graph.nodes.map(function(d) { return d.x; }));
+                maxX = d3.max(self.graph.nodes.map(function(d) { return d.x; }));
             else
-                max_x = 0;
+                maxX = 0;
 
-            min_x = d3.min(rnaGraph.nodes.map(function(d) { return d.x; })); 
+            minX = d3.min(rnaGraph.nodes.map(function(d) { return d.x; })); 
 
             rnaGraph.nodes.forEach(function(node) {
-                node.x += (max_x - min_x);
-                node.px += (max_x - min_x);
+                node.x += (maxX - minX);
+                node.px += (maxX - minX);
             });
         }
 
@@ -155,29 +158,33 @@ function FornaContainer(element, passedOptions) {
         self.recalculateGraph();
 
         self.update();
-        self.center_view();
+        self.centerView();
     };
 
     self.transitionRNA = function(newStructure, nextFunction) {
         //transition from an RNA which is already displayed to a new structure
+        var duration = self.options.transitionDuration;
+
         var uids = self.graph.nodes
-        .filter(function(d) { return d.node_type == 'nucleotide'; })
+        .filter(function(d) { return d.nodeType == 'nucleotide'; })
         .map(function(d) { return d.uid; });
 
         var options = {"uids": uids};
         var newRNAJson = self.createInitialLayout(newStructure, options);
 
-        var gnodes = vis_nodes.selectAll('g.gnode').data(newRNAJson.nodes, node_key);
+        var gnodes = visNodes.selectAll('g.gnode').data(newRNAJson.nodes, nodeKey);
         var duration = self.options.transitionDuration;
 
         if (duration === 0)
             gnodes.attr('transform', function(d) { 
-                return 'translate(' + [d.x, d.y] + ')'; });
-        else
+                return 'translate(' + [d.x, d.y] + ')'; 
+            });
+        else {
             gnodes.transition().attr('transform', function(d) { 
                 return 'translate(' + [d.x, d.y] + ')'; }).duration(duration);
+        }
 
-        var links = vis_links.selectAll("line.link").data(newRNAJson.links, link_key);
+        var links = visLinks.selectAll("line.link").data(newRNAJson.links, linkKey);
         var newNodes = self.createNewNodes(gnodes.enter())
         .attr("transform", function(d) { 
             if (typeof d.x != 'undefined' && typeof d.y != 'undefined')
@@ -199,7 +206,7 @@ function FornaContainer(element, passedOptions) {
 
         self.graph.nodes = gnodes.data();
         self.updateStyle();
-        self.center_view(duration);
+        self.centerView(duration);
 
         function endall(transition, callback) { 
             if (transition.size() === 0) { setTimeout(callback, duration); }
@@ -276,32 +283,37 @@ function FornaContainer(element, passedOptions) {
         // Create a lookup table so that we can access each node
         // based on its uid. This will be used to create the links
         // between different RNAs
-        var uids_to_nodes = {};
+        var uidsToNodes = {};
 
         for (var i = 0; i < self.graph.nodes.length; i++)
-            uids_to_nodes[self.graph.nodes[i].uid] = self.graph.nodes[i];
+            uidsToNodes[self.graph.nodes[i].uid] = self.graph.nodes[i];
 
         self.graph.links.forEach(function(link) {
-            link.source = uids_to_nodes[link.source.uid];
-            link.target = uids_to_nodes[link.target.uid];
+            link.source = uidsToNodes[link.source.uid];
+            link.target = uidsToNodes[link.target.uid];
         });
 
         for (i = 0; i < self.extraLinks.length; i++) {
             // the actual node objects may have changed, so we hae to recreate
             // the extra links based on the uids
-            self.extraLinks[i].source = uids_to_nodes[self.extraLinks[i].source.uid];
-            self.extraLinks[i].target = uids_to_nodes[self.extraLinks[i].target.uid];
+
+            if (!(self.extraLinks[i].target.uid in uidsToNodes)) {
+                console.log("not there:", self.extraLinks[i]);
+            }
+
+            self.extraLinks[i].source = uidsToNodes[self.extraLinks[i].source.uid];
+            self.extraLinks[i].target = uidsToNodes[self.extraLinks[i].target.uid];
             
-            if (self.extraLinks[i].link_type == 'intermolecule') {
+            if (self.extraLinks[i].linkType == 'intermolecule') {
                 //remove links to middle nodes
-                fake_links = self.graph.links.filter(function(d) { 
+                fakeLinks = self.graph.links.filter(function(d) { 
                     return ((d.source == self.extraLinks[i].source || d.source == self.extraLinks[i].target ||
                             d.target == self.extraLinks[i].source || d.target == self.extraLinks[i].source) &&
-                            d.link_type == 'fake');
+                            d.linkType == 'fake');
                 });
 
-                for (var j = 0; j < fake_links.length; j++) {
-                    var linkIndex = self.graph.links.indexOf(fake_links[j]); 
+                for (var j = 0; j < fakeLinks.length; j++) {
+                    var linkIndex = self.graph.links.indexOf(fakeLinks[j]); 
                     self.graph.links.splice(linkIndex, 1);
                 }
             }
@@ -324,11 +336,11 @@ function FornaContainer(element, passedOptions) {
         // so that we don't place a new structure on top of the
         // old one
         if (self.graph.nodes.length > 0) {
-            max_x = d3.max(self.graph.nodes.map(function(d) {return d.x;}));
-            max_y = d3.max(self.graph.nodes.map(function(d) {return d.y;}));
+            maxX = d3.max(self.graph.nodes.map(function(d) {return d.x;}));
+            maxY = d3.max(self.graph.nodes.map(function(d) {return d.y;}));
         } else {
-            max_x = 0;
-            max_y = 0;
+            maxX = 0;
+            maxY = 0;
         }
 
         json.nodes.forEach(function(entry) {
@@ -336,11 +348,11 @@ function FornaContainer(element, passedOptions) {
                 self.rnas[entry.rna.uid] = entry.rna;
             }
 
-            entry.x += max_x;
-            //entry.y += max_y;
+            entry.x += maxX;
+            //entry.y += maxY;
 
-            entry.px += max_x;
-            //entry.py += max_y;
+            entry.px += maxX;
+            //entry.py += maxY;
         });
 
         r = new RNAGraph('','');
@@ -351,7 +363,7 @@ function FornaContainer(element, passedOptions) {
         self.recalculateGraph();
 
         self.update();
-        self.center_view();
+        self.centerView();
     };
 
     self.addCustomColors = function addCustomColors(json) {
@@ -371,7 +383,7 @@ function FornaContainer(element, passedOptions) {
     
     self.toJSON = function toJSON() {
        var data = {"rnas": self.rnas, "extraLinks": self.extraLinks};
-            var data_string = JSON.stringify(data, function(key, value) {
+            var dataString = JSON.stringify(data, function(key, value) {
             //remove circular references
             if (key == 'rna') {
                 return;
@@ -379,16 +391,16 @@ function FornaContainer(element, passedOptions) {
                 return value;
             }
        }, "\t");
-       return data_string;
+       return dataString;
     };
 
-    self.fromJSON = function(json_string) {
+    self.fromJSON = function(jsonString) {
         var rnas, extraLinks;
 
         try{
-            var data = JSON.parse(json_string);
-            rnas = data.rnas;
-            extraLinks = data.extraLinks;
+            var data = JSON.parse(jsonString);
+            var rnas = data.rnas;
+            var extraLinks = data.extraLinks;
         } catch(err) {
             throw err;
         }
@@ -402,13 +414,13 @@ function FornaContainer(element, passedOptions) {
                 r.circular = rnas[uid].circular;
                 r.pairtable = rnas[uid].pairtable;
                 r.uid = rnas[uid].uid;
-                r.struct_name = rnas[uid].struct_name;
+                r.structName = rnas[uid].structName;
                 r.nodes = rnas[uid].nodes;
                 r.links = rnas[uid].links;
                 r.rnaLength = rnas[uid].rnaLength;
                 r.elements = rnas[uid].elements;
-                r.nucs_to_nodes = rnas[uid].nucs_to_nodes;
-                r.pseudoknot_pairs = rnas[uid].pseudoknot_pairs;
+                r.nucsToNodes = rnas[uid].nucsToNodes;
+                r.pseudoknotPairs = rnas[uid].pseudoknotPairs;
             } else {
                 r = new ProteinGraph();
                 r.size = rnas[uid].size;
@@ -452,18 +464,17 @@ function FornaContainer(element, passedOptions) {
         svg.attr("width", svgW)
         .attr("height", svgH);
 
-        self.center_view();
+        self.centerView();
     }
 
-    function change_colors(molecule_colors, d, scale) {
-        console.log('change_colors');
-        if (molecule_colors.hasOwnProperty(d.num)) {
-            val = parseFloat(molecule_colors[d.num]);
+    function changeColors(moleculeColors, d, scale) {
+        if (moleculeColors.hasOwnProperty(d.num)) {
+            val = parseFloat(moleculeColors[d.num]);
 
             if (isNaN(val)) {
                 // passed in color is not a scalar, so 
                 // treat it as a color
-                return molecule_colors[d.num];
+                return moleculeColors[d.num];
             } else {
                 // the user passed in a float, let's use a colormap
                 // to convert it to a color
@@ -475,19 +486,19 @@ function FornaContainer(element, passedOptions) {
     }
 
     self.setOutlineColor = function(color) {
-        var nodes = vis_nodes.selectAll('g.gnode').select('[node_type=nucleotide]');
+        var nodes = visNodes.selectAll('g.gnode').select('[node_type=nucleotide]');
         nodes.style('fill', color);
     }
 
     self.changeColorScheme = function(newColorScheme) {
-        var protein_nodes = vis_nodes.selectAll('[node_type=protein]');
+        var proteinNodes = visNodes.selectAll('[node_type=protein]');
 
-        protein_nodes.classed("protein", true)
+        proteinNodes.classed("protein", true)
                     .attr('r', function(d) { return d.radius; });
 
-        var gnodes = vis_nodes.selectAll('g.gnode');
-        var circles = vis_nodes.selectAll('g.gnode').selectAll('circle');
-        var nodes = vis_nodes.selectAll('g.gnode').select('[node_type=nucleotide]');
+        var gnodes = visNodes.selectAll('g.gnode');
+        var circles = visNodes.selectAll('g.gnode').selectAll('circle');
+        var nodes = visNodes.selectAll('g.gnode').select('[node_type=nucleotide]');
         self.colorScheme = newColorScheme;
 
 
@@ -506,7 +517,7 @@ function FornaContainer(element, passedOptions) {
                    'lightcyan', 'lightblue', 'transparent']);
 
                    nodes.style('fill', function(d) { 
-                       return scale(d.elem_type);
+                       return scale(d.elemType);
                    });
 
         } else if (newColorScheme == 'positions') {
@@ -531,15 +542,15 @@ function FornaContainer(element, passedOptions) {
                     return 'white';
                 }
                 
-                if (self.customColors.color_values.hasOwnProperty(d.struct_name) &&
-                    self.customColors.color_values[d.struct_name].hasOwnProperty(d.num)) {
+                if (self.customColors.colorValues.hasOwnProperty(d.structName) &&
+                    self.customColors.colorValues[d.structName].hasOwnProperty(d.num)) {
                     // if a molecule name is specified, it supercedes the default colors
                     // (for which no molecule name has been specified)
-                    molecule_colors = self.customColors.color_values[d.struct_name];
-                    return change_colors(molecule_colors, d, scale);
-                } else if (self.customColors.color_values.hasOwnProperty('')) {
-                    molecule_colors = self.customColors.color_values[''];
-                    return change_colors(molecule_colors, d, scale);
+                    moleculeColors = self.customColors.colorValues[d.structName];
+                    return changeColors(moleculeColors, d, scale);
+                } else if (self.customColors.colorValues.hasOwnProperty('')) {
+                    moleculeColors = self.customColors.colorValues[''];
+                    return changeColors(moleculeColors, d, scale);
                 }
 
                 return 'white';
@@ -552,21 +563,21 @@ function FornaContainer(element, passedOptions) {
     }
 
     function mousemove() {
-        if (!mousedown_node) return;
+        if (!mousedownNode) return;
 
         mpos = d3.mouse(vis.node());
         // update drag line
-        drag_line
-        .attr("x1", mousedown_node.x)
-        .attr("y1", mousedown_node.y)
+        dragLine
+        .attr("x1", mousedownNode.x)
+        .attr("y1", mousedownNode.y)
         .attr("x2", mpos[0])
         .attr("y2", mpos[1]);
 
     }
 
     function mouseup() {
-        if (mousedown_node) {
-            drag_line
+        if (mousedownNode) {
+            dragLine
             .attr("class", "drag_line_hidden");
         }
 
@@ -598,21 +609,21 @@ function FornaContainer(element, passedOptions) {
 
     // set css for svg
     var style = svg.append('svg:style');
-    $.get("../css/fornac.css", function(content){
+    $.get(self.options.cssFileLocation, function(content){
         style.text(content.replace(/[\s\n]/g, ""));
     });
     
     self.options.svg = svg;
 
-    var svg_graph = svg.append('svg:g')
+    var svgGraph = svg.append('svg:g')
     .on('mousemove', mousemove)
     .on('mousedown', mousedown)
     .on('mouseup', mouseup);
 
     if (self.options.allowPanningAndZooming)
-        svg_graph.call(self.zoomer);
+        svgGraph.call(self.zoomer);
 
-    var rect = svg_graph.append('svg:rect')
+    var rect = svgGraph.append('svg:rect')
     .attr('width', self.options.svgW)
     .attr('height', self.options.svgH)
     .attr('fill', 'white')
@@ -621,23 +632,23 @@ function FornaContainer(element, passedOptions) {
     //.attr("pointer-events", "all")
     .attr("id", "zrect");
 
-    var brush = svg_graph.append('g')
+    var brush = svgGraph.append('g')
     .datum(function() { return {selected: false, previouslySelected: false}; })
     .attr("class", "brush");
 
-    var vis = svg_graph.append("svg:g");
-    var vis_links = vis.append("svg:g");
-    var vis_nodes = vis.append("svg:g");
+    var vis = svgGraph.append("svg:g");
+    var visLinks = vis.append("svg:g");
+    var visNodes = vis.append("svg:g");
 
     self.brusher = d3.svg.brush()
                 .x(xScale)
                 .y(yScale)
                .on("brushstart", function(d) {
-                   var gnodes = vis_nodes.selectAll('g.gnode').selectAll('.outline_node');
-                   gnodes.each(function(d) { d.previouslySelected = ctrl_keydown && d.selected; });
+                   var gnodes = visNodes.selectAll('g.gnode').selectAll('.outline_node');
+                   gnodes.each(function(d) { d.previouslySelected = ctrlKeydown && d.selected; });
                })
                .on("brush", function() {
-                   var gnodes = vis_nodes.selectAll('g.gnode').selectAll('.outline_node');
+                   var gnodes = visNodes.selectAll('g.gnode').selectAll('.outline_node');
                    var extent = d3.event.target.extent();
 
                    gnodes.classed("selected", function(d) {
@@ -659,7 +670,7 @@ function FornaContainer(element, passedOptions) {
       brush.select('.background').style('cursor', 'auto');
 
     function zoomstart() {
-        var node = vis_nodes.selectAll('g.gnode').selectAll('.outline_node');
+        var node = visNodes.selectAll('g.gnode').selectAll('.outline_node');
         node.each(function(d) {
                 d.selected = false;
                 d.previouslySelected = false;
@@ -681,39 +692,39 @@ function FornaContainer(element, passedOptions) {
             return {'translate': [0,0], 'scale': 1};
 
         // Get the bounding box
-        min_x = d3.min(self.graph.nodes.map(function(d) {return d.x;}));
-        min_y = d3.min(self.graph.nodes.map(function(d) {return d.y;}));
+        minX = d3.min(self.graph.nodes.map(function(d) {return d.x;}));
+        minY = d3.min(self.graph.nodes.map(function(d) {return d.y;}));
 
-        max_x = d3.max(self.graph.nodes.map(function(d) {return d.x;}));
-        max_y = d3.max(self.graph.nodes.map(function(d) {return d.y;}));
+        maxX = d3.max(self.graph.nodes.map(function(d) {return d.x;}));
+        maxY = d3.max(self.graph.nodes.map(function(d) {return d.y;}));
 
 
         // The width and the height of the molecule
-        mol_width = max_x - min_x;
-        mol_height = max_y - min_y;
+        molWidth = maxX - minX;
+        molHeight = maxY - minY;
 
         // how much larger the drawing area is than the width and the height
-        width_ratio = self.options.svgW / (mol_width + 1);
-        height_ratio = self.options.svgH / (mol_height + 1);
+        widthRatio = self.options.svgW / (molWidth + 1);
+        heightRatio = self.options.svgH / (molHeight + 1);
 
         // we need to fit it in both directions, so we scale according to
         // the direction in which we need to shrink the most
-        min_ratio = Math.min(width_ratio, height_ratio) * 0.8;
+        minRatio = Math.min(widthRatio, heightRatio) * 0.8;
 
         // the new dimensions of the molecule
-        new_mol_width = mol_width * min_ratio;
-        new_mol_height = mol_height * min_ratio;
+        newMolWidth = molWidth * minRatio;
+        newMolHeight = molHeight * minRatio;
 
         // translate so that it's in the center of the window
-        x_trans = -(min_x) * min_ratio + (self.options.svgW - new_mol_width) / 2;
-        y_trans = -(min_y) * min_ratio + (self.options.svgH - new_mol_height) / 2;
+        xTrans = -(minX) * minRatio + (self.options.svgW - newMolWidth) / 2;
+        yTrans = -(minY) * minRatio + (self.options.svgH - newMolHeight) / 2;
 
 
 
-        return {'translate': [x_trans, y_trans], 'scale': min_ratio};
+        return {'translate': [xTrans, yTrans], 'scale': minRatio};
     };
 
-    self.center_view = function(duration) {
+    self.centerView = function(duration) {
         if (arguments.length === 0)
             duration = 0;
 
@@ -733,7 +744,7 @@ function FornaContainer(element, passedOptions) {
     };
 
     self.force = d3.layout.force()
-    .charge(function(d) { if (d.node_type == 'middle')  {
+    .charge(function(d) { if (d.nodeType == 'middle')  {
             return -30; 
     }
         else 
@@ -741,8 +752,8 @@ function FornaContainer(element, passedOptions) {
     .chargeDistance(300)
     .friction(0.35)
     .linkDistance(function(d) { return 15 * d.value; })
-    .linkStrength(function(d) { if (d.link_type in self.linkStrengths) {
-                                  return self.linkStrengths[d.link_type];
+    .linkStrength(function(d) { if (d.linkType in self.linkStrengths) {
+                                  return self.linkStrengths[d.linkType];
                                 } else {
                                   return self.linkStrengths.other; }
     })
@@ -753,7 +764,7 @@ function FornaContainer(element, passedOptions) {
     .size([self.options.svgW, self.options.svgH]);
 
     // line displayed when dragging new nodes
-    var drag_line = vis.append("line")
+    var dragLine = vis.append("line")
     .attr("class", "drag_line")
     .attr("x1", 0)
     .attr("y1", 0)
@@ -761,18 +772,18 @@ function FornaContainer(element, passedOptions) {
     .attr("y2", 0);
 
     function resetMouseVars() {
-        mousedown_node = null;
-        mouseup_node = null;
-        mousedown_link = null;
+        mousedownNode = null;
+        mouseupNode = null;
+        mousedownLink = null;
     }
 
-    var shift_keydown = false;
-    var ctrl_keydown = false;
+    var shiftKeydown = false;
+    var ctrlKeydown = false;
 
     function selectedNodes(mouseDownNode) {
-        var gnodes = vis_nodes.selectAll('g.gnode');
+        var gnodes = visNodes.selectAll('g.gnode');
 
-        if (ctrl_keydown) {
+        if (ctrlKeydown) {
             return gnodes.filter(function(d) { return d.selected; });
 
             //return d3.selectAll('[struct_name=' + mouseDownNode.struct_name + ']');
@@ -785,9 +796,9 @@ function FornaContainer(element, passedOptions) {
     function dragstarted(d) {
         d3.event.sourceEvent.stopPropagation();
 
-      if (!d.selected && !ctrl_keydown) {
+      if (!d.selected && !ctrlKeydown) {
           // if this node isn't selected, then we have to unselect every other node
-            var node = vis_nodes.selectAll('g.gnode').selectAll('.outline_node');
+            var node = visNodes.selectAll('g.gnode').selectAll('.outline_node');
             node.classed("selected", function(p) { return p.selected =  self.options.applyForce && (p.previouslySelected = false); })
           }
 
@@ -868,42 +879,42 @@ function FornaContainer(element, passedOptions) {
             // lalalalal, not listening
             return;
 
-        if (shift_keydown) return;
+        if (shiftKeydown) return;
 
-        key_is_down = true;
+        keyIsDown = true;
         switch (d3.event.keyCode) {
             case 16:
-                shift_keydown = true;
+                shiftKeydown = true;
                 break;
             case 17:
-                ctrl_keydown = true;
+                ctrlKeydown = true;
                 break;
             case 67: //c
-                self.center_view();
+                self.centerView();
                 break;
         }
 
-        if (shift_keydown || ctrl_keydown) {
-            svg_graph.call(self.zoomer)
+        if (shiftKeydown || ctrlKeydown) {
+            svgGraph.call(self.zoomer)
             .on("mousedown.zoom", null)
             .on("touchstart.zoom", null)
             .on("touchmove.zoom", null)
             .on("touchend.zoom", null);
 
-            //svg_graph.on('zoom', null);
+            //svgGraph.on('zoom', null);
             vis.selectAll('g.gnode')
             .on('mousedown.drag', null);
         }
 
-        if (ctrl_keydown) {
+        if (ctrlKeydown) {
           brush.select('.background').style('cursor', 'crosshair');
           brush.call(self.brusher);
         }
     }
 
     function keyup() {
-        shift_keydown = false;
-        ctrl_keydown = false;
+        shiftKeydown = false;
+        ctrlKeydown = false;
 
         brush.call(self.brusher)
         .on("mousedown.brush", null)
@@ -912,7 +923,7 @@ function FornaContainer(element, passedOptions) {
         .on("touchend.brush", null);                                                                       
 
         brush.select('.background').style('cursor', 'auto');
-        svg_graph.call(self.zoomer);
+        svgGraph.call(self.zoomer);
 
         vis.selectAll('g.gnode')
         .call(drag);
@@ -925,34 +936,34 @@ function FornaContainer(element, passedOptions) {
             d3.event.preventDefault(); 
     });
 
-    link_key = function(d) {
+    linkKey = function(d) {
         return d.uid;
     };
 
-    node_key = function(d) {
+    nodeKey = function(d) {
         key = d.uid;
         return key;
     };
 
-    update_rna_graph = function(r) {
-        var nucleotide_positions = r.get_positions('nucleotide');
-        var label_positions = r.get_positions('label');
+    updateRnaGraph = function(r) {
+        var nucleotidePositions = r.getPositions('nucleotide');
+        var labelPositions = r.getPositions('label');
 
         var uids = r.getUids();
 
         r.recalculateElements()
         .elementsToJson()
         .addPseudoknots()
-        .addPositions('nucleotide', nucleotide_positions)
+        .addPositions('nucleotide', nucleotidePositions)
         .addUids(uids)
         .addLabels(1, self.options.labelInterval)
-        .addPositions('label', label_positions)
+        .addPositions('label', labelPositions)
         .reinforceStems()
         .reinforceLoops()
         .updateLinkUids();
     };
 
-    remove_link = function(d) {
+    removeLink = function(d) {
         // remove a link between two nodes
         index = self.graph.links.indexOf(d);
 
@@ -970,7 +981,7 @@ function FornaContainer(element, passedOptions) {
                 r.pairtable[d.source.num] = 0;
                 r.pairtable[d.target.num] = 0;
 
-                update_rna_graph(r);
+                updateRnaGraph(r);
 
             } else {
                 // 2. The link is between two different molecules
@@ -985,51 +996,51 @@ function FornaContainer(element, passedOptions) {
         self.update();
     };
 
-    link_click = function(d) {
-        if (!shift_keydown) {
+    linkClick = function(d) {
+        if (!shiftKeydown) {
             return;
         }
 
-        var invalid_links = {'backbone': true,
+        var invalidLinks = {'backbone': true,
                              'fake': true,
                              'fake_fake': true,
                              'label_link': true};
 
-        if (d.link_type in invalid_links ) 
+        if (d.linkType in invalidLinks ) 
             return;
 
-        remove_link(d);
+        removeLink(d);
     };
 
 
-    self.add_link =  function(new_link) {
+    self.addLink =  function(newLink) {
         // this means we have a new json, which means we have
         // to recalculate the structure and change the colors
         // appropriately
         //
-        if (new_link.source.rna == new_link.target.rna) {
-            r = new_link.source.rna;
+        if (newLink.source.rna == newLink.target.rna) {
+            r = newLink.source.rna;
 
-            r.pairtable[new_link.source.num] = new_link.target.num;
-            r.pairtable[new_link.target.num] = new_link.source.num;
+            r.pairtable[newLink.source.num] = newLink.target.num;
+            r.pairtable[newLink.target.num] = newLink.source.num;
 
-            update_rna_graph(r);
+            updateRnaGraph(r);
 
         } else {
             //Add an extra link
-            new_link.link_type = 'intermolecule';
-            self.extraLinks.push(new_link);
+            newLink.linkType = 'intermolecule';
+            self.extraLinks.push(newLink);
         }
         self.recalculateGraph();
         self.update();
     };
 
-    node_mouseclick = function(d) {
+    nodeMouseclick = function(d) {
         if (d3.event.defaultPrevented) return;
 
-        if (!ctrl_keydown) {
+        if (!ctrlKeydown) {
             //if the shift key isn't down, unselect everything
-            var node = vis_nodes.selectAll('g.gnode').selectAll('.outline_node');
+            var node = visNodes.selectAll('g.gnode').selectAll('.outline_node');
             node.classed("selected", function(p) { return p.selected =  self.options.applyForce && (p.previouslySelected = false); });
         }
 
@@ -1037,64 +1048,64 @@ function FornaContainer(element, passedOptions) {
         d3.select(this).select('circle').classed("selected", d.selected = self.options.applyForce && !d.previouslySelected);
     };
 
-    node_mouseup = function(d) {
-        if (mousedown_node) {
-            mouseup_node = d;
+    nodeMouseup = function(d) {
+        if (mousedownNode) {
+            mouseupNode = d;
 
-            if (mouseup_node == mousedown_node) { resetMouseVars(); return; }
-            var new_link = {source: mousedown_node, target: mouseup_node, link_type: 'basepair', value: 1, uid:generateUUID()};
+            if (mouseupNode == mousedownNode) { resetMouseVars(); return; }
+            var newLink = {source: mousedownNode, target: mouseupNode, linkType: 'basepair', value: 1, uid:generateUUID()};
 
             for (i = 0; i < self.graph.links.length; i++) {
-                if ((self.graph.links[i].source == mousedown_node)  || 
-                    (self.graph.links[i].target == mousedown_node) ||
-                        (self.graph.links[i].source == mouseup_node) ||
-                            (self.graph.links[i].target == mouseup_node)) {
+                if ((self.graph.links[i].source == mousedownNode)  || 
+                    (self.graph.links[i].target == mousedownNode) ||
+                        (self.graph.links[i].source == mouseupNode) ||
+                            (self.graph.links[i].target == mouseupNode)) {
 
-                    if (self.graph.links[i].link_type == 'basepair' || self.graph.links[i].link_type == 'pseudoknot') {
+                    if (self.graph.links[i].linkType == 'basepair' || self.graph.links[i].linkType == 'pseudoknot') {
                         return;
                     }
                 }
 
-                if (((self.graph.links[i].source == mouseup_node)  && 
-                     (self.graph.links[i].target == mousedown_node)) ||
-                         ((self.graph.links[i].source == mousedown_node)  && 
-                          (self.graph.links[i].target == mouseup_node))) {
-                    if (self.graph.links[i].link_type == 'backbone') {
+                if (((self.graph.links[i].source == mouseupNode)  && 
+                     (self.graph.links[i].target == mousedownNode)) ||
+                         ((self.graph.links[i].source == mousedownNode)  && 
+                          (self.graph.links[i].target == mouseupNode))) {
+                    if (self.graph.links[i].linkType == 'backbone') {
                         return;
                     }
                 }
             }
 
-            if (mouseup_node.node_type == 'middle' || mousedown_node.node_type == 'middle' || mouseup_node.node_type == 'label' || mousedown_node.node_type == 'label')
+            if (mouseupNode.nodeType == 'middle' || mousedownNode.nodeType == 'middle' || mouseupNode.nodeType == 'label' || mousedownNode.nodeType == 'label')
                 return;
 
-            self.add_link(new_link);
+            self.addLink(newLink);
 
         }
     };
 
-    node_mousedown = function(d) {
-      if (!d.selected && !ctrl_keydown) {
+    nodeMousedown = function(d) {
+      if (!d.selected && !ctrlKeydown) {
           // if this node isn't selected, then we have to unselect every other node
-            var node = vis_nodes.selectAll('g.gnode').selectAll('.outline_node');
+            var node = visNodes.selectAll('g.gnode').selectAll('.outline_node');
             node.classed("selected", function(p) { return p.selected =  p.previouslySelected = false; })
           }
 
 
           d3.select(this).classed("selected", function(p) { d.previouslySelected = d.selected; return d.selected = self.options.applyForce && true; });
 
-        if (!shift_keydown) {
+        if (!shiftKeydown) {
             return;
         }
 
-        mousedown_node = d;
+        mousedownNode = d;
 
-        drag_line
+        dragLine
         .attr("class", "drag_line")
-        .attr("x1", mousedown_node.x)
-        .attr("y1", mousedown_node.y)
-        .attr("x2", mousedown_node.x)
-        .attr("y2", mousedown_node.y);
+        .attr("x1", mousedownNode.x)
+        .attr("y1", mousedownNode.y)
+        .attr("x2", mousedownNode.x)
+        .attr("y2", mousedownNode.y);
 
         //gnodes.attr('pointer-events',  'none');
 
@@ -1173,13 +1184,13 @@ function FornaContainer(element, passedOptions) {
         // Background
         rect.classed("transparent", !self.displayParameters.displayBackground);
         // Numbering
-        vis_nodes.selectAll('[node_type=label]').classed("transparent", !self.displayParameters.displayNumbering);
-        vis_nodes.selectAll('[label_type=label]').classed("transparent", !self.displayParameters.displayNumbering);
-        vis_links.selectAll('[link_type=label_link]').classed("transparent", !self.displayParameters.displayNumbering);
+        visNodes.selectAll('[node_type=label]').classed("transparent", !self.displayParameters.displayNumbering);
+        visNodes.selectAll('[label_type=label]').classed("transparent", !self.displayParameters.displayNumbering);
+        visLinks.selectAll('[linkType=label_link]').classed("transparent", !self.displayParameters.displayNumbering);
         // Node Outline
         svg.selectAll('circle').classed("hidden_outline", !self.displayParameters.displayNodeOutline);
         // Node Labels
-        vis_nodes.selectAll('[label_type=nucleotide]').classed("transparent", !self.displayParameters.displayNodeLabel);
+        visNodes.selectAll('[label_type=nucleotide]').classed("transparent", !self.displayParameters.displayNodeLabel);
         // Links
         svg.selectAll("[link_type=real],[link_type=basepair],[link_type=backbone],[link_type=pseudoknot],[link_type=protein_chain],[link_type=chain_chain]").classed("transparent", !self.displayParameters.displayLinks);
         // Pseudoknot Links
@@ -1187,8 +1198,8 @@ function FornaContainer(element, passedOptions) {
         // Protein Links
         svg.selectAll("[link_type=protein_chain]").classed("transparent", !self.displayParameters.displayProteinLinks);
         // Fake Links
-        vis_links.selectAll("[link_type=fake]").classed("transparent", !self.options.displayAllLinks);
-        vis_links.selectAll("[link_type=fake_fake]").classed("transparent", !self.options.displayAllLinks);
+        visLinks.selectAll("[link_type=fake]").classed("transparent", !self.options.displayAllLinks);
+        visLinks.selectAll("[link_type=fake_fake]").classed("transparent", !self.options.displayAllLinks);
     };
 
     function nudge(dx, dy) {
@@ -1207,29 +1218,29 @@ function FornaContainer(element, passedOptions) {
         d3.event.preventDefault();
     }
 
-    self.createNewLinks = function(links_enter) {
-        var link_lines = links_enter.append("svg:line");
+    self.createNewLinks = function(linksEnter) {
+        var linkLines = linksEnter.append("svg:line");
 
-        link_lines.append("svg:title")
-        .text(link_key);
+        linkLines.append("svg:title")
+        .text(linkKey);
 
-        link_lines
+        linkLines
         .classed("link", true)
         .attr("x1", function(d) { return d.source.x; })
         .attr("y1", function(d) { return d.source.y; })
         .attr("x2", function(d) { return d.target.x; })
         .attr("y2", function(d) { return d.target.y; })
-        .attr("link_type", function(d) { return d.link_type; } )
-        .attr("class", function(d) { return d3.select(this).attr('class') + " " + d.link_type; })
-        .attr('pointer-events', function(d) { if (d.link_type == 'fake') return 'none'; else return 'all';});
+        .attr("link_type", function(d) { return d.linkType; } )
+        .attr("class", function(d) { return d3.select(this).attr('class') + " " + d.linkType; })
+        .attr('pointer-events', function(d) { if (d.linkType == 'fake') return 'none'; else return 'all';});
 
         /* We don't need to update the positions of the stabilizing links */
         /*
-        basepair_links = vis_links.selectAll("[link_type=basepair]");
-        basepair_links.classed("basepair", true);
+        basepairLinks = visLinks.selectAll("[link_type=basepair]");
+        basepairLinks.classed("basepair", true);
 
-        fake_links = vis_links.selectAll("[link_type=fake]")
-        fake_links.classed("fake", true);
+        fakeLinks = visLinks.selectAll("[link_type=fake]")
+        fakeLinks.classed("fake", true);
 
         intermolecule_links = vis_links.selectAll("[link_type=intermolecule]");
         intermolecule_links.classed("intermolecule", true);
@@ -1238,14 +1249,14 @@ function FornaContainer(element, passedOptions) {
         plink.classed("chain_chain", true);
         */
 
-       return link_lines;
+       return linkLines;
     };
 
-    self.createNewNodes = function(gnodes_enter) {
-        gnodes_enter = gnodes_enter.append('g')
+    self.createNewNodes = function(gnodesEnter) {
+        gnodesEnter = gnodesEnter.append('g')
         .classed('noselect', true)
         .classed('gnode', true)
-        .attr('struct_name', function(d) { return d.struct_name; })
+        .attr('struct_name', function(d) { return d.structName; })
         .attr("transform", function(d) { 
             if (typeof d.x != 'undefined' && typeof d.y != 'undefined')
                 return 'translate(' + [d.x, d.y] + ')'; 
@@ -1254,49 +1265,49 @@ function FornaContainer(element, passedOptions) {
         })
         .each( function(d) { d.selected = d.previouslySelected = false; });
 
-        gnodes_enter
+        gnodesEnter
         .call(drag)
-        .on('mousedown', node_mousedown)
+        .on('mousedown', nodeMousedown)
         .on('mousedrag', function(d) {})
-        .on('mouseup', node_mouseup)
-        .on('click', node_mouseclick)
+        .on('mouseup', nodeMouseup)
+        .on('click', nodeMouseclick)
         .transition()
         .duration(750)
         .ease("elastic")
         .attr("r", 6.5);
 
         // create nodes behind the circles which will serve to highlight them
-        var nucleotide_nodes = gnodes_enter.filter(function(d) { 
-            return d.node_type == 'nucleotide' || d.node_type == 'label' || d.node_type == 'protein';
+        var nucleotideNodes = gnodesEnter.filter(function(d) { 
+            return d.nodeType == 'nucleotide' || d.nodeType == 'label' || d.nodeType == 'protein';
         });
 
-        nucleotide_nodes.append("svg:circle")
+        nucleotideNodes.append("svg:circle")
         .attr('class', "outline_node")
         .attr("r", function(d) { return d.radius+1; });
 
-        var node = gnodes_enter.append("svg:circle")
+        var node = gnodesEnter.append("svg:circle")
         .attr("class", "node")
-        .classed("label", function(d) { return d.node_type == 'label'; })
+        .classed("label", function(d) { return d.nodeType == 'label'; })
         .attr("r", function(d) { 
-            if (d.node_type == 'middle') return 0; 
+            if (d.nodeType == 'middle') return 0; 
             else {
                 return d.radius; 
             }
         })
-        .attr("node_type", function(d) { return d.node_type; });
+        .attr("node_type", function(d) { return d.nodeType; });
 
-        var labels = gnodes_enter.append("text")
+        var labels = gnodesEnter.append("text")
         .text(function(d) { return d.name; })
         .attr('text-anchor', 'middle')
         .attr('font-size', 8.0)
         .attr('font-weight', 'bold')
         .attr('y', 2.5)
         .attr('class', 'node-label')
-        .attr("label_type", function(d) { return d.node_type; })
+        .attr("label_type", function(d) { return d.nodeType; })
         .append("svg:title")
         .text(function(d) { 
-            if (d.node_type == 'nucleotide') {
-                return d.struct_name + ":" + d.num;
+            if (d.nodeType == 'nucleotide') {
+                return d.structName + ":" + d.num;
             } else {
                 return '';
             }
@@ -1304,26 +1315,26 @@ function FornaContainer(element, passedOptions) {
 
         node.append("svg:title")
         .text(function(d) { 
-            if (d.node_type == 'nucleotide') {
-                return d.struct_name + ":" + d.num;
+            if (d.nodeType == 'nucleotide') {
+                return d.structName + ":" + d.num;
             } else {
                 return '';
             }
         });
 
-        return gnodes_enter;
+        return gnodesEnter;
     };
 
-    node_tooltip = function(d) {
-        node_tooltips = {};
+    nodeTooltip = function(d) {
+        nodeTooltips = {};
 
-        node_tooltips.nucleotide = d.num;
-        node_tooltips.label = '';
-        node_tooltips.pseudo = '';
-        node_tooltips.middle = '';
-        node_tooltips.protein = d.struct_name;
+        nodeTooltips.nucleotide = d.num;
+        nodeTooltips.label = '';
+        nodeTooltips.pseudo = '';
+        nodeTooltips.middle = '';
+        nodeTooltips.protein = d.structName;
 
-        return node_tooltips[d.node_type];
+        return nodeTooltips[d.nodeType];
     };
 
     self.update = function () {
@@ -1334,58 +1345,49 @@ function FornaContainer(element, passedOptions) {
           self.force.start();
         }
 
-        var all_links = vis_links.selectAll("line.link")
-        .data(self.graph.links, link_key);
+        var allLinks = visLinks.selectAll("line.link") .data(self.graph.links, linkKey);
 
-        all_links.attr('class', '')
+        allLinks.attr('class', '')
         .classed('link', true)
-        .attr("link_type", function(d) { return d.link_type; } )
-        .attr("class", function(d) { return d3.select(this).attr('class') + " " + d.link_type; });
+        .attr("link_type", function(d) { return d.linkType; } )
+        .attr("class", function(d) { return d3.select(this).attr('class') + " " + d.linkType; });
 
-        var links_enter = all_links.enter();
-        self.createNewLinks(links_enter);
+        var linksEnter = allLinks.enter();
+        self.createNewLinks(linksEnter);
 
-        all_links.exit().remove();
+        allLinks.exit().remove();
 
 
             domain = [0, 1, 2, 3, 4, 5, 6, 7, 8, 9];
             var colors = d3.scale.category10().domain(domain);
 
-            var gnodes = vis_nodes.selectAll('g.gnode')
-            .data(self.graph.nodes, node_key);
+            var gnodes = visNodes.selectAll('g.gnode')
+            .data(self.graph.nodes, nodeKey);
             //.attr('pointer-events', 'all');
 
-            gnodes_enter = gnodes.enter();
+            gnodesEnter = gnodes.enter();
 
-            self.createNewNodes(gnodes_enter);
+            self.createNewNodes(gnodesEnter);
 
             gnodes.exit().remove();
 
-            //fake_nodes = self.graph.nodes.filter(function(d) { return d.node_type == 'middle'; });
-            //fake_nodes = self.graph.nodes.filter(function(d) { return true; });
-            real_nodes = self.graph.nodes.filter(function(d) { return d.node_type == 'nucleotide' || d.node_type == 'label';});
+            //fake_nodes = self.graph.nodes.filter(function(d) { return d.nodeType == 'middle'; });
+            //fakeNodes = self.graph.nodes.filter(function(d) { return true; });
+            realNodes = self.graph.nodes.filter(function(d) { return d.nodeType == 'nucleotide' || d.nodeType == 'label';});
 
             if (self.displayFakeLinks)
-                xlink = all_links;
+                xlink = allLinks;
             else
-                xlink = vis_links.selectAll("[link_type=real],[link_type=pseudoknot],[link_type=protein_chain],[link_type=chain_chain],[link_type=label_link],[link_type=backbone],[link_type=basepair],[link_type=fake],[link_type=intermolecule]");
+                xlink = visLinks.selectAll("[link_type=real],[link_type=pseudoknot],[link_type=protein_chain],[link_type=chain_chain],[link_type=label_link],[link_type=backbone],[link_type=basepair],[link_type=fake],[link_type=intermolecule]");
 
-            xlink.on('click', link_click);
+            xlink.on('click', linkClick);
 
             self.force.on("tick", function() {
-                /*
-                var q = d3.geom.quadtree(fake_nodes),
+                var q = d3.geom.quadtree(realNodes),
                 i = 0,
-                n = fake_nodes.length;
+                n = realNodes.length;
 
-                while (++i < n) q.visit(collide(fake_nodes[i]));
-                */
-
-                var q = d3.geom.quadtree(real_nodes),
-                i = 0,
-                n = real_nodes.length;
-
-                while (++i < n) q.visit(collide(real_nodes[i]));
+                while (++i < n) q.visit(collide(realNodes[i]));
 
                 xlink.attr("x1", function(d) { return d.source.x; })
                 .attr("y1", function(d) {  return d.source.y; })
@@ -1409,7 +1411,7 @@ function FornaContainer(element, passedOptions) {
     
     self.setSize();
 }
-var number_sort = function(a,b) { return a - b; };
+var numberSort = function(a,b) { return a - b; };
 
 function generateUUID(){                                                                                        
     /* Stack Overflow:                                                                                          
@@ -1442,9 +1444,9 @@ function ColorScheme(colorsText) {
     var self = this;
     self.colorsText = colorsText;
 
-    self.parseRange = function(range_text) {
+    self.parseRange = function(rangeText) {
         //parse a number range such as 1-10 or 3,7,9 or just 7
-        var parts = range_text.split(',')
+        var parts = rangeText.split(',')
         var nums = [];
 
         for (var i = 0; i < parts.length; i++) {
@@ -1461,14 +1463,14 @@ function ColorScheme(colorsText) {
                 for (var j = from; j <= to; j++) 
                     nums.push(j)
             } else {
-                console.log('Malformed range (too many dashes):', range_text);
+                console.log('Malformed range (too many dashes):', rangeText);
             }
         }
 
         return nums;
     }
 
-    self.parseColorText = function(color_text) {
+    self.parseColorText = function(colorText) {
         /* Parse the text of an RNA color string. Instructions and description
          * of the format are given below.
          *
@@ -1476,21 +1478,21 @@ function ColorScheme(colorsText) {
          * molecule name, then by the nucleotide. This is then applied
          * by force.js to the RNAs it is displaying. When no molecule
          * name is specified, the color is applied to all molecules*/
-        var lines = color_text.split('\n');
-        var curr_molecule = '';
+        var lines = colorText.split('\n');
+        var currMolecule = '';
         var counter = 1;
-        var colors_json = {color_values: {'':{}}, range:['white', 'steelblue']};
-        var domain_values = [];
+        var colorsJson = {colorValues: {'':{}}, range:['white', 'steelblue']};
+        var domainValues = [];
 
 
         for (var i = 0; i < lines.length; i++) {
 
             if (lines[i][0] == '>') {
                 // new molecule
-                curr_molecule = lines[i].trim().slice(1);
+                currMolecule = lines[i].trim().slice(1);
                 counter = 1;
 
-                colors_json.color_values[curr_molecule] = {};
+                colorsJson.colorValues[currMolecule] = {};
                 continue;
             }
 
@@ -1501,16 +1503,16 @@ function ColorScheme(colorsText) {
                     if (words[j].search("range") === 0) {
                         //there's a color scale in this entry
                         parts = words[j].split('=');
-                        parts_right = parts[1].split(':')
-                        colors_json.range = [parts_right[0], parts_right[1]];
+                        partsRight = parts[1].split(':')
+                        colorsJson.range = [partsRight[0], partsRight[1]];
                         continue;
                     }
 
                     if (words[j].search("domain") == 0) {
                         //there's a color scale in this entry
                         parts = words[j].split('=');
-                        parts_right = parts[1].split(':')
-                        colors_json.domain = [parts_right[0], parts_right[1]];
+                        partsRight = parts[1].split(':')
+                        colorsJson.domain = [partsRight[0], partsRight[1]];
                         continue;
                     }
 
@@ -1522,27 +1524,27 @@ function ColorScheme(colorsText) {
 
                     for (var k = 0; k < nums.length; k++) {
                         if (isNaN(color)) {
-                            colors_json.color_values[curr_molecule][nums[k]] = color;
+                            colorsJson.colorValues[currMolecule][nums[k]] = color;
                         } else {
-                            colors_json.color_values[curr_molecule][nums[k]] = +color;
-                            domain_values.push(Number(color));
+                            colorsJson.colorValues[currMolecule][nums[k]] = +color;
+                            domainValues.push(Number(color));
                         }
                     }
                 } else {
                     //it's a number, so we add it to the list of values
                     //seen for this molecule
-                    colors_json.color_values[curr_molecule][counter] = Number(words[j]);
+                    colorsJson.colorValues[currMolecule][counter] = Number(words[j]);
                     counter += 1;
 
-                    domain_values.push(Number(words[j]));
+                    domainValues.push(Number(words[j]));
                 }
             }
         }
 
-        if (!('domain' in colors_json))
-            colors_json.domain = [Math.min.apply(null, domain_values), Math.max.apply(null, domain_values)];
+        if (!('domain' in colorsJson))
+            colorsJson.domain = [Math.min.apply(null, domainValues), Math.max.apply(null, domainValues)];
 
-        self.colors_json = colors_json;
+        self.colorsJson = colorsJson;
 
         return self;
     };
@@ -1554,26 +1556,26 @@ function ColorScheme(colorsText) {
          */
         var value;
 
-        for (var molecule_name in self.colors_json) {
-            var min_num = Number.MAX_VALUE;
-            var max_num = Number.MIN_VALUE;
+        for (var moleculeName in self.colorsJson) {
+            var minNum = Number.MAX_VALUE;
+            var maxNum = Number.MIN_VALUE;
 
             // iterate once to find the min and max values;
-            for (var resnum in self.colors_json.color_values[molecule_name]) {
-                value = self.colors_json.color_values[molecule_name][resnum];
+            for (var resnum in self.colorsJson.colorValues[moleculeName]) {
+                value = self.colorsJson.colorValues[moleculeName][resnum];
                 if (typeof value == 'number') {
-                    if (value < min_num)
-                        min_num = value;
-                    if (value > max_num)
-                        max_num = value;
+                    if (value < minNum)
+                        minNum = value;
+                    if (value > maxNum)
+                        maxNum = value;
                 }
             }
 
             // iterate again to normalize
-            for (resnum in self.colors_json.color_values[molecule_name]) {
-                value = self.colors_json.color_values[molecule_name][resnum];
+            for (resnum in self.colorsJson.colorValues[moleculeName]) {
+                value = self.colorsJson.colorValues[moleculeName][resnum];
                 if (typeof value == 'number') {
-                    self.colors_json.color_values[molecule_name][resnum] = (value - min_num ) / (max_num - min_num);
+                    self.colorsJson.colorValues[moleculeName][resnum] = (value - minNum ) / (maxNum - minNum);
                 }
             }
         }
@@ -1582,9 +1584,10 @@ function ColorScheme(colorsText) {
     };
 
     self.parseColorText(self.colorsText);
+    return self;
 }
 
-function ProteinGraph(struct_name, size, uid) {
+function ProteinGraph(structName, size, uid) {
     var self = this;
 
     self.type = 'protein';
@@ -1593,9 +1596,9 @@ function ProteinGraph(struct_name, size, uid) {
                    'num': 1,
                    'radius': 3 *  Math.sqrt(size),
                    'rna': self,
-                   'node_type': 'protein',
-                   'struct_name': struct_name,
-                   'elem_type': 'p',
+                   'nodeType': 'protein',
+                   'structName': structName,
+                   'elemType': 'p',
                    'size': size,
                    'uid': generateUUID()}];
 
@@ -1622,7 +1625,7 @@ function ProteinGraph(struct_name, size, uid) {
 
 }
 
-function RNAGraph(seq, dotbracket, struct_name) {
+function RNAGraph(seq, dotbracket, structName) {
     var self = this;
 
     self.type = 'rna';
@@ -1631,11 +1634,11 @@ function RNAGraph(seq, dotbracket, struct_name) {
     if (arguments.length == 0) {
         self.seq = '';
         self.dotbracket = '';
-        self.struct_name = '';
+        self.structName = '';
     } else {
         self.seq = seq;
         self.dotbracket = dotbracket;  //i.e. ..((..))..
-        self.struct_name = struct_name;
+        self.structName = structName;
     }
 
     self.circular = false;
@@ -1652,13 +1655,13 @@ function RNAGraph(seq, dotbracket, struct_name) {
     self.elements = [];            //store the elements and the 
                                    //nucleotides they contain
     self.pseudoknotPairs = [];
-    self.nucs_to_nodes = {};
+    self.nucsToNodes = {};
 
     self.addUids = function(uids) {
-        var nucleotide_nodes = self.nodes.filter(function(d) { return d.node_type == 'nucleotide'; });
+        var nucleotideNodes = self.nodes.filter(function(d) { return d.nodeType == 'nucleotide'; });
 
-        for (var i = 0; i < uids.length && i < nucleotide_nodes.length; i++)
-            nucleotide_nodes[i].uid = uids[i];
+        for (var i = 0; i < uids.length && i < nucleotideNodes.length; i++)
+            nucleotideNodes[i].uid = uids[i];
 
         return self;
     };
@@ -1669,25 +1672,25 @@ function RNAGraph(seq, dotbracket, struct_name) {
 
     self.computePairtable();
 
-    self.addPositions = function(node_type, positions) {
-        label_nodes = self.nodes.filter(function(d) { return d.node_type == node_type; });
+    self.addPositions = function(nodeType, positions) {
+        var labelNodes = self.nodes.filter(function(d) { return d.nodeType == nodeType; });
 
-        for  (var i = 0; i < label_nodes.length; i++) {
-            label_nodes[i].x = positions[i][0];
-            label_nodes[i].px = positions[i][0];
-            label_nodes[i].y = positions[i][1];
-            label_nodes[i].py = positions[i][1];
+        for  (var i = 0; i < labelNodes.length; i++) {
+            labelNodes[i].x = positions[i][0];
+            labelNodes[i].px = positions[i][0];
+            labelNodes[i].y = positions[i][1];
+            labelNodes[i].py = positions[i][1];
         }
 
         return self;
     };
 
-    self.get_positions = function(node_type) {
+    self.getPositions = function(nodeType) {
         positions = [];
-        nucleotide_nodes = self.nodes.filter(function(d) { return d.node_type == node_type; });
+        nucleotideNodes = self.nodes.filter(function(d) { return d.nodeType == nodeType; });
 
-        for (var i = 0; i < nucleotide_nodes.length; i++)
-            positions.push([nucleotide_nodes[i].x, nucleotide_nodes[i].y]);
+        for (var i = 0; i < nucleotideNodes.length; i++)
+            positions.push([nucleotideNodes[i].x, nucleotideNodes[i].y]);
 
         return positions;
     };
@@ -1705,13 +1708,13 @@ function RNAGraph(seq, dotbracket, struct_name) {
 
     self.reinforceStems = function() {
         pt = self.pairtable;
-        relevant_elements = elements.filter( function(d) {
+        relevantElements = elements.filter( function(d) {
             return d[0] == 's' && d[2].length >= 4;
         });
 
-        for (var i = 0; i < relevant_elements.length; i++) {
-            all_nucs = relevant_elements[i][2];
-            nucs = all_nucs.slice(0, all_nucs.length / 2);
+        for (var i = 0; i < relevantElements.length; i++) {
+            allNucs = relevantElements[i][2];
+            nucs = allNucs.slice(0, allNucs.length / 2);
 
             for (var j = 0; j < nucs.length-1; j++) {
                 self.addFakeNode([nucs[j], nucs[j+1], pt[nucs[j+1]], pt[nucs[j]]]);
@@ -1725,7 +1728,7 @@ function RNAGraph(seq, dotbracket, struct_name) {
         /* 
          * Add a set of fake nodes to enforce the structure
          */
-        var filter_nucs = function(d) { 
+        var filterNucs = function(d) { 
             return d !== 0 && d <= self.dotbracket.length;
         };
 
@@ -1733,7 +1736,42 @@ function RNAGraph(seq, dotbracket, struct_name) {
             if (self.elements[i][0] == 's' || (!self.circularizeExternal && self.elements[i][0] == 'e'))
                 continue;
 
-            var nucs = self.elements[i][2].filter(filter_nucs);
+            var nucs = self.elements[i][2].filter(filterNucs);
+
+            if (self.elements[i][0] == 'e') {
+                var newNode1 = {'name': '',
+                    'num': -1,
+                    //'radius': 18 * radius -6,
+                    'radius': 0,
+                    'rna': self,
+                    'nodeType': 'middle',
+                    'elemType': 'f',
+                    'nucs': [],
+                    'x': self.nodes[self.rnaLength-1].x,
+                    'y': self.nodes[self.rnaLength-1].y,
+                    'px': self.nodes[self.rnaLength-1].px,
+                    'py': self.nodes[self.rnaLength-1].py,
+                    'uid': generateUUID() };
+                var newNode2 = {'name': '',
+                    'num': -1,
+                    //'radius': 18 * radius -6,
+                    'radius': 0,
+                    'rna': self,
+                    'nodeType': 'middle',
+                    'elemType': 'f',
+                    'nucs': [],
+                    'x': self.nodes[0].x,
+                    'y': self.nodes[0].y,
+                    'px': self.nodes[0].px,
+                    'py': self.nodes[0].py,
+                    'uid': generateUUID() };
+
+                    nucs.push(self.nodes.length+1);
+                    nucs.push(self.nodes.length+2);
+                    self.nodes.push(newNode1);
+                    self.nodes.push(newNode2);
+            }
+            
 
             self.addFakeNode(nucs);
         }
@@ -1760,20 +1798,20 @@ function RNAGraph(seq, dotbracket, struct_name) {
         for (var i = 0; i < nucs.length; i++)
             fakeNodeUid += self.nodes[nucs[i]-1].uid;
 
-        new_node = {'name': '',
+        var newNode = {'name': '',
                          'num': -1,
                          //'radius': 18 * radius -6,
                          'radius': radius,
                          'rna': self,
-                         'node_type': 'middle',
-                         'elem_type': 'f',
+                         'nodeType': 'middle',
+                         'elemType': 'f',
                          'nucs': nucs,
                          'uid': fakeNodeUid };
-        self.nodes.push(new_node);
+        self.nodes.push(newNode);
 
-        new_x = 0;
-        new_y = 0;
-        coords_counted = 0;
+        newX = 0;
+        newY = 0;
+        coordsCounted = 0;
 
         angle = (nucs.length - 2) * 3.14159 / (2 * nucs.length);
         radius = 0.5 / Math.cos(angle);
@@ -1785,7 +1823,7 @@ function RNAGraph(seq, dotbracket, struct_name) {
             //link to the center node
             self.links.push({'source': self.nodes[nucs[j] - 1],
                              'target': self.nodes[self.nodes.length-1],
-                             'link_type': 'fake',
+                             'linkType': 'fake',
                              'value': radius,
                              'uid': generateUUID() });
 
@@ -1793,7 +1831,7 @@ function RNAGraph(seq, dotbracket, struct_name) {
                 //link across the loop
                 self.links.push({'source': self.nodes[nucs[j] - 1],
                                  'target': self.nodes[nucs[(j + Math.floor(nucs.length / 2)) % nucs.length] - 1],
-                                 'link_type': 'fake',
+                                 'linkType': 'fake',
                                  'value': radius * 2,
                                  'uid': generateUUID() });
             }
@@ -1803,27 +1841,27 @@ function RNAGraph(seq, dotbracket, struct_name) {
             //link to over-neighbor
             self.links.push({'source': self.nodes[nucs[j] - 1],
                              'target': self.nodes[nucs[(j + 2) % nucs.length] - 1],
-                             'link_type': 'fake',
+                             'linkType': 'fake',
                              'value': c});
 
             // calculate the mean of the coordinats in this loop
             // and place the fake node there
-            from_node = self.nodes[nucs[j]-1];
-            if ('x' in from_node) {
-                new_x += from_node.x;
-                new_y += from_node.y;
+            fromNode = self.nodes[nucs[j]-1];
+            if ('x' in fromNode) {
+                newX += fromNode.x;
+                newY += fromNode.y;
 
-                coords_counted += 1;
+                coordsCounted += 1;
             }
         }
 
-        if (coords_counted > 0) {
+        if (coordsCounted > 0) {
             // the nucleotides had set positions so we can calculate the position
             // of the fake node
-            new_node.x = new_x / coords_counted;
-            new_node.y = new_y / coords_counted;
-            new_node.px = new_node.x;
-            new_node.py = new_node.y;
+            newNode.x = newX / coordsCounted;
+            newNode.y = newY / coordsCounted;
+            newNode.px = newNode.x;
+            newNode.py = newNode.y;
         }
 
         return self;
@@ -1834,43 +1872,43 @@ function RNAGraph(seq, dotbracket, struct_name) {
 
         // We want to be able to connect all of the fake nodes
         // and create a structure consisting of just them
-        var filter_out_non_fake_nodes = function(d) {
-            return d.node_type == 'middle';
+        var filterOutNonFakeNodes = function(d) {
+            return d.nodeType == 'middle';
         }
 
-        var nucs_to_nodes = {};
-        var fake_nodes = self.nodes.filter(filter_out_non_fake_nodes);
+        var nucsToNodes = {};
+        var fakeNodes = self.nodes.filter(filterOutNonFakeNodes);
         var linked = new Set();
 
         // initialize the nucleotides to nodes
-        for (var i = 1; i <= self.rnaLength; i++) 
-            nucs_to_nodes[i] = [];
+        for (var i = 1; i <= self.nodes.length; i++) 
+            nucsToNodes[i] = [];
 
-        for (i = 0; i < fake_nodes.length; i++) {
-            var this_node = fake_nodes[i];
+        for (i = 0; i < fakeNodes.length; i++) {
+            var thisNode = fakeNodes[i];
 
-            // each fake node represents a certain set of nucleotdies (this_node.nucs)
-            for (var j = 0; j < this_node.nucs.length; j++) {
-                var this_nuc = this_node.nucs[j];
+            // each fake node represents a certain set of nucleotides (thisNode.nucs)
+            for (var j = 0; j < thisNode.nucs.length; j++) {
+                var thisNuc = thisNode.nucs[j];
 
                 // check to see if this nucleotide has been seen in another fake node
                 // if it has, then we add a link between the two nodes
-                for (var k = 0; k < nucs_to_nodes[this_nuc].length; k++) {
-                    if (linked.has(JSON.stringify([nucs_to_nodes[this_nuc][k].uid, this_node.uid].sort())))
+                for (var k = 0; k < nucsToNodes[thisNuc].length; k++) {
+                    if (linked.has(JSON.stringify([nucsToNodes[thisNuc][k].uid, thisNode.uid].sort())))
                         continue; //already linked
 
-                    var distance = nucs_to_nodes[this_nuc][k].radius + this_node.radius;
+                    var distance = nucsToNodes[thisNuc][k].radius + thisNode.radius;
 
-                    self.links.push({"source": nucs_to_nodes[this_nuc][k],
-                                      "target": this_node,
+                    self.links.push({"source": nucsToNodes[thisNuc][k],
+                                      "target": thisNode,
                                       "value": distance / linkLength,
-                                      "link_type": "fake_fake"});
+                                      "linkType": "fake_fake"});
 
                     // note that we've already seen this link
-                    linked.add(JSON.stringify([nucs_to_nodes[this_nuc][k].uid, this_node.uid].sort()));
+                    linked.add(JSON.stringify([nucsToNodes[thisNuc][k].uid, thisNode.uid].sort()));
                 }
 
-                nucs_to_nodes[this_nuc].push(this_node);
+                nucsToNodes[thisNuc].push(thisNode);
             }
         }
 
@@ -1892,7 +1930,7 @@ function RNAGraph(seq, dotbracket, struct_name) {
 
         //create a reverse lookup so we can find out the type
         //of element that a node is part of
-        elem_types = {};
+        elemTypes = {};
 
         //sort so that we count stems last
         self.elements.sort();
@@ -1900,7 +1938,7 @@ function RNAGraph(seq, dotbracket, struct_name) {
         for (var i = 0; i < self.elements.length; i++) {
             nucs = self.elements[i][2];
             for (j = 0; j < nucs.length; j++) {
-                elem_types[nucs[j]] = self.elements[i][0];
+                elemTypes[nucs[j]] = self.elements[i][0];
             }
         }
 
@@ -1910,9 +1948,9 @@ function RNAGraph(seq, dotbracket, struct_name) {
                              'num': i,
                              'radius': 6,
                              'rna': self,
-                             'node_type': 'nucleotide',
-                             'struct_name': self.struct_name,
-                             'elem_type': elem_types[i],
+                             'nodeType': 'nucleotide',
+                             'structName': self.structName,
+                             'elemType': elemTypes[i],
                              'uid': generateUUID() });
         }
 
@@ -1923,7 +1961,7 @@ function RNAGraph(seq, dotbracket, struct_name) {
                 // base-pair links
                 self.links.push({'source': self.nodes[i-1],
                                  'target': self.nodes[pt[i]-1],
-                                 'link_type': 'basepair',
+                                 'linkType': 'basepair',
                                  'value': 1,
                                  'uid': generateUUID() });
             }
@@ -1932,7 +1970,7 @@ function RNAGraph(seq, dotbracket, struct_name) {
                 // backbone links
                 self.links.push({'source': self.nodes[i-2],
                                  'target': self.nodes[i-1],
-                                 'link_type': 'backbone',
+                                 'linkType': 'backbone',
                                  'value': 1,
                                  'uid': generateUUID() });
             }
@@ -1942,7 +1980,7 @@ function RNAGraph(seq, dotbracket, struct_name) {
         for (i = 0; i < self.pseudoknotPairs.length; i++) {
             self.links.push({'source': self.nodes[self.pseudoknotPairs[i][0]-1],
                             'target': self.nodes[self.pseudoknotPairs[i][1]-1],
-                            'link_type': 'pseudoknot',
+                            'linkType': 'pseudoknot',
                             'value': 1,
                             'uid': generateUUID()});
         }
@@ -1950,7 +1988,7 @@ function RNAGraph(seq, dotbracket, struct_name) {
         if (self.circular) {
             self.links.push({'source': self.nodes[0],
                             'target': self.nodes[self.rnaLength-1],
-                            'link_type': 'backbone',
+                            'linkType': 'backbone',
                             'value': 1,
                             'uid': generateUUID() });
 
@@ -1959,7 +1997,7 @@ function RNAGraph(seq, dotbracket, struct_name) {
         return self;
     };
 
-    self.pt_to_elements = function(pt, level, i, j) {
+    self.ptToElements = function(pt, level, i, j) {
         /* Convert a pair table to a list of secondary structure 
          * elements:
          *
@@ -1991,9 +2029,9 @@ function RNAGraph(seq, dotbracket, struct_name) {
                 //hairpin loop or one large unpaired molecule
                 u5.push(i);
                 if (level === 0)
-                    return [['e',level, u5.sort(number_sort)]];
+                    return [['e',level, u5.sort(numberSort)]];
                 else
-                    return [['h',level, u5.sort(number_sort)]];
+                    return [['h',level, u5.sort(numberSort)]];
             }
 
             if (pt[i] != j) {
@@ -2005,7 +2043,7 @@ function RNAGraph(seq, dotbracket, struct_name) {
                 m.push(k);
                 while (k <= j) {
                     // recurse into a stem
-                    elements = elements.concat(self.pt_to_elements(pt, level, k, pt[k]));
+                    elements = elements.concat(self.ptToElements(pt, level, k, pt[k]));
 
                     // add the nucleotides between stems
                     m.push(pt[k]);
@@ -2018,9 +2056,9 @@ function RNAGraph(seq, dotbracket, struct_name) {
                 
                 if (m.length > 0) {
                     if (level === 0)
-                        elements.push(['e', level, m.sort(number_sort)]);
+                        elements.push(['e', level, m.sort(numberSort)]);
                     else
-                        elements.push(['m', level, m.sort(number_sort)]);
+                        elements.push(['m', level, m.sort(numberSort)]);
                 }
                 
                 return elements;
@@ -2034,9 +2072,9 @@ function RNAGraph(seq, dotbracket, struct_name) {
                 combined = u5.concat(u3);
                 if (combined.length > 4) {
                     if (level === 0)
-                        elements.push(['e',level, u5.concat(u3).sort(number_sort)]);
+                        elements.push(['e',level, u5.concat(u3).sort(numberSort)]);
                     else
-                        elements.push(['i',level, u5.concat(u3).sort(number_sort)]);
+                        elements.push(['i',level, u5.concat(u3).sort(numberSort)]);
                 }
             } 
 
@@ -2055,9 +2093,9 @@ function RNAGraph(seq, dotbracket, struct_name) {
 
             u5 = [i-1];
             u3 = [j+1];
-            elements.push(['s', level, s.sort(number_sort)]);
+            elements.push(['s', level, s.sort(numberSort)]);
 
-        return elements.concat(self.pt_to_elements(pt, level, i, j));
+        return elements.concat(self.ptToElements(pt, level, i, j));
     };
 
     self.addLabels = function(startNumber, labelInterval) {
@@ -2128,26 +2166,26 @@ function RNAGraph(seq, dotbracket, struct_name) {
                 newX = self.nodes[i-1].x + offsetVec[0];
                 newY = self.nodes[i-1].y + offsetVec[1];
 
-                new_node = {'name': i + startNumber - 1,
+                newNode = {'name': i + startNumber - 1,
                                  'num': -1,
                                  'radius': 6,
                                  'rna': self,
-                                 'node_type': 'label',
-                                 'struct_name': self.struct_name,
-                                 'elem_type': 'l',
+                                 'nodeType': 'label',
+                                 'structName': self.structName,
+                                 'elemType': 'l',
                                  'x': newX,
                                  'y': newY,
                                  'px': newX,
                                  'py': newY,
                                  'uid': generateUUID() };
-                new_link = {'source': self.nodes[i-1],
-                            'target': new_node,
+                newLink = {'source': self.nodes[i-1],
+                            'target': newNode,
                             'value': 1,
-                            'link_type': 'label_link',
+                            'linkType': 'label_link',
                             'uid': generateUUID() };
 
-                self.nodes.push(new_node);
-                self.links.push(new_link);
+                self.nodes.push(newNode);
+                self.links.push(newLink);
             }
         }
 
@@ -2156,29 +2194,29 @@ function RNAGraph(seq, dotbracket, struct_name) {
 
     self.recalculateElements = function() {
         self.removePseudoknots();
-        self.elements = self.pt_to_elements(self.pairtable, 0, 1, self.dotbracket.length);
+        self.elements = self.ptToElements(self.pairtable, 0, 1, self.dotbracket.length);
 
         if (self.circular) {
             //check to see if the external loop is a hairpin or a multiloop
-            external_loop = self.elements.filter(function(d) { if (d[0] == 'e') return true; });
+            externalLoop = self.elements.filter(function(d) { if (d[0] == 'e') return true; });
 
-            if (external_loop.length > 0) {
-                eloop = external_loop[0];
-                nucs = eloop[2].sort(number_sort);
+            if (externalLoop.length > 0) {
+                eloop = externalLoop[0];
+                nucs = eloop[2].sort(numberSort);
 
                 prev = nucs[0];
                 hloop = true;
-                num_greater = 0;
+                numGreater = 0;
                 for (var i = 1; i < nucs.length; i++) {
                     if (nucs[i] - prev > 1) {
-                        num_greater += 1;
+                        numGreater += 1;
                     }
                     prev = nucs[i];
                 }
 
-                if (num_greater == 1) {
+                if (numGreater == 1) {
                     eloop[0] = 'h';
-                } else if (num_greater == 2) {
+                } else if (numGreater == 2) {
                     eloop[0] = 'i';
                 } else {
                     eloop[0] = 'm';
@@ -2230,7 +2268,7 @@ function RNAGraph(seq, dotbracket, struct_name) {
         self.recalculateElements();
 }
 
-molecules_to_json = function(molecules_json) {
+moleculesToJson = function(moleculesJson) {
     /* Convert a list of RNA and protein molecules to a list of RNAGraph
      * ProteinGraph and extraLinks structure */
 
@@ -2240,11 +2278,12 @@ molecules_to_json = function(molecules_json) {
 
 
     // Create the graphs for each molecule
-    for (var i = 0; i < molecules_json.molecules.length; i++) {
-        var molecule = molecules_json.molecules[i];
+    for (var i = 0; i < moleculesJson.molecules.length; i++) {
+        var molecule = moleculesJson.molecules[i];
 
         if (molecule.type == 'rna') {
             rg = new RNAGraph(molecule.seq, molecule.ss, molecule.header);
+            rg.circularizeExternal = true;
             rg.elementsToJson()
             .addPositions('nucleotide', molecule.positions)
             .addLabels()
@@ -2267,8 +2306,8 @@ molecules_to_json = function(molecules_json) {
     }
 
     //Add the extra links
-    for (i = 0; i < molecules_json.extra_links.length; i++) {
-        link = molecules_json.extra_links[i];
+    for (i = 0; i < moleculesJson.extraLinks.length; i++) {
+        link = moleculesJson.extraLinks[i];
         
         link.source = nodes[link.source];
         link.target = nodes[link.target];
@@ -2279,17 +2318,17 @@ molecules_to_json = function(molecules_json) {
 
     return {"graphs": graphs, "extraLinks": extraLinks};
 }
-var number_sort = function(a,b) { return a - b; };
+var numberSort = function(a,b) { return a - b; };
 
 function RNAUtilities() {
     var self = this;
 
     // the brackets to use when constructing dotbracket strings
     // with pseudoknots
-    self.bracket_left =  "([{<ABCDEFGHIJKLMNOPQRSTUVWXYZ".split("");
-    self.bracket_right = ")]}>abcdefghijklmnopqrstuvwxyz".split("");
+    self.bracketLeft =  "([{<ABCDEFGHIJKLMNOPQRSTUVWXYZ".split("");
+    self.bracketRight = ")]}>abcdefghijklmnopqrstuvwxyz".split("");
 
-    self.inverse_brackets = function(bracket) {
+    self.inverseBrackets = function(bracket) {
         res = {};
         for (i = 0; i < bracket.length; i++) {
             res[bracket[i]] = i;
@@ -2334,16 +2373,16 @@ function RNAUtilities() {
         return mm;
     };
 
-    self.backtrackMaximumMatching = function(mm, old_pt) {
+    self.backtrackMaximumMatching = function(mm, oldPt) {
       var pt = Array.apply(null, 
                            Array(mm.length)).map(function() { return 0 }); 
                            //create an array containing zeros
 
-      self.mm_bt(mm, pt, old_pt, 1, mm.length-1);
+      self.mmBt(mm, pt, oldPt, 1, mm.length-1);
       return pt;
     }
 
-    self.mm_bt = function(mm, pt, old_pt, i, j){
+    self.mmBt = function(mm, pt, oldPt, i, j){
         // Create a pairtable from the backtracking
       var maximum = mm[i][j];
       var TURN = 0;
@@ -2351,26 +2390,26 @@ function RNAUtilities() {
       if(j - i - 1 < TURN) return;    /* no more pairs */
 
       if(mm[i][j-1] == maximum){      /* j is unpaired */
-        self.mm_bt(mm, pt, old_pt, i, j-1);
+        self.mmBt(mm, pt, oldPt, i, j-1);
         return;
       }
 
       for(var q = j - TURN - 1; q >= i; q--){  /* j is paired with some q */
-        if (old_pt[j] !== q)
+        if (oldPt[j] !== q)
             continue;
 
-        var left_part     = (q > i) ? mm[i][q-1] : 0;
-        var enclosed_part = (j - q - 1 > 0) ? mm[q+1][j-1] : 0;
+        var leftPart     = (q > i) ? mm[i][q-1] : 0;
+        var enclosedPart = (j - q - 1 > 0) ? mm[q+1][j-1] : 0;
 
-        if(left_part + enclosed_part + 1 == maximum) {
+        if(leftPart + enclosedPart + 1 == maximum) {
             // there's a base pair between j and q
             pt[q] = j;
             pt[j] = q;
 
             if(i < q) 
-                self.mm_bt(mm, pt, old_pt, i, q - 1);
+                self.mmBt(mm, pt, oldPt, i, q - 1);
 
-            self.mm_bt(mm, pt, old_pt, q + 1, j - 1);
+            self.mmBt(mm, pt, oldPt, q + 1, j - 1);
             return;
         }
       }
@@ -2389,13 +2428,13 @@ function RNAUtilities() {
 
         // store the pairing partners for each symbol
         stack = {};
-        for (i = 0; i < self.bracket_left.length; i++) {
+        for (i = 0; i < self.bracketLeft.length; i++) {
             stack[i] = [];
         }
 
         // lookup the index of each symbol in the bracket array
-        inverse_bracket_left = self.inverse_brackets(self.bracket_left);
-        inverse_bracket_right = self.inverse_brackets(self.bracket_right);
+        inverseBracketLeft = self.inverseBrackets(self.bracketLeft);
+        inverseBracketRight = self.inverseBrackets(self.bracketRight);
 
         for (i = 0; i < dotbracket.length; i++) {
             a = dotbracket[i];
@@ -2405,12 +2444,12 @@ function RNAUtilities() {
                 // unpaired
                 pt[ni] = 0;
             } else {
-                if (a in inverse_bracket_left) {
+                if (a in inverseBracketLeft) {
                     // open pair?
-                    stack[inverse_bracket_left[a]].push(ni);
-                } else if (a in inverse_bracket_right){
+                    stack[inverseBracketLeft[a]].push(ni);
+                } else if (a in inverseBracketRight){
                     // close pair?
-                    j = stack[inverse_bracket_right[a]].pop();
+                    j = stack[inverseBracketRight[a]].pop();
 
                     pt[ni] = j;
                     pt[j] = ni;
@@ -2429,7 +2468,7 @@ function RNAUtilities() {
         return pt;
     };
 
-    self.insert_into_stack = function(stack, i, j) {
+    self.insertIntoStack = function(stack, i, j) {
         var k = 0;
         while (stack[k].length > 0 && stack[k][stack[k].length - 1] < j) {
             k += 1;
@@ -2439,7 +2478,7 @@ function RNAUtilities() {
         return k;
     };
 
-    self.delete_from_stack = function(stack, j) {
+    self.deleteFromStack = function(stack, j) {
         var k = 0;
         while (stack[k].length === 0 || stack[k][stack[k].length-1] != j) {
             k += 1;
@@ -2467,9 +2506,9 @@ function RNAUtilities() {
                 res += '.';
             } else {
                 if (pt[i] > i) {
-                    res += self.bracket_left[self.insert_into_stack(stack, i, pt[i])];
+                    res += self.bracketLeft[self.insertIntoStack(stack, i, pt[i])];
                 } else {
-                    res += self.bracket_right[self.delete_from_stack(stack, i)];
+                    res += self.bracketRight[self.deleteFromStack(stack, i)];
                 }
             }
         }
@@ -2477,22 +2516,22 @@ function RNAUtilities() {
         return res;
     };
 
-    self.find_unmatched = function(pt, from, to) {
+    self.findUnmatched = function(pt, from, to) {
         /*
          * Find unmatched nucleotides in this molecule.
          */
-        var to_remove = [];
+        var toRemove = [];
         var unmatched = [];
 
-        var orig_from = from;
-        var orig_to = to;
+        var origFrom = from;
+        var origTo = to;
 
         for (var i = from; i <= to; i++)
             if (pt[i] !== 0 && (pt[i] < from || pt[i] > to))
                 unmatched.push([i,pt[i]]);
 
-        for (i = orig_from; i <= orig_to; i++) {
-            while (pt[i] === 0 && i <= orig_to) i++;
+        for (i = origFrom; i <= origTo; i++) {
+            while (pt[i] === 0 && i <= origTo) i++;
 
             to = pt[i];
 
@@ -2501,13 +2540,13 @@ function RNAUtilities() {
                 to--;
             }
             
-            to_remove = to_remove.concat(self.find_unmatched(pt, i, to));
+            toRemove = toRemove.concat(self.findUnmatched(pt, i, to));
         }
 
         if (unmatched.length > 0)
-            to_remove.push(unmatched);
+            toRemove.push(unmatched);
 
-        return to_remove;
+        return toRemove;
     };
 
     self.removePseudoknotsFromPairtable = function(pt) {
@@ -2519,14 +2558,14 @@ function RNAUtilities() {
          */
 
         var mm = self.maximumMatching(pt);
-        var new_pt = self.backtrackMaximumMatching(mm, pt);
+        var newPt = self.backtrackMaximumMatching(mm, pt);
         var removed = [];
 
         for (var i = 1; i < pt.length; i++) {
             if (pt[i] < i)
                 continue;
 
-            if (new_pt[i] != pt[i])  {
+            if (newPt[i] != pt[i])  {
                 removed.push([i, pt[i]]);
                 pt[pt[i]] = 0;
                 pt[i] = 0;
@@ -2539,7 +2578,7 @@ function RNAUtilities() {
 }
 
 rnaUtilities = new RNAUtilities();
-simple_xy_coordinates = function(pair_table)
+simpleXyCoordinates = function(pairTable)
 {
   var INIT_ANGLE=0.;     /* initial bending angle */
   var INIT_X = 100.;     /* coordinate of first digit */
@@ -2551,18 +2590,18 @@ simple_xy_coordinates = function(pair_table)
   var i, len;
   var  alpha;
 
-  len = pair_table[0];
+  len = pairTable[0];
   var angle = Array.apply(null, new Array(len+5)).map(Number.prototype.valueOf,0); 
-  var loop_size = Array.apply(null, new Array(16+Math.floor(len/5)))
+  var loopSize = Array.apply(null, new Array(16+Math.floor(len/5)))
                     .map(Number.prototype.valueOf, 0); 
-  var stack_size = Array.apply(null, new Array(16+Math.floor(len/5)))
+  var stackSize = Array.apply(null, new Array(16+Math.floor(len/5)))
                     .map(Number.prototype.valueOf, 0); 
 
   lp = stk = 0;
   var PIHALF = Math.PI / 2;
 
 
-  loop = function(i, j, pair_table)
+  loop = function(i, j, pairTable)
   /* i, j are the positions AFTER the last pair of a stack; i.e
      i-1 and j+1 are paired. */
   {
@@ -2573,17 +2612,17 @@ simple_xy_coordinates = function(pair_table)
 
   var    r = 0, bubble = 0; /* bubble counts the unpaired digits in loops */
 
-  var    i_old, partner, k, l, start_k, start_l, fill, ladder;
+  var    iOld, partner, k, l, startK, startL, fill, ladder;
   var    begin, v, diff;
   var  polygon;
 
   var remember = Array.apply(null, new Array((1+Math.floor((j-i)/5)*2))).map(Number.prototype.valueOf, 0);
 
-  i_old = i-1, j++;         /* j has now been set to the partner of the
+  iOld = i-1, j++;         /* j has now been set to the partner of the
                                previous pair for correct while-loop
                                termination.  */
   while (i != j) {
-      partner = pair_table[i];
+      partner = pairTable[i];
       if ((!partner) || (i==0))
           i++, count++, bubble++;
       else {
@@ -2593,34 +2632,34 @@ simple_xy_coordinates = function(pair_table)
           remember[++r] = l;
           i = partner+1;         /* next i for the current loop */
 
-          start_k = k, start_l = l;
+          startK = k, startL = l;
           ladder = 0;
           do {
               k++, l--, ladder++;        /* go along the stack region */
           }
-          while (pair_table[k] == l);
+          while (pairTable[k] == l);
 
           fill = ladder-2;
           if (ladder >= 2) {
-              angle[start_k+1+fill] += PIHALF;   /*  Loop entries and    */
-              angle[start_l-1-fill] += PIHALF;   /*  exits get an        */
-              angle[start_k]        += PIHALF;   /*  additional PI/2.    */
-              angle[start_l]        += PIHALF;   /*  Why ? (exercise)    */
+              angle[startK+1+fill] += PIHALF;   /*  Loop entries and    */
+              angle[startL-1-fill] += PIHALF;   /*  exits get an        */
+              angle[startK]        += PIHALF;   /*  additional PI/2.    */
+              angle[startL]        += PIHALF;   /*  Why ? (exercise)    */
               if (ladder > 2) {
                   for (; fill >= 1; fill--) {
-                      angle[start_k+fill] = Math.PI;    /*  fill in the angles  */
-                      angle[start_l-fill] = Math.PI;    /*  for the backbone    */
+                      angle[startK+fill] = Math.PI;    /*  fill in the angles  */
+                      angle[startL-fill] = Math.PI;    /*  for the backbone    */
                   }
               }
           }
-          stack_size[++stk] = ladder;
-          loop(k, l, pair_table);
+          stackSize[++stk] = ladder;
+          loop(k, l, pairTable);
       }
   }
 
   polygon = Math.PI*(count-2)/count; /* bending angle in loop polygon */
   remember[++r] = j;
-  begin = i_old < 0 ? 0 : i_old;
+  begin = iOld < 0 ? 0 : iOld;
   for (v = 1; v <= r; v++) {
       diff  = remember[v]-begin;
       for (fill = 0; fill <= diff; fill++)
@@ -2629,11 +2668,11 @@ simple_xy_coordinates = function(pair_table)
           break;
       begin = remember[++v];
   }
-  loop_size[++lp] = bubble;
+  loopSize[++lp] = bubble;
   }
 
-  loop(0, len+1, pair_table);
-  loop_size[lp] -= 2;     /* correct for cheating with function loop */
+  loop(0, len+1, pairTable);
+  loopSize[lp] -= 2;     /* correct for cheating with function loop */
 
   alpha = INIT_ANGLE;
   x[0]  = INIT_X;

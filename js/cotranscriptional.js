@@ -266,7 +266,7 @@ function createCotranscriptionalTreemap(element, filename) {
 
                         if (runAnimation) {
                             _xCoord += lineChartWidth / 100;
-                            setTimeout(function() { updateCurrentTime(_xCoord); }, 300);
+                            //setTimeout(function() { updateCurrentTime(_xCoord); }, 300);
                         }
 
                 }
@@ -285,7 +285,7 @@ function position() {
   this.style("left", function(d) {  return d.x + "px"; })
       .style("top", function(d) { return d.y + "px"; })
       .style("width", function(d) { return Math.max(0, d.dx - 0) + "px"; })
-      .style("height", function(d) { return Math.max(0, d.dy - 0) + "px"; });
+      .style("height", function(d) { return Math.max(0, d.dy - 0) + "px"; })
 }
     }
 
