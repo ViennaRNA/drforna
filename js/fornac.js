@@ -2576,9 +2576,8 @@ function RNAUtilities() {
     };
 
 }
-
 rnaUtilities = new RNAUtilities();
-simpleXyCoordinates = function(pairTable)
+simpleXyCoordinates = function(pair_table)
 {
   var INIT_ANGLE=0.;     /* initial bending angle */
   var INIT_X = 100.;     /* coordinate of first digit */
@@ -2590,18 +2589,18 @@ simpleXyCoordinates = function(pairTable)
   var i, len;
   var  alpha;
 
-  len = pairTable[0];
+  len = pair_table[0];
   var angle = Array.apply(null, new Array(len+5)).map(Number.prototype.valueOf,0); 
-  var loopSize = Array.apply(null, new Array(16+Math.floor(len/5)))
+  var loop_size = Array.apply(null, new Array(16+Math.floor(len/5)))
                     .map(Number.prototype.valueOf, 0); 
-  var stackSize = Array.apply(null, new Array(16+Math.floor(len/5)))
+  var stack_size = Array.apply(null, new Array(16+Math.floor(len/5)))
                     .map(Number.prototype.valueOf, 0); 
 
   lp = stk = 0;
   var PIHALF = Math.PI / 2;
 
 
-  loop = function(i, j, pairTable)
+  loop = function(i, j, pair_table)
   /* i, j are the positions AFTER the last pair of a stack; i.e
      i-1 and j+1 are paired. */
   {
@@ -2612,17 +2611,17 @@ simpleXyCoordinates = function(pairTable)
 
   var    r = 0, bubble = 0; /* bubble counts the unpaired digits in loops */
 
-  var    iOld, partner, k, l, startK, startL, fill, ladder;
+  var    i_old, partner, k, l, start_k, start_l, fill, ladder;
   var    begin, v, diff;
   var  polygon;
 
   var remember = Array.apply(null, new Array((1+Math.floor((j-i)/5)*2))).map(Number.prototype.valueOf, 0);
 
-  iOld = i-1, j++;         /* j has now been set to the partner of the
+  i_old = i-1, j++;         /* j has now been set to the partner of the
                                previous pair for correct while-loop
                                termination.  */
   while (i != j) {
-      partner = pairTable[i];
+      partner = pair_table[i];
       if ((!partner) || (i==0))
           i++, count++, bubble++;
       else {
@@ -2632,34 +2631,34 @@ simpleXyCoordinates = function(pairTable)
           remember[++r] = l;
           i = partner+1;         /* next i for the current loop */
 
-          startK = k, startL = l;
+          start_k = k, start_l = l;
           ladder = 0;
           do {
               k++, l--, ladder++;        /* go along the stack region */
           }
-          while (pairTable[k] == l);
+          while (pair_table[k] == l);
 
           fill = ladder-2;
           if (ladder >= 2) {
-              angle[startK+1+fill] += PIHALF;   /*  Loop entries and    */
-              angle[startL-1-fill] += PIHALF;   /*  exits get an        */
-              angle[startK]        += PIHALF;   /*  additional PI/2.    */
-              angle[startL]        += PIHALF;   /*  Why ? (exercise)    */
+              angle[start_k+1+fill] += PIHALF;   /*  Loop entries and    */
+              angle[start_l-1-fill] += PIHALF;   /*  exits get an        */
+              angle[start_k]        += PIHALF;   /*  additional PI/2.    */
+              angle[start_l]        += PIHALF;   /*  Why ? (exercise)    */
               if (ladder > 2) {
                   for (; fill >= 1; fill--) {
-                      angle[startK+fill] = Math.PI;    /*  fill in the angles  */
-                      angle[startL-fill] = Math.PI;    /*  for the backbone    */
+                      angle[start_k+fill] = Math.PI;    /*  fill in the angles  */
+                      angle[start_l-fill] = Math.PI;    /*  for the backbone    */
                   }
               }
           }
-          stackSize[++stk] = ladder;
-          loop(k, l, pairTable);
+          stack_size[++stk] = ladder;
+          loop(k, l, pair_table);
       }
   }
 
   polygon = Math.PI*(count-2)/count; /* bending angle in loop polygon */
   remember[++r] = j;
-  begin = iOld < 0 ? 0 : iOld;
+  begin = i_old < 0 ? 0 : i_old;
   for (v = 1; v <= r; v++) {
       diff  = remember[v]-begin;
       for (fill = 0; fill <= diff; fill++)
@@ -2668,11 +2667,11 @@ simpleXyCoordinates = function(pairTable)
           break;
       begin = remember[++v];
   }
-  loopSize[++lp] = bubble;
+  loop_size[++lp] = bubble;
   }
 
-  loop(0, len+1, pairTable);
-  loopSize[lp] -= 2;     /* correct for cheating with function loop */
+  loop(0, len+1, pair_table);
+  loop_size[lp] -= 2;     /* correct for cheating with function loop */
 
   alpha = INIT_ANGLE;
   x[0]  = INIT_X;
