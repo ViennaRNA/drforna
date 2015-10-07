@@ -1,22 +1,22 @@
 function doStepwiseAnimation(elementName, structs, duration) {
     var container = new FornaContainer(elementName, {'applyForce': false,
-            'allowPanningAndZooming': true,
-            "labelInterval":0,
-            "initialSize": [800,800],
-            "transitionDuration": duration });
+                                       'allowPanningAndZooming': true,
+                                       "labelInterval":0,
+                                       "initialSize": [800,800],
+                                       "transitionDuration": duration });
 
-    var funcs = []
+                                       var funcs = []
 
-        for (i = 0; i < structs.length; i++) {
-            if (funcs.length === 0)
-                (function(val) { funcs.push(function() { container.transitionRNA(structs[val]); container.setOutlineColor('white');
-                                            })} )(i);
-            else
-                (function(val, prevFunc) { funcs.push(function() { container.transitionRNA(structs[val], prevFunc); container.setOutlineColor('white');
-                                                      })} )(i, funcs[funcs.length-1] );
-        }
+                                       for (i = 0; i < structs.length; i++) {
+                                           if (funcs.length === 0)
+                                               (function(val) { funcs.push(function() { container.transitionRNA(structs[val]); container.setOutlineColor('white');
+                                               })} )(i);
+                                               else
+                                                   (function(val, prevFunc) { funcs.push(function() { container.transitionRNA(structs[val], prevFunc); container.setOutlineColor('white');
+                                                   })} )(i, funcs[funcs.length-1] );
+                                       }
 
-    funcs[funcs.length-1]();
+                                       funcs[funcs.length-1]();
 }
 
 function createCotranscriptionalTreemap(element, filename) {
