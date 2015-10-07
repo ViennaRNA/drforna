@@ -918,13 +918,13 @@ function rnaPlot() {
         xExtent[1] += options.nucleotideRadius + options.rnaEdgePadding;
         yExtent[1] += options.nucleotideRadius + options.rnaEdgePadding;
 
-        // find out how wide and height the molecule
+        // find out how wide and heigh the molecule
         var xRange = xExtent[1] - xExtent[0];
         var yRange = yExtent[1] - yExtent[0];
 
         // how much wider / taller is it than the available viewport
-        var xExtra = xRange - options.width;
-        var yExtra = yRange - options.height;
+        var xExtra = xRange / options.width;
+        var yExtra = yRange / options.height;
 
         var xScale, yScale;
 

@@ -233,7 +233,6 @@ function cotranscriptionalTimeSeriesLayout() {
                     //saveSvgAsPng(document.getElementById('whole-div'), 'rnax.png', 4);
 
                     var y0 = lineX.invert(xCoord);
-                    console.log('y0', y0);
 
                     i = bisectTime(data, y0, 1);
                     var values = nestedData.map(function(data) { 
@@ -301,6 +300,98 @@ function cotranscriptionalTimeSeriesLayout() {
         else totalHeight = _;
         return chart;
     };
+
+    return chart;
+}
+
+function cotranscriptionalSmallMultiplesLayout() {
+    // set all of the parameters
+    var padding = [10,10];
+    var treemapWidth = 160;
+    var treemapHeight = 160;
+    var svgWidth = 550;
+    var svgHeight = 0;
+
+    function getOrCreateSequence(cotranscriptionalState) {
+        // extract the sequence from a line of coTranscriptional output
+        // and if it doesn't exist (which it shouldn't), just return
+        // a string of As
+        var letters;
+        if ('seq' in cotranscriptionalState)
+            return cotranscriptionalState['seq']
+        else {
+            letters = "";
+            for (var i = 0; i < cotranscriptionalState['struct'].length; i++)
+                letters = letters + "A";
+        }
+
+        return letters;
+    };
+
+    var chart = function(selection) {
+        selection.each(function(data) {
+
+            var nestedData = d3.nest().key(function(d) { return d.time; }).entries(data);
+            nestedData.sort(function(a,b) { return (+a.key) - (+b.key); });
+
+            var inputData = nestedData.map(function(x) {
+                return { 
+                    'children': x.values.map(function(y) {
+                        return { 
+                            'structure': y.struct,
+                            'sequence': getOrCreateSequence(y),
+                            'size': y.conc
+                        };
+                    })
+                }});
+
+
+            // calculate the number of columns and the height of the SVG,
+            // which is dependent on the on the number of data points
+            var numCols = Math.floor((svgWidth + padding[0]) / (treemapWidth + padding[0]));
+            var svgHeight = Math.ceil(inputData.length / numCols) * (treemapHeight + padding[1]) - padding[1];
+
+            // the rna treemap layout, which will be called for every grid point
+            var rnaTreemap = rnaTreemapChart()
+            .width(treemapWidth)
+            .height(treemapHeight);
+
+            // the grid layout that will determine the position of each
+            // treemap
+            var rectGrid = d3.layout.grid()
+            .bands()
+            .size([svgWidth, svgHeight])
+            .cols(numCols)
+            .padding(padding)
+            .nodeSize([treemapWidth, treemapHeight]);
+            var rectData = rectGrid(inputData)
+
+            // create an svg as a child of the #rna_ss div
+            // and then a g for each grid cell
+            d3.select(this)
+            .append('svg')
+            .attr('width', svgWidth)
+            .attr('height', svgHeight)
+            .selectAll('.rna-treemap')
+            .data(rectData)
+            .enter()
+            .append('g')
+            .attr('transform', function(d) { return 'translate(' + d.x + ',' + d.y + ')'; })
+            .classed('rna-treemap', true)
+            .call(rnaTreemap);
+        });
+    };
+
+    chart.width = function(_) {
+        if (!arguments.length) return svgWidth;
+        else svgWidth = _;
+        return chart;
+    }
+
+    chart.height = function(_) {
+        if (!arguments.length) return svgHeight;
+        return chart;
+    }
 
     return chart;
 }

@@ -1,8 +1,9 @@
 var toggleView = function() {};
 
 $ ( document ).ready(function() {
-    window.addEventListener("resize", setSize, false);
+    //window.addEventListener("resize", setSize, false);
 
+    /*
     function setSize() {
         var element = d3.select('#visContainer')
 
@@ -14,6 +15,7 @@ $ ( document ).ready(function() {
         svg.attr('width', chartWidth)
         .attr('height', chartHeight)
     }
+    */
 
     /*
     function createNewPlot(file) {
@@ -56,7 +58,7 @@ $ ( document ).ready(function() {
         var showPlot = function(plotLayout) {
             //dotStructPlot.width(data.seq.length * 10);
             d3.select('#visContainer')
-            .selectAll('removable-plot')
+            .selectAll('.removable-plot')
             .remove();
 
             var svg = d3.select('#visContainer')
@@ -67,8 +69,8 @@ $ ( document ).ready(function() {
             .enter()
             .append('svg')
             */
-            .attr('width', plotLayout.width())
-            .attr('height', plotLayout.width())
+            //.attr('width', plotLayout.width())
+            //.attr('height', plotLayout.height())
             .attr('id', 'my-plot');
 
             svg.call(plotLayout);
@@ -84,7 +86,7 @@ $ ( document ).ready(function() {
         }
 
         var showSmallMultiplesPlot = function() {
-            showPlot(cotranscriptionalSmallMultiplesLayout().width(800).height(600));
+            showPlot(cotranscriptionalSmallMultiplesLayout().width(800));
 
             if (toggleView == showTimeSeriesPlot)
                 toggleView = showSmallMultiplesPlot;
@@ -92,7 +94,8 @@ $ ( document ).ready(function() {
                 toggleView = showTimeSeriesPlot;
         }
 
-        toggleView = showTimeSeriesPlot;
+        //toggleView = showTimeSeriesPlot;
+        toggleView = showSmallMultiplesPlot;
         toggleView();
     });
 
