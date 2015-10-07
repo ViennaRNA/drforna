@@ -1,3 +1,5 @@
+var toggleView = function() {};
+
 $ ( document ).ready(function() {
     window.addEventListener("resize", setSize, false);
 
@@ -13,6 +15,7 @@ $ ( document ).ready(function() {
         .attr('height', chartHeight)
     }
 
+    /*
     function createNewPlot(file) {
         var dotStructPlot = dotStructLayout();
 
@@ -43,24 +46,55 @@ $ ( document ).ready(function() {
 
         setSize();
     }
-
-    /*
-    d3.json('data/4o26.json', function(data) {
-        console.log('data:', data, data.seq.length);
-        dotStructPlot.width(data.seq.length * 10);
-
-        var svg = d3.select('#visContainer')
-        .selectAll('svg')
-        .data([data])
-        .enter()
-        .append('svg')
-        .attr('width', dotStructPlot.width())
-        .attr('height', dotStructPlot.width())
-        .attr('id', 'dotplot');
-
-        svg.call(dotStructPlot);
-    });
     */
+
+    d3.dsv(" ", 'text/plain')('data/pete.growing', function(error, data) {
+        currentCTView = 'time-series'
+        var width = 800;
+        var height = 600;
+
+        var showPlot = function(plotLayout) {
+            //dotStructPlot.width(data.seq.length * 10);
+            d3.select('#visContainer')
+            .selectAll('removable-plot')
+            .remove();
+
+            var svg = d3.select('#visContainer')
+            .append('div')   //add a div that we can easily remove
+            .classed('removable-plot', true)
+            .data([data])
+            /*
+            .enter()
+            .append('svg')
+            */
+            .attr('width', plotLayout.width())
+            .attr('height', plotLayout.width())
+            .attr('id', 'my-plot');
+
+            svg.call(plotLayout);
+        }
+
+        var showTimeSeriesPlot = function() {
+            showPlot(cotranscriptionalTimeSeriesLayout().width(800).height(600));
+
+            if (toggleView == showTimeSeriesPlot)
+                toggleView = showSmallMultiplesPlot;
+            else
+                toggleView = showTimeSeriesPlot;
+        }
+
+        var showSmallMultiplesPlot = function() {
+            showPlot(cotranscriptionalSmallMultiplesLayout().width(800).height(600));
+
+            if (toggleView == showTimeSeriesPlot)
+                toggleView = showSmallMultiplesPlot;
+            else
+                toggleView = showTimeSeriesPlot;
+        }
+
+        toggleView = showTimeSeriesPlot;
+        toggleView();
+    });
 
     /* add event listener to the file browse button */
   $('#files').on('change', function(evt) {

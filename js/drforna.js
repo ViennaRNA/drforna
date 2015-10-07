@@ -19,78 +19,78 @@ function doStepwiseAnimation(elementName, structs, duration) {
                                        funcs[funcs.length-1]();
 }
 
-function createCotranscriptionalTreemap(element, filename) {
+function cotranscriptionalTimeSeriesLayout() {
     var options = {'applyForce': false, 
         'allowPanningAndZooming': true,
         "labelInterval":0,
         "initialSize": [800,800],
-        "transitionDuration": 0 }
+        "transitionDuration": 0 };
 
-        var margin = {top: 10, right: 60, bottom: 40, left: 50},
-        totalWidth = 700 
-        totalHeight = 500
+    var margin = {top: 10, right: 60, bottom: 40, left: 50};
+    var totalWidth = 700;
+    var totalHeight = 500;
 
-        treemapWidth = totalWidth - margin.left - margin.right,
-        treemapHeight = totalHeight * 0.75 - margin.top - margin.bottom,
+    var treemapWidth = totalWidth - margin.left - margin.right;
+    var treemapHeight = totalHeight * 0.75 - margin.top - margin.bottom;
 
-        lineChartWidth = totalWidth - margin.left - margin.right,
-        lineChartHeight = totalHeight - treemapHeight - margin.top - margin.bottom;
-
-
-        var lineX = d3.scale.linear().range([0, lineChartWidth]);
-        var lineY = d3.scale.linear().range([lineChartHeight, 0]);
+    var lineChartWidth = totalWidth - margin.left - margin.right;
+    var lineChartHeight = totalHeight - treemapHeight - margin.top - margin.bottom;
 
 
+    var lineX = d3.scale.linear().range([0, lineChartWidth]);
+    var lineY = d3.scale.linear().range([lineChartHeight, 0]);
 
-        var color = d3.scale.category20();
+    var color = d3.scale.category20();
 
-        var treemap = d3.layout.treemap()
-        .size([treemapWidth, treemapHeight])
-        .sticky(false)
-        .value(function(d) { return d.size; });
+    function chart(selection) {
+        selection.each(function(data) {
 
-        var wholeDiv = d3.select(element).append("div")
-        .style("position", "relative")
-        .style("width", (treemapWidth + margin.left + margin.right) + "px")
-        .style("height", (treemapHeight + lineChartHeight + margin.top + margin.bottom) + "px")
-        .style("left", margin.left + "px")
-        .style("top", margin.top + "px")
-        .attr('id', 'whole-div');
+            var treemap = d3.layout.treemap()
+            .size([treemapWidth, treemapHeight])
+            .sticky(false)
+            .value(function(d) { return d.size; });
 
-        var treemapDiv = wholeDiv.append("div")
-        .style("position", "absolute")
-        .style("width", (treemapWidth) + "px")
-        .style("height", (treemapHeight + margin.bottom) + "px")
-        .style("left", margin.left + "px")
-        .style("top", margin.top + "px");
+            var wholeDiv = d3.select(this).append("div")
+            .style("position", "relative")
+            .style("width", (treemapWidth + margin.left + margin.right) + "px")
+            .style("height", (treemapHeight + lineChartHeight + margin.top + margin.bottom) + "px")
+            .style("left", margin.left + "px")
+            .style("top", margin.top + "px")
+            .attr('id', 'whole-div');
 
-        var lineChartDiv = wholeDiv.append("div")
-        .style("position", "absolute")
-        .style("width", (lineChartWidth + margin.right) + "px")
-        .style("height", (lineChartHeight + margin.bottom + margin.top) + "px")
-        .style("left", 0 + "px")
-        .style("top", treemapHeight + "px");
+            var treemapDiv = wholeDiv.append("div")
+            .style("position", "absolute")
+            .style("width", (treemapWidth) + "px")
+            .style("height", (treemapHeight + margin.bottom) + "px")
+            .style("left", margin.left + "px")
+            .style("top", margin.top + "px");
 
-        var svg = lineChartDiv.append("svg")
-        .attr("width", lineChartWidth)
-        .attr("height", lineChartHeight)
-        .append("g")
-        .attr('transform', "translate(" + margin.left + "," + margin.top + ")");
+            var lineChartDiv = wholeDiv.append("div")
+            .style("position", "absolute")
+            .style("width", (lineChartWidth + margin.right) + "px")
+            .style("height", (lineChartHeight + margin.bottom + margin.top) + "px")
+            .style("left", 0 + "px")
+            .style("top", treemapHeight + "px");
 
-        var line = d3.svg.line()
-        .interpolate("basis")
-        .x(function(d) { return lineX(+d.time); })
-        .y(function(d) { return lineY(+d.conc); });
+            var svg = lineChartDiv.append("svg")
+            .attr("width", lineChartWidth)
+            .attr("height", lineChartHeight)
+            .append("g")
+            .attr('transform', "translate(" + margin.left + "," + margin.top + ")");
+
+            var line = d3.svg.line()
+            .interpolate("basis")
+            .x(function(d) { return lineX(+d.time); })
+            .y(function(d) { return lineY(+d.conc); });
 
 
-        function divName(d) {
-            return "div" + d.name;
-        }
+            function divName(d) {
+                return "div" + d.name;
+            }
 
-        var bisectTime = d3.bisector(function(d) { return d.time; }).left;
+            var bisectTime = d3.bisector(function(d) { return d.time; }).left;
 
-        function drawCotranscriptionalLine() {
-            d3.dsv(" ", 'text/plain')(filename, function(error, data) {
+            function drawCotranscriptionalLine() {
                 data.forEach(function(d) {
                     d.time = +d.time;
                     d.conc = +d.conc;
@@ -161,8 +161,8 @@ function createCotranscriptionalTreemap(element, filename) {
                         return root;
 
                 }
-                var root = createInitialRoot(nestedData);
 
+                var root = createInitialRoot(nestedData);
                 var containers = {};
 
                 var node = treemapDiv.datum(root).selectAll(".treemapNode")
@@ -276,16 +276,32 @@ function createCotranscriptionalTreemap(element, filename) {
 
                     updateCurrentTime(_xCoord);
                 }
-            });
-        }
+            };
 
-drawCotranscriptionalLine();
 
-function position() {
-  this.style("left", function(d) {  return d.x + "px"; })
-      .style("top", function(d) { return d.y + "px"; })
-      .style("width", function(d) { return Math.max(0, d.dx - 0) + "px"; })
-      .style("height", function(d) { return Math.max(0, d.dy - 0) + "px"; })
-}
+            drawCotranscriptionalLine();
+
+            function position() {
+              this.style("left", function(d) {  return d.x + "px"; })
+                  .style("top", function(d) { return d.y + "px"; })
+                  .style("width", function(d) { return Math.max(0, d.dx - 0) + "px"; })
+                  .style("height", function(d) { return Math.max(0, d.dy - 0) + "px"; })
+            }
+        });
     }
+
+    chart.width = function(_) {
+        if (!arguments.length) return totalWidth;
+        else totalWidth = _;
+        return chart;
+    };
+
+    chart.height = function(_) {
+        if (!arguments.length) return totalHeight;
+        else totalHeight = _;
+        return chart;
+    };
+
+    return chart;
+}
 
