@@ -36,7 +36,6 @@ function cotranscriptionalTimeSeriesLayout() {
     var lineChartWidth = totalWidth - margin.left - margin.right;
     var lineChartHeight = totalHeight - treemapHeight - margin.top - margin.bottom;
 
-
     var lineX = d3.scale.linear().range([0, lineChartWidth]);
     var lineY = d3.scale.linear().range([lineChartHeight, 0]);
 
@@ -311,6 +310,7 @@ function cotranscriptionalSmallMultiplesLayout() {
     var treemapHeight = 160;
     var svgWidth = 550;
     var svgHeight = 0;
+    var textHeight = 15;
 
     function getOrCreateSequence(cotranscriptionalState) {
         // extract the sequence from a line of coTranscriptional output
@@ -340,7 +340,8 @@ function cotranscriptionalSmallMultiplesLayout() {
                         return { 
                             'structure': y.struct,
                             'sequence': getOrCreateSequence(y),
-                            'size': y.conc
+                            'size': y.conc,
+                            'time': y.time
                         };
                     })
                 }});
@@ -354,7 +355,7 @@ function cotranscriptionalSmallMultiplesLayout() {
             // the rna treemap layout, which will be called for every grid point
             var rnaTreemap = rnaTreemapChart()
             .width(treemapWidth)
-            .height(treemapHeight);
+            .height(treemapHeight - textHeight)
 
             // the grid layout that will determine the position of each
             // treemap
@@ -365,20 +366,45 @@ function cotranscriptionalSmallMultiplesLayout() {
             .padding(padding)
             .nodeSize([treemapWidth, treemapHeight]);
             var rectData = rectGrid(inputData)
+                .map(function(d) { 
+                    d.pos = { x: d.x, y: d.y }
+                    return d;
+                });
 
             // create an svg as a child of the #rna_ss div
             // and then a g for each grid cell
-            d3.select(this)
+            var svg = d3.select(this)
             .append('svg')
             .attr('width', svgWidth)
             .attr('height', svgHeight)
-            .selectAll('.rna-treemap')
+
+            svg.selectAll('.rna-treemap')
             .data(rectData)
             .enter()
             .append('g')
-            .attr('transform', function(d) { return 'translate(' + d.x + ',' + d.y + ')'; })
+            .attr('transform', function(d) { 
+                console.log('d:', d);
+                return 'translate(' + d.x + ',' + d.y + ')'; })
             .classed('rna-treemap', true)
             .call(rnaTreemap);
+
+            console.log('rectData:', rectData);
+
+            svg.selectAll('.time-g')
+            .data(rectData)
+            .enter()
+            .append('g')
+            .attr('transform', function(d) { 
+                //console.log('d:', d); 
+                return 'translate(' + d.pos.x + ',' + d.pos.y + ')'; })
+            .classed('time-g', true)
+            .append('text')
+            .attr('x', treemapWidth / 2)
+            .attr('y', treemapHeight - textHeight + 16)
+            .classed('time-label', true)
+            .text(function(d) { 
+                  return "time: " + d.children[0].time
+            });
         });
     };
 
