@@ -51,6 +51,7 @@ $ ( document ).ready(function() {
     */
 
     d3.dsv(" ", 'text/plain')('data/pete.growing', function(error, data) {
+    //d3.dsv(" ", 'text/plain')('data/pete.out.filtered', function(error, data) {
         currentCTView = 'time-series'
         var width = 800;
         var height = 600;

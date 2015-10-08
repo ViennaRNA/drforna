@@ -383,19 +383,15 @@ function cotranscriptionalSmallMultiplesLayout() {
             .enter()
             .append('g')
             .attr('transform', function(d) { 
-                console.log('d:', d);
                 return 'translate(' + d.x + ',' + d.y + ')'; })
             .classed('rna-treemap', true)
             .call(rnaTreemap);
-
-            console.log('rectData:', rectData);
 
             svg.selectAll('.time-g')
             .data(rectData)
             .enter()
             .append('g')
             .attr('transform', function(d) { 
-                //console.log('d:', d); 
                 return 'translate(' + d.pos.x + ',' + d.pos.y + ')'; })
             .classed('time-g', true)
             .append('text')
