@@ -1,0 +1,105 @@
+svg {
+  display: block;
+  min-width: 100%;
+  width: 100%;
+  min-height: 100%;
+}
+
+circle.rnaBase {
+  stroke: #ccc;
+  stroke-width: 1px;
+  opacity: 1;
+  fill: transparent;
+}
+
+circle.rnaBase.label {
+    stroke: transparent;
+    stroke-width: 0;
+    fill: white;
+}
+
+line.link {
+  stroke: #999;
+  stroke-opacity: 0.8;
+  stroke-width: 2;
+}
+
+line.basepair {
+  stroke: red;
+}
+
+line.intermolecule {
+  stroke: blue;
+}
+
+line.chain_chain {
+  stroke-dasharray: 3,3;
+}
+
+line.fake {
+  stroke: green;
+}
+
+.transparent {
+    fill: transparent;
+    stroke-width: 0;
+    stroke-opacity: 0;
+    opacity: 0;
+    visibility: hidden;
+}
+
+.d3-tip {
+    line-height: 1;
+    font-weight: bold;
+    padding: 6px;
+    background: rgba(0, 0, 0, 0.6);
+    color: #fff;
+    border-radius: 4px;
+    pointer-events: none;
+          }
+
+text.nucleotide-label {
+    font-size: 5.5pt;
+    font-weight: bold;
+    font-family: Tahoma, Geneva, sans-serif;
+    color: rgb(100,100,100);
+    pointer-events: none;
+}
+
+text.number-label {
+    font-size: 5.5pt;
+    font-weight: bold;
+    font-family: Tahoma, Geneva, sans-serif;
+    color: rgb(100,100,100);
+    pointer-events: none;
+}
+
+text {
+    pointer-events: none;
+}
+
+g.gnode {
+
+}
+
+.brush .extent {
+  fill-opacity: .1;
+  stroke: #fff;
+  shape-rendering: crispEdges;
+}
+
+.noselect {
+    -webkit-touch-callout: none;
+    -webkit-user-select: none;
+    -khtml-user-select: none;
+    -moz-user-select: none;
+    -ms-user-select: none;
+    user-select: none;
+}
+
+.structure-background-rect {
+    stroke: black;
+    stroke-width: 1;
+    fill: transparent;
+}
+
