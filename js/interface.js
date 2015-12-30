@@ -95,8 +95,8 @@ $ ( document ).ready(function() {
                 toggleView = showTimeSeriesPlot;
         }
 
-        //toggleView = showTimeSeriesPlot;
-        toggleView = showSmallMultiplesPlot;
+        toggleView = showTimeSeriesPlot;
+        //toggleView = showSmallMultiplesPlot;
         toggleView();
     });
 
