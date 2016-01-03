@@ -28,10 +28,10 @@ function cotranscriptionalTimeSeriesLayout() {
 
     var margin = {top: 10, right: 60, bottom: 40, left: 50};
     var totalWidth = 700;
-    var totalHeight = 500;
+    var totalHeight = 400;
 
     var treemapWidth = totalWidth - margin.left - margin.right;
-    var treemapHeight = totalHeight * 0.75 - margin.top - margin.bottom;
+    var treemapHeight = totalHeight * 0.85 - margin.top - margin.bottom;
 
     var lineChartWidth = totalWidth - margin.left - margin.right;
     var lineChartHeight = totalHeight - treemapHeight - margin.top - margin.bottom;
