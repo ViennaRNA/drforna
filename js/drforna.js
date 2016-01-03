@@ -23,7 +23,7 @@ function cotranscriptionalTimeSeriesLayout() {
     var options = {'applyForce': false, 
         'allowPanningAndZooming': true,
         "labelInterval":0,
-        "initialSize": [800,800],
+        "resizeSvgOnResize": false,    //don't trigger a reflow and keep things speedy
         "transitionDuration": 0 };
 
     var margin = {top: 10, right: 60, bottom: 40, left: 50};
@@ -215,6 +215,7 @@ function cotranscriptionalTimeSeriesLayout() {
                 })
 
                 function updateTreemap(root) {
+                    console.log('-------------------------------');
                     var node = treemapDiv.datum(root).selectAll(".treemapNode")
                     .data(treemap.nodes)
                     .call(position)
