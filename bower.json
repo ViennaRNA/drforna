@@ -10,13 +10,11 @@
     "es6"
   ],
   "keywords": [
-    "\"RNA",
-    "secondary",
-    "structure\"",
-    "\"cotranscriptional",
-    "folding\"",
-    "\"RNA",
-    "folding\""
+      "RNA secondary structure",
+      "secondary structure",
+      "RNA",
+      "cotranscriptional folding",
+      "RNA folding"
   ],
   "license": "MIT",
   "ignore": [
@@ -28,8 +26,6 @@
   ],
   "dependencies": {
     "d3": "^3.5.14",
-    "bootstrap": "^3.3.6",
-    "FileSaver": "*",
     "d3-grid": "^0.1.1"
   }
 }
