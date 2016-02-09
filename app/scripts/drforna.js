@@ -1,9 +1,12 @@
+import d3 from 'd3';
+import {FornaContainer} from 'fornac';
+
 function doStepwiseAnimation(elementName, structs, duration) {
     var container = new FornaContainer(elementName, {'applyForce': false,
                                        'allowPanningAndZooming': true,
-                                       "labelInterval":0,
-                                       "initialSize": [800,800],
-                                       "transitionDuration": duration });
+                                       'labelInterval':0,
+                                       'initialSize': [800,800],
+                                       'transitionDuration': duration });
 
                                        var funcs = []
 
@@ -22,9 +25,9 @@ function doStepwiseAnimation(elementName, structs, duration) {
 function cotranscriptionalTimeSeriesLayout() {
     var options = {'applyForce': false, 
         'allowPanningAndZooming': true,
-        "labelInterval":0,
-        "resizeSvgOnResize": false,    //don't trigger a reflow and keep things speedy
-        "transitionDuration": 0 };
+        'labelInterval':0,
+        'resizeSvgOnResize': false,    //don't trigger a reflow and keep things speedy
+        'transitionDuration': 0 };
 
     var margin = {top: 10, right: 60, bottom: 40, left: 50};
     var totalWidth = 700;
@@ -49,42 +52,42 @@ function cotranscriptionalTimeSeriesLayout() {
             .sticky(false)
             .value(function(d) { return d.size; });
 
-            var wholeDiv = d3.select(this).append("div")
-            .style("position", "relative")
-            .style("width", (treemapWidth + margin.left + margin.right) + "px")
-            .style("height", (treemapHeight + lineChartHeight + margin.top + margin.bottom) + "px")
-            .style("left", margin.left + "px")
-            .style("top", margin.top + "px")
+            var wholeDiv = d3.select(this).append('div')
+            .style('position', 'relative')
+            .style('width', (treemapWidth + margin.left + margin.right) + 'px')
+            .style('height', (treemapHeight + lineChartHeight + margin.top + margin.bottom) + 'px')
+            .style('left', margin.left + 'px')
+            .style('top', margin.top + 'px')
             .attr('id', 'whole-div');
 
-            var treemapDiv = wholeDiv.append("div")
-            .style("position", "absolute")
-            .style("width", (treemapWidth) + "px")
-            .style("height", (treemapHeight + margin.bottom) + "px")
-            .style("left", margin.left + "px")
-            .style("top", margin.top + "px");
+            var treemapDiv = wholeDiv.append('div')
+            .style('position', 'absolute')
+            .style('width', (treemapWidth) + 'px')
+            .style('height', (treemapHeight + margin.bottom) + 'px')
+            .style('left', margin.left + 'px')
+            .style('top', margin.top + 'px');
 
-            var lineChartDiv = wholeDiv.append("div")
-            .style("position", "absolute")
-            .style("width", (lineChartWidth + margin.right) + "px")
-            .style("height", (lineChartHeight + margin.bottom + margin.top) + "px")
-            .style("left", 0 + "px")
-            .style("top", treemapHeight + "px");
+            var lineChartDiv = wholeDiv.append('div')
+            .style('position', 'absolute')
+            .style('width', (lineChartWidth + margin.right) + 'px')
+            .style('height', (lineChartHeight + margin.bottom + margin.top) + 'px')
+            .style('left', 0 + 'px')
+            .style('top', treemapHeight + 'px');
 
-            var svg = lineChartDiv.append("svg")
-            .attr("width", lineChartWidth)
-            .attr("height", lineChartHeight)
-            .append("g")
-            .attr('transform', "translate(" + margin.left + "," + margin.top + ")");
+            var svg = lineChartDiv.append('svg')
+            .attr('width', lineChartWidth)
+            .attr('height', lineChartHeight)
+            .append('g')
+            .attr('transform', 'translate(' + margin.left + ',' + margin.top + ')');
 
             var line = d3.svg.line()
-            .interpolate("basis")
+            .interpolate('basis')
             .x(function(d) { return lineX(+d.time); })
             .y(function(d) { return lineY(+d.conc); });
 
 
             function divName(d) {
-                return "div" + d.name;
+                return 'div' + d.name;
             }
 
             var bisectTime = d3.bisector(function(d) { return d.time; }).left;
@@ -104,41 +107,41 @@ function cotranscriptionalTimeSeriesLayout() {
 
                 var xAxis = d3.svg.axis()
                 .scale(lineX)
-                .orient("bottom");
+                .orient('bottom');
 
                 var yAxis = d3.svg.axis()
                 .scale(lineY)
-                .orient("left");
+                .orient('left');
                 var _xCoord = 0;
                 var runAnimation = false;
 
-                svg.append("g")
-                .attr("class", "x axis")
-                .attr("transform", "translate(0," + lineChartHeight + ")")
+                svg.append('g')
+                .attr('class', 'x axis')
+                .attr('transform', 'translate(0,' + lineChartHeight + ')')
                 .call(xAxis);
 
-                svg.append("g")
-                .attr("class", "y axis")
-                .attr("transform", "translate(" + (0) + ",0)")
+                svg.append('g')
+                .attr('class', 'y axis')
+                .attr('transform', 'translate(' + (0) + ',0)')
                 .call(yAxis)
-                .append("text")
+                .append('text')
                 .attr('x', lineChartWidth /2)
-                .attr("y", lineChartHeight + 25)
-                .attr("dy", ".71em")
-                .style("text-anchor", "middle")
-                .text("Time (Seconds)");
+                .attr('y', lineChartHeight + 25)
+                .attr('dy', '.71em')
+                .style('text-anchor', 'middle')
+                .text('Time (Seconds)');
 
-                svg.append("g")
-                .attr("class", "y axis")
-                .attr("transform", "translate(" + (0) + ",0)")
+                svg.append('g')
+                .attr('class', 'y axis')
+                .attr('transform', 'translate(' + (0) + ',0)')
                 .call(yAxis)
-                .append("text")
-                .attr("transform", "rotate(-90)")
+                .append('text')
+                .attr('transform', 'rotate(-90)')
                 .attr('x', -0)
-                .attr("y", -45)
-                .attr("dy", ".71em")
-                .style("text-anchor", "end")
-                .text("Population Density");
+                .attr('y', -45)
+                .attr('dy', '.71em')
+                .style('text-anchor', 'end')
+                .text('Population Density');
 
                 var currentTimeIndicatorLine = svg.append('line')
                 .attr('x1', 0)
@@ -148,15 +151,15 @@ function cotranscriptionalTimeSeriesLayout() {
                 .classed('time-indicator', true);
 
                 var nestedData = d3.nest().key(function(d) { return +d.id; }).entries(data)
-                var concProfile = svg.selectAll(".concProfile")
+                var concProfile = svg.selectAll('.concProfile')
                 .data(nestedData)
-                .enter().append("g")
-                .attr("class", "concProfile");
+                .enter().append('g')
+                .attr('class', 'concProfile');
 
                 function createInitialRoot(nestedData) {
-                    var root = {"name": "graph",
-                        "children": nestedData.map(function(d) { return {"name": d.key, "struct": 
-                                                   d.values[0].struct, "size": 1 / nestedData.length};})};
+                    var root = {'name': 'graph',
+                        'children': nestedData.map(function(d) { return {'name': d.key, 'struct': 
+                                                   d.values[0].struct, 'size': 1 / nestedData.length};})};
                         return root;
 
                 }
@@ -164,41 +167,41 @@ function cotranscriptionalTimeSeriesLayout() {
                 var root = createInitialRoot(nestedData);
                 var containers = {};
 
-                var node = treemapDiv.datum(root).selectAll(".treemapNode")
+                var node = treemapDiv.datum(root).selectAll('.treemapNode')
                 .data(treemap.nodes)
-                .enter().append("div")
-                .attr("class", "treemapNode")
-                .attr("id", divName)
+                .enter().append('div')
+                .attr('class', 'treemapNode')
+                .attr('id', divName)
                 .call(position)
-                //.style("background", function(d) { return d.children ? color(d.name) : null; })
+                //.style('background', function(d) { return d.children ? color(d.name) : null; })
                 //.text(function(d) { return d.children ? null : d.name; })
                 .each(function(d) { 
                     if (typeof d.struct != 'undefined') {
-                        containers[divName(d)] = new FornaContainer("#" + divName(d), options);
+                        containers[divName(d)] = new FornaContainer('#' + divName(d), options);
                         containers[divName(d)].transitionRNA(d.struct);
                         containers[divName(d)].setOutlineColor(color(d.name));
                     }
                 } );
 
-                concProfile.append("path")
-                .attr("class", "line")
-                .attr("d", function(d) { return line(d.values); })
-                .style("stroke", function(d) { 
+                concProfile.append('path')
+                .attr('class', 'line')
+                .attr('d', function(d) { return line(d.values); })
+                .style('stroke', function(d) { 
                     return color(d.key); 
                 });
 
-                svg.append("rect")
-                .attr("class", "overlay")
-                .attr("width", lineChartWidth)
-                .attr("height", lineChartHeight)
-                .on("mouseover", function() { })
-                .on("mousemove", mousemove);
+                svg.append('rect')
+                .attr('class', 'overlay')
+                .attr('width', lineChartWidth)
+                .attr('height', lineChartHeight)
+                .on('mouseover', function() { })
+                .on('mousemove', mousemove);
 
                 wholeDiv
-                .on("mouseenter", function() {
+                .on('mouseenter', function() {
                     runAnimation = false;
                 })
-                .on("mouseleave", function() { 
+                .on('mouseleave', function() { 
                     runAnimation = true;
 
                     updateCurrentTime(_xCoord);
@@ -216,7 +219,7 @@ function cotranscriptionalTimeSeriesLayout() {
 
                 function updateTreemap(root) {
                     console.log('-------------------------------');
-                    var node = treemapDiv.datum(root).selectAll(".treemapNode")
+                    var node = treemapDiv.datum(root).selectAll('.treemapNode')
                     .data(treemap.nodes)
                     .call(position)
                     .each(function(d) { 
@@ -239,7 +242,7 @@ function cotranscriptionalTimeSeriesLayout() {
                         var i = bisectTime(data.values, y0, 0)
 
                         if (i >= data.values.length || i == 0)
-                            return {"name": data.key, "struct": data.values[0].struct, "size": 0};
+                            return {'name': data.key, 'struct': data.values[0].struct, 'size': 0};
 
                         var d0 = data.values[i-1];
                         var d1 = data.values[i];
@@ -250,13 +253,13 @@ function cotranscriptionalTimeSeriesLayout() {
 
                         var value = sc(y0);
 
-                        var retVal= {"name": data.key, "struct": data.values[0].struct, "size": +value};
+                        var retVal= {'name': data.key, 'struct': data.values[0].struct, 'size': +value};
                         containers[divName(retVal)].transitionRNA(data.values[i].struct)
                         return retVal;
                     });
 
-                    var root = {"name": "graph",
-                        "children": values };
+                    var root = {'name': 'graph',
+                        'children': values };
 
                         updateTreemap(root);
 
@@ -281,10 +284,10 @@ function cotranscriptionalTimeSeriesLayout() {
             drawCotranscriptionalLine();
 
             function position() {
-              this.style("left", function(d) {  return d.x + "px"; })
-                  .style("top", function(d) { return d.y + "px"; })
-                  .style("width", function(d) { return Math.max(0, d.dx - 0) + "px"; })
-                  .style("height", function(d) { return Math.max(0, d.dy - 0) + "px"; })
+              this.style('left', function(d) {  return d.x + 'px'; })
+                  .style('top', function(d) { return d.y + 'px'; })
+                  .style('width', function(d) { return Math.max(0, d.dx - 0) + 'px'; })
+                  .style('height', function(d) { return Math.max(0, d.dy - 0) + 'px'; })
             }
         });
     }
@@ -321,9 +324,9 @@ function cotranscriptionalSmallMultiplesLayout() {
         if ('seq' in cotranscriptionalState)
             return cotranscriptionalState['seq']
         else {
-            letters = "";
+            letters = '';
             for (var i = 0; i < cotranscriptionalState['struct'].length; i++)
-                letters = letters + "A";
+                letters = letters + 'A';
         }
 
         return letters;
@@ -400,7 +403,7 @@ function cotranscriptionalSmallMultiplesLayout() {
             .attr('y', treemapHeight - textHeight + 16)
             .classed('time-label', true)
             .text(function(d) { 
-                  return "time: " + d.children[0].time
+                  return 'time: ' + d.children[0].time
             });
         });
     };
