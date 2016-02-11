@@ -1,6 +1,8 @@
 import d3 from 'd3';
 import {FornaContainer} from 'fornac';
 
+//import '../styles/treemap.css';
+
 function doStepwiseAnimation(elementName, structs, duration) {
     var container = new FornaContainer(elementName, {'applyForce': false,
                                        'allowPanningAndZooming': true,
@@ -22,7 +24,7 @@ function doStepwiseAnimation(elementName, structs, duration) {
                                        funcs[funcs.length-1]();
 }
 
-function cotranscriptionalTimeSeriesLayout() {
+export function cotranscriptionalTimeSeriesLayout() {
     var options = {'applyForce': false, 
         'allowPanningAndZooming': true,
         'labelInterval':0,
@@ -307,7 +309,7 @@ function cotranscriptionalTimeSeriesLayout() {
     return chart;
 }
 
-function cotranscriptionalSmallMultiplesLayout() {
+export function cotranscriptionalSmallMultiplesLayout() {
     // set all of the parameters
     var padding = [10,10];
     var treemapWidth = 160;

@@ -1,7 +1,12 @@
+import d3 from 'd3';
+import $ from 'jquery';
+
+import {cotranscriptionalTimeSeriesLayout, cotranscriptionalState} from './drforna.js';
+
 var toggleView = function() {};
 
 $ ( document ).ready(function() {
-    //window.addEventListener("resize", setSize, false);
+    //window.addEventListener('resize', setSize, false);
 
     /*
     function setSize() {
@@ -38,9 +43,9 @@ $ ( document ).ready(function() {
         .remove()
 
         var style = svg.append('svg:style');
-        $.get(location.origin + window.location.pathname.replace(/[^\/]+$/g,"") + "css/dotstruct.css", 
+        $.get(location.origin + window.location.pathname.replace(/[^\/]+$/g,'') + 'css/dotstruct.css', 
               function(content){
-                  style.text(content.replace(/[\s\n]/g, ""));
+                  style.text(content.replace(/[\s\n]/g, ''));
 
                   svg.call(dotStructPlot);
 
@@ -50,9 +55,9 @@ $ ( document ).ready(function() {
     }
     */
 
-    d3.dsv(" ", 'text/plain')('data/pete.short', function(error, data) {
-    //d3.dsv(" ", 'text/plain')('data/pete.out.filtered', function(error, data) {
-        currentCTView = 'time-series'
+    d3.dsv(' ', 'text/plain')('data/pete.short', function(error, data) {
+    //d3.dsv(' ', 'text/plain')('data/pete.out.filtered', function(error, data) {
+        let currentCTView = 'time-series'
         var width = 800;
         var height = 600;
 
@@ -138,7 +143,7 @@ function saveSVG() {
     saveSvgAsPng(document.getElementById('dotplot'), 'dotplot.png', 4);
     return;
 
-    console.log("saving svg..."); 
+    console.log('saving svg...'); 
     var svg = document.getElementById('dotplot'); 
 
     //get svg source. 
@@ -146,10 +151,10 @@ function saveSVG() {
     var source = serializer.serializeToString(svg); 
 
     //add name spaces. 
-    if(!source.match(/^<svg[^>]+xmlns="http\:\/\/www\.w3\.org\/2000\/svg"/)){ 
+    if(!source.match(/^<svg[^>]+xmlns='http\:\/\/www\.w3\.org\/2000\/svg'/)){ 
         source = source.replace(/^<svg/, '<svg xmlns="http://www.w3.org/2000/svg"'); 
     } 
-    if(!source.match(/^<svg[^>]+"http\:\/\/www\.w3\.org\/1999\/xlink"/)){ 
+    if(!source.match(/^<svg[^>]+'http\:\/\/www\.w3\.org\/1999\/xlink'/)){ 
         source = source.replace(/^<svg/, '<svg xmlns:xlink="http://www.w3.org/1999/xlink"');
     } 
 
@@ -157,6 +162,6 @@ function saveSVG() {
     source = '<?xml version="1.0" standalone="no"?>\r\n' + source; 
 
     // use FileSave to get a downloadable SVG File 
-    var file = new Blob([source], {type: "data:image/svg+xml;charset=utf-8"}); 
-    saveAs(file, "dotplot.svg"); 
+    var file = new Blob([source], {type: 'data:image/svg+xml;charset=utf-8'}); 
+    saveAs(file, 'dotplot.svg'); 
 }

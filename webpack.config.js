@@ -3,12 +3,13 @@ var webpack = require('webpack');
 
 module.exports = {
   context: __dirname + '/app',
-  entry: './scripts/drforna.js',
+  entry: {drforna: ['./scripts/drforna.js'],
+          drforna_interface: './scripts/interface.js'},
   output: {
     path: __dirname + '/build',
-    filename: 'drforna.js',
+    filename: '[name].js',
     libraryTarget: 'var',
-    library: 'drforna'
+    library: '[name]'
   },
   module: {
     loaders: [
@@ -19,6 +20,10 @@ module.exports = {
         query: {
           presets: ['es2015']
         }
+      },
+      {
+          test: /\.css$/,
+          loader: 'style!css'
       }
     ],
     resolve: {
