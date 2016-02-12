@@ -1,7 +1,8 @@
 import d3 from 'd3';
 import {FornaContainer} from 'fornac';
 
-//import '../styles/treemap.css';
+import '../styles/treemap.css';
+import '../styles/drforna.css';
 
 function doStepwiseAnimation(elementName, structs, duration) {
     var container = new FornaContainer(elementName, {'applyForce': false,
@@ -239,7 +240,7 @@ export function cotranscriptionalTimeSeriesLayout() {
 
                     var y0 = lineX.invert(xCoord);
 
-                    i = bisectTime(data, y0, 1);
+                    let i = bisectTime(data, y0, 1);
                     var values = nestedData.map(function(data) { 
                         var i = bisectTime(data.values, y0, 0)
 

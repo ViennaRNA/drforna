@@ -8,7 +8,7 @@ module.exports = {
   output: {
     path: __dirname + '/build',
     filename: '[name].js',
-    libraryTarget: 'var',
+    libraryTarget: 'umd',
     library: '[name]'
   },
   module: {
