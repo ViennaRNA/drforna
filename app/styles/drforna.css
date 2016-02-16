@@ -1,0 +1,9 @@
+.time-indicator {
+    stroke: black;
+    stroke-width: 2px;
+    stroke-dasharray: 5, 5;
+}
+
+.time-label {
+    text-anchor: middle;
+}

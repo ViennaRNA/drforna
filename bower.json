@@ -1,0 +1,32 @@
+{
+  "name": "drforna",
+  "homepage": "https://github.com/pkerpedjiev/drforna",
+  "authors": [
+    "Peter Kerpedjiev <pkerp@tbi.univie.ac.at>"
+  ],
+  "description": "Cotranscriptional RNA folding visualization",
+  "main": "js/drforna.js",
+  "moduleType": [
+    "es6"
+  ],
+  "keywords": [
+    "RNA secondary structure",
+    "secondary structure",
+    "RNA",
+    "cotranscriptional folding",
+    "RNA folding"
+  ],
+  "license": "MIT",
+  "ignore": [
+    "**/.*",
+    "node_modules",
+    "bower_components",
+    "test",
+    "tests"
+  ],
+  "dependencies": {
+    "d3": "^3.5.14",
+    "d3-grid": "^0.1.1",
+    "fornac": "^1.1.0"
+  }
+}
