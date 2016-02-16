@@ -51,6 +51,12 @@ const testLintOptions = {
 gulp.task('lint', lint('app/scripts/**/*.js'));
 gulp.task('lint:test', lint('test/spec/**/*.js', testLintOptions));
 
+gulp.task('build', ['styles', 'scripts'], () => {
+    return gulp.src(['.tmp/scripts/drforna.js'])
+    .pipe($.uglify())
+    .pipe(gulp.dest('dist/scripts'))
+});
+
 gulp.task('html', ['styles', 'scripts'], () => {
   return gulp.src('app/*.html')
     .pipe($.useref({searchPath: ['.tmp', 'app', '.']}))
@@ -157,9 +163,9 @@ gulp.task('wiredep', () => {
     .pipe(gulp.dest('app'));
 });
 
-gulp.task('build', ['lint', 'html', 'images', 'fonts', 'extras'], () => {
-  return gulp.src('dist/**/*').pipe($.size({title: 'build', gzip: true}));
-});
+//gulp.task('build', ['html', 'images', 'fonts', 'extras'], () => {
+  //return gulp.src('dist/**/*').pipe($.size({title: 'build', gzip: true}));
+//});
 
 gulp.task('default', ['clean'], () => {
   gulp.start('build');

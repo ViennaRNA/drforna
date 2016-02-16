@@ -28,7 +28,8 @@
     "jquery": "~2.2.0",
     "eslint-plugin-react": "~3.16.1",
     "style-loader": "~0.13.0",
-    "css-loader": "~0.23.1"
+    "css-loader": "~0.23.1",
+    "babel-eslint": "~4.1.8"
   },
   "eslintConfig": {
     "env": {

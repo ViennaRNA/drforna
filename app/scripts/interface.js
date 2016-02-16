@@ -1,12 +1,13 @@
-import d3 from 'd3';
 import $ from 'jquery';
+import d3 from 'd3';
 
-import {cotranscriptionalTimeSeriesLayout, cotranscriptionalState} from './drforna.js';
+import {cotranscriptionalTimeSeriesLayout, cotranscriptionalSmallMultiplesLayout} from './drforna.js';
+
 
 var toggleView = function() {};
 
 $ ( document ).ready(function() {
-    //window.addEventListener('resize', setSize, false);
+    //window.addEventListener("resize", setSize, false);
 
     /*
     function setSize() {
@@ -22,46 +23,19 @@ $ ( document ).ready(function() {
     }
     */
 
-    /*
     function createNewPlot(file) {
-        var dotStructPlot = dotStructLayout();
+        console.log('file:', file);
 
-        console.log('file', file);
-        data = JSON.parse(file.target.result);
 
-        dotStructPlot.width(data.seq.length * 10);
+        var data = d3.dsv(' ').parse(file.target.result);
+        console.log('data:', data);
 
-        var boundContainer = d3.select('#visContainer')
-        .selectAll('svg')
-        .data([data], function(d) { return d.seq })
-
-        var svg = boundContainer.enter()
-        .append('svg')
-        .attr('id', 'dotplot')
-
-        boundContainer.exit()
-        .remove()
-
-        var style = svg.append('svg:style');
-        $.get(location.origin + window.location.pathname.replace(/[^\/]+$/g,'') + 'css/dotstruct.css', 
-              function(content){
-                  style.text(content.replace(/[\s\n]/g, ''));
-
-                  svg.call(dotStructPlot);
-
-              });
-
-        setSize();
-    }
-    */
-
-    d3.dsv(' ', 'text/plain')('data/pete.short', function(error, data) {
-    //d3.dsv(' ', 'text/plain')('data/pete.out.filtered', function(error, data) {
         let currentCTView = 'time-series'
         var width = 800;
         var height = 600;
 
         var showPlot = function(plotLayout) {
+            console.log('showPlot');
             //dotStructPlot.width(data.seq.length * 10);
             d3.select('#visContainer')
             .selectAll('.removable-plot')
@@ -72,9 +46,9 @@ $ ( document ).ready(function() {
             .classed('removable-plot', true)
             .data([data])
             /*
-            .enter()
-            .append('svg')
-            */
+               .enter()
+               .append('svg')
+               */
             //.attr('width', plotLayout.width())
             //.attr('height', plotLayout.height())
             .attr('id', 'my-plot');
@@ -103,7 +77,9 @@ $ ( document ).ready(function() {
         toggleView = showTimeSeriesPlot;
         //toggleView = showSmallMultiplesPlot;
         toggleView();
-    });
+    }
+
+    //createNewPlot('data/pete.growing');
 
     /* add event listener to the file browse button */
   $('#files').on('change', function(evt) {
@@ -143,7 +119,7 @@ function saveSVG() {
     saveSvgAsPng(document.getElementById('dotplot'), 'dotplot.png', 4);
     return;
 
-    console.log('saving svg...'); 
+    console.log("saving svg..."); 
     var svg = document.getElementById('dotplot'); 
 
     //get svg source. 
@@ -151,10 +127,10 @@ function saveSVG() {
     var source = serializer.serializeToString(svg); 
 
     //add name spaces. 
-    if(!source.match(/^<svg[^>]+xmlns='http\:\/\/www\.w3\.org\/2000\/svg'/)){ 
+    if(!source.match(/^<svg[^>]+xmlns="http\:\/\/www\.w3\.org\/2000\/svg"/)){ 
         source = source.replace(/^<svg/, '<svg xmlns="http://www.w3.org/2000/svg"'); 
     } 
-    if(!source.match(/^<svg[^>]+'http\:\/\/www\.w3\.org\/1999\/xlink'/)){ 
+    if(!source.match(/^<svg[^>]+"http\:\/\/www\.w3\.org\/1999\/xlink"/)){ 
         source = source.replace(/^<svg/, '<svg xmlns:xlink="http://www.w3.org/1999/xlink"');
     } 
 
@@ -162,6 +138,6 @@ function saveSVG() {
     source = '<?xml version="1.0" standalone="no"?>\r\n' + source; 
 
     // use FileSave to get a downloadable SVG File 
-    var file = new Blob([source], {type: 'data:image/svg+xml;charset=utf-8'}); 
-    saveAs(file, 'dotplot.svg'); 
+    var file = new Blob([source], {type: "data:image/svg+xml;charset=utf-8"}); 
+    saveAs(file, "dotplot.svg"); 
 }
