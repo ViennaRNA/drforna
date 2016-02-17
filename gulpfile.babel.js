@@ -53,6 +53,12 @@ gulp.task('lint:test', lint('test/spec/**/*.js', testLintOptions));
 
 gulp.task('build', ['styles', 'scripts'], () => {
     return gulp.src(['.tmp/scripts/drforna.js'])
+    //.pipe($.uglify())
+    .pipe(gulp.dest('dist/scripts'))
+});
+
+gulp.task('buildJs', ['styles', 'scripts'], () => {
+    return gulp.src(['.tmp/scripts/drforna.js'])
     .pipe($.uglify())
     .pipe(gulp.dest('dist/scripts'))
 });

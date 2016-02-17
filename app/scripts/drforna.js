@@ -59,16 +59,29 @@ export function cotranscriptionalTimeSeriesLayout() {
             .style('position', 'relative')
             .style('width', (treemapWidth + margin.left + margin.right) + 'px')
             .style('height', (treemapHeight + lineChartHeight + margin.top + margin.bottom) + 'px')
-            .style('left', margin.left + 'px')
-            .style('top', margin.top + 'px')
             .attr('id', 'whole-div');
 
             var treemapDiv = wholeDiv.append('div')
+            .classed('treemap-div', true)
             .style('position', 'absolute')
             .style('width', (treemapWidth) + 'px')
-            .style('height', (treemapHeight + margin.bottom) + 'px')
+            .style('height', (treemapHeight) + 'px')
             .style('left', margin.left + 'px')
             .style('top', margin.top + 'px');
+
+
+            var labelSvg = wholeDiv.append('div')
+            .style('position', 'absolute')
+            .style('width', margin.left + 'px')
+            .style('height', treemapHeight)
+            .style('top', margin.top + 'px')
+            .append('svg')
+            .attr('width', margin.left + 'px')
+            .attr('height', treemapHeight);
+
+            labelSvg.append('text')
+            .attr('transform', `translate(${margin.left - 30}, 150)rotate(-90)`)
+            .text('Structures')
 
             var lineChartDiv = wholeDiv.append('div')
             .style('position', 'absolute')
@@ -76,6 +89,15 @@ export function cotranscriptionalTimeSeriesLayout() {
             .style('height', (lineChartHeight + margin.bottom + margin.top) + 'px')
             .style('left', 0 + 'px')
             .style('top', treemapHeight + 'px');
+
+
+            var outlineDiv = wholeDiv.append('div')
+            .classed('outline-div', true)
+            .style('position', 'absolute')
+            .style('width', (treemapWidth) + 'px')
+            .style('height', (treemapHeight) + 'px')
+            .style('left', margin.left + 'px')
+            .style('top', margin.top + 'px');
 
             var svg = lineChartDiv.append('svg')
             .attr('width', lineChartWidth)
@@ -114,7 +136,9 @@ export function cotranscriptionalTimeSeriesLayout() {
 
                 var yAxis = d3.svg.axis()
                 .scale(lineY)
-                .orient('left');
+                .orient('left')
+                .ticks(0);
+
                 var _xCoord = 0;
                 var runAnimation = false;
 
@@ -139,13 +163,19 @@ export function cotranscriptionalTimeSeriesLayout() {
                 .attr('transform', 'translate(' + (0) + ',0)')
                 .call(yAxis)
                 .append('text')
-                .attr('transform', 'rotate(-90)')
-                .attr('x', -0)
-                .attr('y', -45)
-                .attr('dy', '.71em')
+                .attr('transform', 'translate(-30,0)rotate(-90)')
                 .style('text-anchor', 'end')
-                .text('Population Density');
+                .text('Population');
 
+                svg.append('g')
+                .attr('class', 'y axis')
+                .attr('transform', 'translate(' + (0) + ',0)')
+                .call(yAxis)
+                .append('text')
+                .attr('transform', 'translate(-15,0)rotate(-90)')
+                .style('text-anchor', 'end')
+                .text('Density (%)');
+                
                 var currentTimeIndicatorLine = svg.append('line')
                 .attr('x1', 0)
                 .attr('y1', 0)
@@ -228,6 +258,10 @@ export function cotranscriptionalTimeSeriesLayout() {
                     .each(function(d) { 
                         if (typeof d.struct != 'undefined') {
                             var cont = containers[divName(d)];
+                            /*
+                            console.log('cont.options.initialSize:', cont.options.initialSize);
+                            console.log('cont.options.resizeSvgOnResize:', cont.options.resizeSvgOnResize);
+                            */
                             cont.setSize();
 
                             cont.setOutlineColor(color(d.name));

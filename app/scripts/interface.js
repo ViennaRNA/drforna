@@ -96,6 +96,12 @@ $ ( document ).ready(function() {
     })
     .on('click', function(){ this.value = null; });
 
+    $.get('data/pete.short', result => {
+        let file = {target: {}}
+        file.target.result = result;
+        createNewPlot(file);
+    });
+
 })
 
 function savePNG() {

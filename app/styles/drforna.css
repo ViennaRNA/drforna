@@ -7,3 +7,7 @@
 .time-label {
     text-anchor: middle;
 }
+
+.outline-div {
+    border:1px solid black;
+}
