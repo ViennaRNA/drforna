@@ -57,7 +57,10 @@ $ ( document ).ready(function() {
         }
 
         var showTimeSeriesPlot = function() {
-            showPlot(cotranscriptionalTimeSeriesLayout().width(800).height(600));
+            console.log('here');
+            showPlot(cotranscriptionalTimeSeriesLayout().width(800).height(600)
+                    .newTimePointCallback((d) => { console.log('new time point:', d); })
+                    .newTimeClickCallback((d) => { console.log('new click point:', d) }));
 
             if (toggleView == showTimeSeriesPlot)
                 toggleView = showSmallMultiplesPlot;
@@ -99,6 +102,7 @@ $ ( document ).ready(function() {
     $.get('data/pete.short', result => {
         let file = {target: {}}
         file.target.result = result;
+        console.log('hey');
         createNewPlot(file);
     });
 

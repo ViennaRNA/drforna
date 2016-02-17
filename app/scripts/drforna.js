@@ -30,7 +30,7 @@ export function cotranscriptionalTimeSeriesLayout() {
         'allowPanningAndZooming': true,
         'labelInterval':0,
         'resizeSvgOnResize': false,    //don't trigger a reflow and keep things speedy
-        'transitionDuration': 0 };
+        'transitionDuration': 0}
 
     var margin = {top: 10, right: 60, bottom: 40, left: 50};
     var totalWidth = 700;
@@ -46,6 +46,8 @@ export function cotranscriptionalTimeSeriesLayout() {
     var lineY = d3.scale.linear().range([lineChartHeight, 0]);
 
     var color = d3.scale.category20();
+    var newTimePointCallback = null;
+    var newTimeClickCallback = null;
 
     function chart(selection) {
         selection.each(function(data) {
@@ -198,6 +200,7 @@ export function cotranscriptionalTimeSeriesLayout() {
                 }
 
                 var root = createInitialRoot(nestedData);
+                let populatedValues = [];
                 var containers = {};
 
                 var node = treemapDiv.datum(root).selectAll('.treemapNode')
@@ -228,7 +231,8 @@ export function cotranscriptionalTimeSeriesLayout() {
                 .attr('width', lineChartWidth)
                 .attr('height', lineChartHeight)
                 .on('mouseover', function() { })
-                .on('mousemove', mousemove);
+                .on('mousemove', mousemove)
+                .on('click', mouseclick);
 
                 wholeDiv
                 .on('mouseenter', function() {
@@ -251,17 +255,12 @@ export function cotranscriptionalTimeSeriesLayout() {
                 })
 
                 function updateTreemap(root) {
-                    console.log('-------------------------------');
                     var node = treemapDiv.datum(root).selectAll('.treemapNode')
                     .data(treemap.nodes)
                     .call(position)
                     .each(function(d) { 
                         if (typeof d.struct != 'undefined') {
                             var cont = containers[divName(d)];
-                            /*
-                            console.log('cont.options.initialSize:', cont.options.initialSize);
-                            console.log('cont.options.resizeSvgOnResize:', cont.options.resizeSvgOnResize);
-                            */
                             cont.setSize();
 
                             cont.setOutlineColor(color(d.name));
@@ -295,6 +294,11 @@ export function cotranscriptionalTimeSeriesLayout() {
                         return retVal;
                     });
 
+                    populatedValues = values.filter(d => { return d.size > 0; });
+
+                    if (newTimePointCallback != null)
+                        newTimePointCallback(populatedValues);
+
                     var root = {'name': 'graph',
                         'children': values };
 
@@ -314,6 +318,11 @@ export function cotranscriptionalTimeSeriesLayout() {
                     _xCoord = (d3.mouse(this)[0]);
 
                     updateCurrentTime(_xCoord);
+                }
+
+                function mouseclick() {
+                    if (newTimeClickCallback != null)
+                        newTimeClickCallback(populatedValues);
                 }
             };
 
@@ -340,6 +349,18 @@ export function cotranscriptionalTimeSeriesLayout() {
         else totalHeight = _;
         return chart;
     };
+
+    chart.newTimePointCallback = function(_) {
+        if (!arguments.length) return options.newTimePointCallback;
+        else newTimePointCallback = _;
+        return chart;
+    }
+
+    chart.newTimeClickCallback = function(_) {
+        if (!arguments.length) return options.newTimeClickCallback;
+        else newTimeClickCallback = _;
+        return chart;
+    }
 
     return chart;
 }

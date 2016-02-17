@@ -112,7 +112,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	        'resizeSvgOnResize': false, //don't trigger a reflow and keep things speedy
 	        'transitionDuration': 0 };
 
-	    var margin = { top: 10, right: 60, bottom: 40, left: 20 };
+	    var margin = { top: 10, right: 60, bottom: 40, left: 50 };
 	    var totalWidth = 700;
 	    var totalHeight = 400;
 
@@ -126,6 +126,8 @@ return /******/ (function(modules) { // webpackBootstrap
 	    var lineY = _d2.default.scale.linear().range([lineChartHeight, 0]);
 
 	    var color = _d2.default.scale.category20();
+	    var newTimePointCallback = null;
+	    var newTimeClickCallback = null;
 
 	    function chart(selection) {
 	        selection.each(function (data) {
@@ -134,11 +136,17 @@ return /******/ (function(modules) { // webpackBootstrap
 	                return d.size;
 	            });
 
-	            var wholeDiv = _d2.default.select(this).append('div').style('position', 'relative').style('width', treemapWidth + margin.left + margin.right + 'px').style('height', treemapHeight + lineChartHeight + margin.top + margin.bottom + 'px').style('left', margin.left + 'px').style('top', margin.top + 'px').attr('id', 'whole-div');
+	            var wholeDiv = _d2.default.select(this).append('div').style('position', 'relative').style('width', treemapWidth + margin.left + margin.right + 'px').style('height', treemapHeight + lineChartHeight + margin.top + margin.bottom + 'px').attr('id', 'whole-div');
 
-	            var treemapDiv = wholeDiv.append('div').style('position', 'absolute').style('width', treemapWidth + 'px').style('height', treemapHeight + margin.bottom + 'px').style('left', margin.left + 'px').style('top', margin.top + 'px');
+	            var treemapDiv = wholeDiv.append('div').classed('treemap-div', true).style('position', 'absolute').style('width', treemapWidth + 'px').style('height', treemapHeight + 'px').style('left', margin.left + 'px').style('top', margin.top + 'px');
+
+	            var labelSvg = wholeDiv.append('div').style('position', 'absolute').style('width', margin.left + 'px').style('height', treemapHeight).style('top', margin.top + 'px').append('svg').attr('width', margin.left + 'px').attr('height', treemapHeight);
+
+	            labelSvg.append('text').attr('transform', 'translate(' + (margin.left - 30) + ', 150)rotate(-90)').text('Structures');
 
 	            var lineChartDiv = wholeDiv.append('div').style('position', 'absolute').style('width', lineChartWidth + margin.right + 'px').style('height', lineChartHeight + margin.bottom + margin.top + 'px').style('left', 0 + 'px').style('top', treemapHeight + 'px');
+
+	            var outlineDiv = wholeDiv.append('div').classed('outline-div', true).style('position', 'absolute').style('width', treemapWidth + 'px').style('height', treemapHeight + 'px').style('left', margin.left + 'px').style('top', margin.top + 'px');
 
 	            var svg = lineChartDiv.append('svg').attr('width', lineChartWidth).attr('height', lineChartHeight).append('g').attr('transform', 'translate(' + margin.left + ',' + margin.top + ')');
 
@@ -177,7 +185,8 @@ return /******/ (function(modules) { // webpackBootstrap
 
 	                var xAxis = _d2.default.svg.axis().scale(lineX).orient('bottom');
 
-	                var yAxis = _d2.default.svg.axis().scale(lineY).orient('left');
+	                var yAxis = _d2.default.svg.axis().scale(lineY).orient('left').ticks(0);
+
 	                var _xCoord = 0;
 	                var runAnimation = false;
 
@@ -185,7 +194,9 @@ return /******/ (function(modules) { // webpackBootstrap
 
 	                svg.append('g').attr('class', 'y axis').attr('transform', 'translate(' + 0 + ',0)').call(yAxis).append('text').attr('x', lineChartWidth / 2).attr('y', lineChartHeight + 25).attr('dy', '.71em').style('text-anchor', 'middle').text('Time (Seconds)');
 
-	                svg.append('g').attr('class', 'y axis').attr('transform', 'translate(' + 0 + ',0)').call(yAxis).append('text').attr('transform', 'rotate(-90)').attr('x', -0).attr('y', -45).attr('dy', '.71em').style('text-anchor', 'end').text('Population Density');
+	                svg.append('g').attr('class', 'y axis').attr('transform', 'translate(' + 0 + ',0)').call(yAxis).append('text').attr('transform', 'translate(-30,0)rotate(-90)').style('text-anchor', 'end').text('Population');
+
+	                svg.append('g').attr('class', 'y axis').attr('transform', 'translate(' + 0 + ',0)').call(yAxis).append('text').attr('transform', 'translate(-15,0)rotate(-90)').style('text-anchor', 'end').text('Density (%)');
 
 	                var currentTimeIndicatorLine = svg.append('line').attr('x1', 0).attr('y1', 0).attr('x2', 0).attr('y2', lineChartHeight).classed('time-indicator', true);
 
@@ -203,6 +214,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	                }
 
 	                var root = createInitialRoot(nestedData);
+	                var populatedValues = [];
 	                var containers = {};
 
 	                var node = treemapDiv.datum(root).selectAll('.treemapNode').data(treemap.nodes).enter().append('div').attr('class', 'treemapNode').attr('id', divName).call(position)
@@ -222,7 +234,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	                    return color(d.key);
 	                });
 
-	                svg.append('rect').attr('class', 'overlay').attr('width', lineChartWidth).attr('height', lineChartHeight).on('mouseover', function () {}).on('mousemove', mousemove);
+	                svg.append('rect').attr('class', 'overlay').attr('width', lineChartWidth).attr('height', lineChartHeight).on('mouseover', function () {}).on('mousemove', mousemove).on('click', mouseclick);
 
 	                wholeDiv.on('mouseenter', function () {
 	                    runAnimation = false;
@@ -241,7 +253,6 @@ return /******/ (function(modules) { // webpackBootstrap
 	                });
 
 	                function updateTreemap(root) {
-	                    console.log('-------------------------------');
 	                    var node = treemapDiv.datum(root).selectAll('.treemapNode').data(treemap.nodes).call(position).each(function (d) {
 	                        if (typeof d.struct != 'undefined') {
 	                            var cont = containers[divName(d)];
@@ -275,6 +286,12 @@ return /******/ (function(modules) { // webpackBootstrap
 	                        return retVal;
 	                    });
 
+	                    populatedValues = values.filter(function (d) {
+	                        return d.size > 0;
+	                    });
+
+	                    if (newTimePointCallback != null) newTimePointCallback(populatedValues);
+
 	                    var root = { 'name': 'graph',
 	                        'children': values };
 
@@ -292,6 +309,10 @@ return /******/ (function(modules) { // webpackBootstrap
 	                    _xCoord = _d2.default.mouse(this)[0];
 
 	                    updateCurrentTime(_xCoord);
+	                }
+
+	                function mouseclick() {
+	                    if (newTimeClickCallback != null) newTimeClickCallback(populatedValues);
 	                }
 	            };
 
@@ -318,6 +339,16 @@ return /******/ (function(modules) { // webpackBootstrap
 
 	    chart.height = function (_) {
 	        if (!arguments.length) return totalHeight;else totalHeight = _;
+	        return chart;
+	    };
+
+	    chart.newTimePointCallback = function (_) {
+	        if (!arguments.length) return options.newTimePointCallback;else newTimePointCallback = _;
+	        return chart;
+	    };
+
+	    chart.newTimeClickCallback = function (_) {
+	        if (!arguments.length) return options.newTimeClickCallback;else newTimeClickCallback = _;
 	        return chart;
 	    };
 
@@ -10371,7 +10402,7 @@ return /******/ (function(modules) { // webpackBootstrap
 
 
 	// module
-	exports.push([module.id, ".time-indicator {\n    stroke: black;\n    stroke-width: 2px;\n    stroke-dasharray: 5, 5;\n}\n\n.time-label {\n    text-anchor: middle;\n}\n", ""]);
+	exports.push([module.id, ".time-indicator {\n    stroke: black;\n    stroke-width: 2px;\n    stroke-dasharray: 5, 5;\n}\n\n.time-label {\n    text-anchor: middle;\n}\n\n.outline-div {\n    border:1px solid black;\n}\n", ""]);
 
 	// exports
 
