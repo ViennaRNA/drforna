@@ -23,11 +23,7 @@ $ ( document ).ready(function() {
     */
 
     function createNewPlot(file) {
-        console.log('file:', file);
-
-
         var data = d3.dsv(' ').parse(file.target.result);
-        console.log('data:', data);
 
         let currentCTView = 'time-series'
         var width = 800;
@@ -36,7 +32,6 @@ $ ( document ).ready(function() {
         let currentLayout = cotranscriptionalTimeSeriesLayout();
 
         var showPlot = function(plotLayout) {
-            console.log('showPlot');
             //dotStructPlot.width(data.seq.length * 10);
             d3.select('#visContainer')
             .selectAll('.removable-plot')
@@ -58,10 +53,9 @@ $ ( document ).ready(function() {
         }
 
         var showTimeSeriesPlot = function() {
-            console.log('here');
             showPlot(currentLayout
-                    .newTimePointCallback((d) => { console.log('new time point:', d); })
-                    .newTimeClickCallback((d) => { console.log('new click point:', d) }));
+                    .newTimePointCallback((d) => {})
+                    .newTimeClickCallback((d) => {}));
 
             if (toggleView == showTimeSeriesPlot)
                 toggleView = showSmallMultiplesPlot;
@@ -81,17 +75,18 @@ $ ( document ).ready(function() {
         toggleView = showTimeSeriesPlot;
         //toggleView = showSmallMultiplesPlot;
         toggleView();
-        console.log('hi');
 
         //window.addEventListener('resize', currentLayout.setSize, false);
         function setLayoutSize(layout) {
-            let svgH = window.innerWidth;
-            let svgW = window.innerHeight;
+            let svgW = window.innerWidth;
+            let svgH = window.innerHeight;
 
-            currentLayout.width(svgH)
+            currentLayout.width(svgW)
             .height(svgH)
 
             console.log('width:', currentLayout.width());
+
+            currentLayout.updateDimensions();
         }
 
         window.addEventListener('resize', setLayoutSize, false);
@@ -117,7 +112,6 @@ $ ( document ).ready(function() {
     $.get('data/pete.short', result => {
         let file = {target: {}}
         file.target.result = result;
-        console.log('hey');
         createNewPlot(file);
     });
 

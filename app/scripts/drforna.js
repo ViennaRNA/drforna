@@ -32,7 +32,7 @@ export function cotranscriptionalTimeSeriesLayout() {
         'resizeSvgOnResize': false,    //don't trigger a reflow and keep things speedy
         'transitionDuration': 0}
 
-    var margin = {top: 10, right: 60, bottom: 40, left: 50};
+    var margin = {top: 10, right: 60, bottom: 80, left: 50};
     var totalWidth = 700;
     var totalHeight = 400;
 
@@ -53,10 +53,16 @@ export function cotranscriptionalTimeSeriesLayout() {
     var treemap, wholeDiv, treemapDiv, labelSvg, labelDiv;
     var lineChartDiv, outlineDiv, svg, currentTime = 0; 
 
+    var concProfilePaths = null;
+
+    var gXAxis = null, gYAxis = null;
+    var yAxisText = null, currentTimeIndicatorLine = null;
+
+    var updateTreemap = null;
+    var root = null;
+
     function chart(selection) {
         selection.each(function(data) {
-            console.log('treemapWidth:', treemapWidth);
-
             treemap = d3.layout.treemap()
             .size([treemapWidth, treemapHeight])
             .sticky(false)
@@ -108,7 +114,6 @@ export function cotranscriptionalTimeSeriesLayout() {
             .x(function(d) { return lineX(+d.time); })
             .y(function(d) { return lineY(+d.conc); });
 
-
             function divName(d) {
                 return 'div' + d.name;
             }
@@ -140,18 +145,16 @@ export function cotranscriptionalTimeSeriesLayout() {
                 var _xCoord = 0;
                 var runAnimation = false;
 
-                svg.append('g')
+                gXAxis = svg.append('g')
                 .attr('class', 'x axis')
-                .attr('transform', 'translate(0,' + lineChartHeight + ')')
                 .call(xAxis);
 
-                svg.append('g')
+                gYAxis = svg.append('g')
                 .attr('class', 'y axis')
-                .attr('transform', 'translate(' + (0) + ',0)')
                 .call(yAxis)
+
+                yAxisText = gYAxis
                 .append('text')
-                .attr('x', lineChartWidth /2)
-                .attr('y', lineChartHeight + 25)
                 .attr('dy', '.71em')
                 .style('text-anchor', 'middle')
                 .text('Time (Seconds)');
@@ -174,7 +177,7 @@ export function cotranscriptionalTimeSeriesLayout() {
                 .style('text-anchor', 'end')
                 .text('Density (%)');
                 
-                var currentTimeIndicatorLine = svg.append('line')
+                currentTimeIndicatorLine = svg.append('line')
                 .attr('x1', currentTime)
                 .attr('y1', 0)
                 .attr('x2', currentTime)
@@ -188,14 +191,14 @@ export function cotranscriptionalTimeSeriesLayout() {
                 .attr('class', 'concProfile');
 
                 function createInitialRoot(nestedData) {
-                    var root = {'name': 'graph',
+                    let root = {'name': 'graph',
                         'children': nestedData.map(function(d) { return {'name': d.key, 'struct': 
                                                    d.values[0].struct, 'size': 1 / nestedData.length};})};
                         return root;
 
                 }
 
-                var root = createInitialRoot(nestedData);
+                root = createInitialRoot(nestedData);
                 let populatedValues = [];
                 var containers = {};
 
@@ -215,7 +218,7 @@ export function cotranscriptionalTimeSeriesLayout() {
                     }
                 } );
 
-                concProfile.append('path')
+                concProfilePaths = concProfile.append('path')
                 .attr('class', 'line')
                 .attr('d', function(d) { return line(d.values); })
                 .style('stroke', function(d) { 
@@ -250,11 +253,12 @@ export function cotranscriptionalTimeSeriesLayout() {
                        */
                 })
 
-                function updateTreemap(root) {
+                 updateTreemap = function(root) {
                     var node = treemapDiv.datum(root).selectAll('.treemapNode')
                     .data(treemap.nodes)
                     .call(position)
                     .each(function(d) { 
+
                         if (typeof d.struct != 'undefined') {
                             var cont = containers[divName(d)];
                             cont.setSize();
@@ -295,7 +299,7 @@ export function cotranscriptionalTimeSeriesLayout() {
                     if (newTimePointCallback != null)
                         newTimePointCallback(populatedValues);
 
-                    var root = {'name': 'graph',
+                    root = {'name': 'graph',
                         'children': values };
 
                         updateTreemap(root);
@@ -340,13 +344,13 @@ export function cotranscriptionalTimeSeriesLayout() {
         treemapWidth = totalWidth - margin.left - margin.right;
         treemapHeight = totalHeight * 0.85 - margin.top - margin.bottom;
 
-        console.log('treemapWidth:', treemapWidth);
+        lineChartHeight = totalHeight - treemapHeight - margin.top - margin.bottom;
 
         lineChartWidth = totalWidth - margin.left - margin.right;
         lineChartHeight = totalHeight - treemapHeight - margin.top - margin.bottom;
 
-        lineX = d3.scale.linear().range([0, lineChartWidth]);
-        lineY = d3.scale.linear().range([lineChartHeight, 0]);
+        lineX = lineX.range([0, lineChartWidth]);
+        lineY = lineY.range([lineChartHeight, 0]);
 
         wholeDiv
         .style('width', (treemapWidth + margin.left + margin.right) + 'px')
@@ -373,7 +377,39 @@ export function cotranscriptionalTimeSeriesLayout() {
             .style('width', (treemapWidth) + 'px')
             .style('height', (treemapHeight) + 'px')
 
+        line
+            .x(function(d) { return lineX(+d.time); })
+            .y(function(d) { return lineY(+d.conc); });
+
+        if (gXAxis != null)
+            gXAxis
+                .attr('transform', 'translate(0,' + lineChartHeight + ')')
+
+        if (gYAxis != null)
+            gYAxis
+                .attr('transform', 'translate(' + (0) + ',0)')
+
+        if (concProfilePaths != null)
+            concProfilePaths
+            .attr('d', function(d) { return line(d.values); })
+
+
+        if (yAxisText != null)
+            yAxisText
+                .attr('x', lineChartWidth /2)
+                .attr('y', lineChartHeight + 25)
+        
+        if (currentTimeIndicatorLine != null)
+            currentTimeIndicatorLine
+            .attr('y2', lineChartHeight)
+
+        treemap.size([treemapWidth, treemapHeight])
+
+        if (updateTreemap != null)
+            updateTreemap(root)
     }
+
+    chart.updateDimensions = updateDimensions;
 
     chart.width = function(_) {
         if (!arguments.length) return totalWidth;
