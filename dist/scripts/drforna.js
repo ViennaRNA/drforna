@@ -142,7 +142,11 @@ return /******/ (function(modules) { // webpackBootstrap
 
 	            var labelSvg = wholeDiv.append('div').style('position', 'absolute').style('width', margin.left + 'px').style('height', treemapHeight).style('top', margin.top + 'px').append('svg').attr('width', margin.left + 'px').attr('height', treemapHeight);
 
-	            labelSvg.append('text').attr('transform', 'translate(' + (margin.left - 30) + ', 150)rotate(-90)').text('Structures');
+	            /*
+	            labelSvg.append('text')
+	            .attr('transform', `translate(${margin.left - 30}, 150)rotate(-90)`)
+	            .text('Structures')
+	            */
 
 	            var lineChartDiv = wholeDiv.append('div').style('position', 'absolute').style('width', lineChartWidth + margin.right + 'px').style('height', lineChartHeight + margin.bottom + margin.top + 'px').style('left', 0 + 'px').style('top', treemapHeight + 'px');
 

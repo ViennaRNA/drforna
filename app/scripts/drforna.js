@@ -8,7 +8,7 @@ function doStepwiseAnimation(elementName, structs, duration) {
     var container = new FornaContainer(elementName, {'applyForce': false,
                                        'allowPanningAndZooming': true,
                                        'labelInterval':0,
-                                       'initialSize': [800,800],
+                                       'initialSize': null,
                                        'transitionDuration': duration });
 
                                        var funcs = []
@@ -44,70 +44,66 @@ export function cotranscriptionalTimeSeriesLayout() {
 
     var lineX = d3.scale.linear().range([0, lineChartWidth]);
     var lineY = d3.scale.linear().range([lineChartHeight, 0]);
+    var line;
 
     var color = d3.scale.category20();
     var newTimePointCallback = null;
     var newTimeClickCallback = null;
 
+    var treemap, wholeDiv, treemapDiv, labelSvg, labelDiv;
+    var lineChartDiv, outlineDiv, svg, currentTime = 0; 
+
     function chart(selection) {
         selection.each(function(data) {
+            console.log('treemapWidth:', treemapWidth);
 
-            var treemap = d3.layout.treemap()
+            treemap = d3.layout.treemap()
             .size([treemapWidth, treemapHeight])
             .sticky(false)
             .value(function(d) { return d.size; });
 
-            var wholeDiv = d3.select(this).append('div')
+            wholeDiv = d3.select(this).append('div')
             .style('position', 'relative')
-            .style('width', (treemapWidth + margin.left + margin.right) + 'px')
-            .style('height', (treemapHeight + lineChartHeight + margin.top + margin.bottom) + 'px')
             .attr('id', 'whole-div');
 
-            var treemapDiv = wholeDiv.append('div')
+            treemapDiv = wholeDiv.append('div')
             .classed('treemap-div', true)
             .style('position', 'absolute')
-            .style('width', (treemapWidth) + 'px')
-            .style('height', (treemapHeight) + 'px')
             .style('left', margin.left + 'px')
             .style('top', margin.top + 'px');
 
 
-            var labelSvg = wholeDiv.append('div')
+            labelDiv = wholeDiv.append('div')
             .style('position', 'absolute')
-            .style('width', margin.left + 'px')
-            .style('height', treemapHeight)
             .style('top', margin.top + 'px')
-            .append('svg')
-            .attr('width', margin.left + 'px')
-            .attr('height', treemapHeight);
 
+            labelSvg = labelDiv
+            .append('svg')
+
+            /*
             labelSvg.append('text')
             .attr('transform', `translate(${margin.left - 30}, 150)rotate(-90)`)
             .text('Structures')
+            */
 
-            var lineChartDiv = wholeDiv.append('div')
+            lineChartDiv = wholeDiv.append('div')
             .style('position', 'absolute')
-            .style('width', (lineChartWidth + margin.right) + 'px')
-            .style('height', (lineChartHeight + margin.bottom + margin.top) + 'px')
             .style('left', 0 + 'px')
-            .style('top', treemapHeight + 'px');
 
 
-            var outlineDiv = wholeDiv.append('div')
+            outlineDiv = wholeDiv.append('div')
             .classed('outline-div', true)
             .style('position', 'absolute')
-            .style('width', (treemapWidth) + 'px')
-            .style('height', (treemapHeight) + 'px')
             .style('left', margin.left + 'px')
             .style('top', margin.top + 'px');
 
-            var svg = lineChartDiv.append('svg')
+            svg = lineChartDiv.append('svg')
             .attr('width', lineChartWidth)
             .attr('height', lineChartHeight)
             .append('g')
             .attr('transform', 'translate(' + margin.left + ',' + margin.top + ')');
 
-            var line = d3.svg.line()
+            line = d3.svg.line()
             .interpolate('basis')
             .x(function(d) { return lineX(+d.time); })
             .y(function(d) { return lineY(+d.conc); });
@@ -179,9 +175,9 @@ export function cotranscriptionalTimeSeriesLayout() {
                 .text('Density (%)');
                 
                 var currentTimeIndicatorLine = svg.append('line')
-                .attr('x1', 0)
+                .attr('x1', currentTime)
                 .attr('y1', 0)
-                .attr('x2', 0)
+                .attr('x2', currentTime)
                 .attr('y2', lineChartHeight)
                 .classed('time-indicator', true);
 
@@ -336,6 +332,47 @@ export function cotranscriptionalTimeSeriesLayout() {
                   .style('height', function(d) { return Math.max(0, d.dy - 0) + 'px'; })
             }
         });
+
+        updateDimensions();
+    }
+
+    var updateDimensions = function() {
+        treemapWidth = totalWidth - margin.left - margin.right;
+        treemapHeight = totalHeight * 0.85 - margin.top - margin.bottom;
+
+        console.log('treemapWidth:', treemapWidth);
+
+        lineChartWidth = totalWidth - margin.left - margin.right;
+        lineChartHeight = totalHeight - treemapHeight - margin.top - margin.bottom;
+
+        lineX = d3.scale.linear().range([0, lineChartWidth]);
+        lineY = d3.scale.linear().range([lineChartHeight, 0]);
+
+        wholeDiv
+        .style('width', (treemapWidth + margin.left + margin.right) + 'px')
+        .style('height', (treemapHeight + lineChartHeight + margin.top + margin.bottom) + 'px')
+
+        treemapDiv
+            .style('width', (treemapWidth) + 'px')
+            .style('height', (treemapHeight) + 'px')
+
+        labelDiv
+            .style('width', margin.left + 'px')
+            .style('height', treemapHeight)
+
+        labelSvg
+            .attr('width', margin.left + 'px')
+            .attr('height', treemapHeight);
+
+        lineChartDiv
+            .style('width', (lineChartWidth + margin.right) + 'px')
+            .style('height', (lineChartHeight + margin.bottom + margin.top) + 'px')
+            .style('top', treemapHeight + 'px');
+
+        outlineDiv
+            .style('width', (treemapWidth) + 'px')
+            .style('height', (treemapHeight) + 'px')
+
     }
 
     chart.width = function(_) {
@@ -476,6 +513,7 @@ export function cotranscriptionalSmallMultiplesLayout() {
         if (!arguments.length) return svgHeight;
         return chart;
     }
+
 
     return chart;
 }

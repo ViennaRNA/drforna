@@ -3,7 +3,6 @@ import d3 from 'd3';
 
 import {cotranscriptionalTimeSeriesLayout, cotranscriptionalSmallMultiplesLayout} from './drforna.js';
 
-
 var toggleView = function() {};
 
 $ ( document ).ready(function() {
@@ -34,6 +33,8 @@ $ ( document ).ready(function() {
         var width = 800;
         var height = 600;
 
+        let currentLayout = cotranscriptionalTimeSeriesLayout();
+
         var showPlot = function(plotLayout) {
             console.log('showPlot');
             //dotStructPlot.width(data.seq.length * 10);
@@ -58,7 +59,7 @@ $ ( document ).ready(function() {
 
         var showTimeSeriesPlot = function() {
             console.log('here');
-            showPlot(cotranscriptionalTimeSeriesLayout().width(800).height(600)
+            showPlot(currentLayout
                     .newTimePointCallback((d) => { console.log('new time point:', d); })
                     .newTimeClickCallback((d) => { console.log('new click point:', d) }));
 
@@ -80,6 +81,20 @@ $ ( document ).ready(function() {
         toggleView = showTimeSeriesPlot;
         //toggleView = showSmallMultiplesPlot;
         toggleView();
+        console.log('hi');
+
+        //window.addEventListener('resize', currentLayout.setSize, false);
+        function setLayoutSize(layout) {
+            let svgH = window.innerWidth;
+            let svgW = window.innerHeight;
+
+            currentLayout.width(svgH)
+            .height(svgH)
+
+            console.log('width:', currentLayout.width());
+        }
+
+        window.addEventListener('resize', setLayoutSize, false);
     }
 
     //createNewPlot('data/pete.growing');
