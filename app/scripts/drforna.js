@@ -57,6 +57,8 @@ export function cotranscriptionalTimeSeriesLayout() {
 
     var gXAxis = null, gYAxis = null;
     var yAxisText = null, currentTimeIndicatorLine = null;
+    var xAxis = null, yAxis = null;
+    var xAxisOverlayRect = null;
 
     var updateTreemap = null;
     var root = null;
@@ -133,11 +135,11 @@ export function cotranscriptionalTimeSeriesLayout() {
                 lineX.domain(d3.extent(data, function(d) { return +d.time; }));
                 lineY.domain(d3.extent(data, function(d) { return +d.conc; }));
 
-                var xAxis = d3.svg.axis()
+                xAxis = d3.svg.axis()
                 .scale(lineX)
                 .orient('bottom');
 
-                var yAxis = d3.svg.axis()
+                yAxis = d3.svg.axis()
                 .scale(lineY)
                 .orient('left')
                 .ticks(0);
@@ -225,10 +227,8 @@ export function cotranscriptionalTimeSeriesLayout() {
                     return color(d.key); 
                 });
 
-                svg.append('rect')
+                xAxisOverlayRect = svg.append('rect')
                 .attr('class', 'overlay')
-                .attr('width', lineChartWidth)
-                .attr('height', lineChartHeight)
                 .on('mouseover', function() { })
                 .on('mousemove', mousemove)
                 .on('click', mouseclick);
@@ -258,7 +258,6 @@ export function cotranscriptionalTimeSeriesLayout() {
                     .data(treemap.nodes)
                     .call(position)
                     .each(function(d) { 
-
                         if (typeof d.struct != 'undefined') {
                             var cont = containers[divName(d)];
                             cont.setSize();
@@ -388,6 +387,23 @@ export function cotranscriptionalTimeSeriesLayout() {
         if (gYAxis != null)
             gYAxis
                 .attr('transform', 'translate(' + (0) + ',0)')
+
+        if (xAxis != null) {
+            xAxis.scale(lineX)
+
+            gXAxis.call(xAxis);
+        }
+
+        if (yAxis != null) {
+            yAxis.scale(lineY)
+
+            gYAxis.call(yAxis)
+        }
+
+        if (xAxisOverlayRect != null)
+            xAxisOverlayRect
+                .attr('width', lineChartWidth)
+                .attr('height', lineChartHeight)
 
         if (concProfilePaths != null)
             concProfilePaths
