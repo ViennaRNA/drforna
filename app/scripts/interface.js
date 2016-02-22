@@ -79,12 +79,10 @@ $ ( document ).ready(function() {
         //window.addEventListener('resize', currentLayout.setSize, false);
         function setLayoutSize(layout) {
             let svgW = window.innerWidth;
-            let svgH = window.innerHeight;
+            let svgH = window.innerHeight-40;
 
             currentLayout.width(svgW)
             .height(svgH)
-
-            console.log('width:', currentLayout.width());
 
             currentLayout.updateDimensions();
         }

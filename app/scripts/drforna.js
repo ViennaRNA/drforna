@@ -1,5 +1,6 @@
 import d3 from 'd3';
 import {FornaContainer} from 'fornac';
+import {rnaUtilities} from 'rnautils';
 
 import '../styles/treemap.css';
 import '../styles/drforna.css';
@@ -25,6 +26,13 @@ function doStepwiseAnimation(elementName, structs, duration) {
                                        funcs[funcs.length-1]();
 }
 
+function uuid() {
+    return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, function(c) {
+        var r = Math.random()*16|0, v = c == 'x' ? r : (r&0x3|0x8);
+        return v.toString(16);
+    });
+}
+
 export function cotranscriptionalTimeSeriesLayout() {
     var options = {'applyForce': false, 
         'allowPanningAndZooming': true,
@@ -32,7 +40,7 @@ export function cotranscriptionalTimeSeriesLayout() {
         'resizeSvgOnResize': false,    //don't trigger a reflow and keep things speedy
         'transitionDuration': 0}
 
-    var margin = {top: 10, right: 60, bottom: 80, left: 50};
+    var margin = {top: 10, right: 60, bottom: 40, left: 50};
     var totalWidth = 700;
     var totalHeight = 400;
 
@@ -47,6 +55,8 @@ export function cotranscriptionalTimeSeriesLayout() {
     var line;
 
     var color = d3.scale.category20();
+    var stemColor = d3.scale.category20();
+
     var newTimePointCallback = null;
     var newTimeClickCallback = null;
 
@@ -123,13 +133,61 @@ export function cotranscriptionalTimeSeriesLayout() {
             var bisectTime = d3.bisector(function(d) { return d.time; }).left;
 
             function drawCotranscriptionalLine() {
+                let basepairsToStems = {};
+                let stemColorsSet = new Set();
+
                 data.forEach(function(d) {
                     d.time = +d.time;
                     d.conc = +d.conc;
                     //d.full_id = d.id + '-' + d.struct.length;
                     //console.log('d.full_id', d.full_id);
+                    let pt = rnaUtilities.dotbracketToPairtable(d.struct);
+                    let elements = rnaUtilities.ptToElements(pt, 0, 1, pt[0], []);
+
+                    let nucleotidesToPairs = {}
+                    let colors = Array(pt[0]+1);
+                    colors[0] = pt[0];
+
+                    for (let i = 0; i < elements.length; i++) {
+                        if (elements[i][0] != 's')
+                            continue;
+
+                        let stemId = uuid();
+
+                        // go through each base pair in this stem and see if we
+                        // have already seen it in a stem
+                        for (let j = 0; j < elements[i][2].length; j++) {
+                            let pair = [elements[i][2][j], pt[elements[i][2][j]]].sort();
+                            let pairStr = `${pair[0]},{pair[1]}`;
+
+                            if (pairStr in basepairsToStems) {
+                                // seen this stem
+                                stemId = basepairsToStems[pairStr];
+                                break;
+                            }
+                        }
+
+
+                        for (let j = 0; j < elements[i][2].length; j++) {
+                            // assign the stem's id back to these base pairs
+                            let pair = [elements[i][2][j], pt[elements[i][2][j]]].sort();
+                            let pairStr = `${pair[0]},{pair[1]}`;
+
+                            basepairsToStems[pairStr] = stemId;
+
+                            //assign the color uuids
+                            colors[pair[0]] = basepairsToStems[pairStr];
+                            colors[pair[1]] = basepairsToStems[pairStr];
+                        }
+
+                        stemColorsSet.add(stemId);
+                        d.colors = colors;
+                    }
                 });
 
+                console.log('stemColorsSet', stemColorsSet);
+
+                stemColor.domain(stemColorsSet.values())
                 color.domain(d3.set(data.map(function(d) { return d.id })).values());
 
                 lineX.domain(d3.extent(data, function(d) { return +d.time; }));
