@@ -145,8 +145,7 @@ export function cotranscriptionalTimeSeriesLayout() {
                     let elements = rnaUtilities.ptToElements(pt, 0, 1, pt[0], []);
 
                     let nucleotidesToPairs = {}
-                    let colors = Array(pt[0]+1);
-                    colors[0] = pt[0];
+                    let colors = Array(pt[0]);
 
                     for (let i = 0; i < elements.length; i++) {
                         if (elements[i][0] != 's')
@@ -155,7 +154,7 @@ export function cotranscriptionalTimeSeriesLayout() {
                         let stemId = uuid();
 
                         // go through each base pair in this stem and see if we
-                        // have already seen it in a stem
+                        // have already seen it in another stem
                         for (let j = 0; j < elements[i][2].length; j++) {
                             let pair = [elements[i][2][j], pt[elements[i][2][j]]].sort();
                             let pairStr = `${pair[0]},{pair[1]}`;
@@ -176,8 +175,8 @@ export function cotranscriptionalTimeSeriesLayout() {
                             basepairsToStems[pairStr] = stemId;
 
                             //assign the color uuids
-                            colors[pair[0]] = basepairsToStems[pairStr];
-                            colors[pair[1]] = basepairsToStems[pairStr];
+                            colors[pair[0]-1] = basepairsToStems[pairStr];
+                            colors[pair[1]-1] = basepairsToStems[pairStr];
                         }
 
                         stemColorsSet.add(stemId);
@@ -245,22 +244,25 @@ export function cotranscriptionalTimeSeriesLayout() {
                 .classed('time-indicator', true);
 
                 var nestedData = d3.nest().key(function(d) { return +d.id; }).entries(data)
+                function createInitialRoot(nestedData) {
+                    let root = {'name': 'graph',
+                        'children': nestedData.map(function(d) { return {'name': d.key, 'struct': 
+                                                   d.values[0].struct, 'size': 1 / nestedData.length,
+                                                   'colors': d.values[0].colors};})};
+                        return root;
+
+                }
+
                 var concProfile = svg.selectAll('.concProfile')
                 .data(nestedData)
                 .enter().append('g')
                 .attr('class', 'concProfile');
 
-                function createInitialRoot(nestedData) {
-                    let root = {'name': 'graph',
-                        'children': nestedData.map(function(d) { return {'name': d.key, 'struct': 
-                                                   d.values[0].struct, 'size': 1 / nestedData.length};})};
-                        return root;
-
-                }
-
                 root = createInitialRoot(nestedData);
                 let populatedValues = [];
                 var containers = {};
+
+                console.log('nestedData:', nestedData);
 
                 var node = treemapDiv.datum(root).selectAll('.treemapNode')
                 .data(treemap.nodes)
@@ -271,10 +273,22 @@ export function cotranscriptionalTimeSeriesLayout() {
                 //.style('background', function(d) { return d.children ? color(d.name) : null; })
                 //.text(function(d) { return d.children ? null : d.name; })
                 .each(function(d) { 
+                    console.log('d:', d);
                     if (typeof d.struct != 'undefined') {
                         containers[divName(d)] = new FornaContainer('#' + divName(d), options);
                         containers[divName(d)].transitionRNA(d.struct);
-                        containers[divName(d)].setOutlineColor(color(d.name));
+                        //containers[divName(d)].setOutlineColor(color(d.name));
+
+                        let colorStrings = d.colors.map(function(d, i) {
+                            if (stemColorsSet.has(d)) {
+                                return `${i+1}:${stemColor(d)}`;
+                            }
+                        });
+
+                        let colorString = colorStrings.join(' ');
+                        console.log('colorString:', colorString);
+
+                        containers[divName(d)].addCustomColorsText(colorString);
                     }
                 } );
 
@@ -320,7 +334,7 @@ export function cotranscriptionalTimeSeriesLayout() {
                             var cont = containers[divName(d)];
                             cont.setSize();
 
-                            cont.setOutlineColor(color(d.name));
+                            //cont.setOutlineColor(color(d.name));
                         }
                     });
                 }
