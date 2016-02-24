@@ -52,11 +52,12 @@ export function cotranscriptionalTimeSeriesLayout() {
 
     var lineX = d3.scale.linear().range([0, lineChartWidth]);
     var lineY = d3.scale.linear().range([lineChartHeight, 0]);
+
+    var rectX = d3.scale.linear().range([0, lineChartWidth]);
+    var rectY = d3.scale.linear().range([lineChartHeight, 0]);
     var line;
 
     var color = d3.scale.category20();
-    var stemColor = d3.scale.category20();
-
     var newTimePointCallback = null;
     var newTimeClickCallback = null;
 
@@ -133,60 +134,16 @@ export function cotranscriptionalTimeSeriesLayout() {
             var bisectTime = d3.bisector(function(d) { return d.time; }).left;
 
             function drawCotranscriptionalLine() {
-                let basepairsToStems = {};
-                let stemColorsSet = new Set();
+                let rainbowScale = (t) => { return d3.hcl(t * 360, 100, 55); };
+                let nucleotideScale = d3.scale.linear()
+                                      .domain([0, data[data.length-1].struct.length])
+                                      .range([0,1]);
 
-                data.forEach(function(d) {
-                    d.time = +d.time;
-                    d.conc = +d.conc;
-                    //d.full_id = d.id + '-' + d.struct.length;
-                    //console.log('d.full_id', d.full_id);
-                    let pt = rnaUtilities.dotbracketToPairtable(d.struct);
-                    let elements = rnaUtilities.ptToElements(pt, 0, 1, pt[0], []);
+                calculateNucleotideColors(data);
 
-                    let nucleotidesToPairs = {}
-                    let colors = Array(pt[0]);
+                var dataByTime = d3.nest().key(function(d) { return +d.time;}).entries(data);
+                calculateColorPerTimePoint(dataByTime);
 
-                    for (let i = 0; i < elements.length; i++) {
-                        if (elements[i][0] != 's')
-                            continue;
-
-                        let stemId = uuid();
-
-                        // go through each base pair in this stem and see if we
-                        // have already seen it in another stem
-                        for (let j = 0; j < elements[i][2].length; j++) {
-                            let pair = [elements[i][2][j], pt[elements[i][2][j]]].sort();
-                            let pairStr = `${pair[0]},{pair[1]}`;
-
-                            if (pairStr in basepairsToStems) {
-                                // seen this stem
-                                stemId = basepairsToStems[pairStr];
-                                break;
-                            }
-                        }
-
-
-                        for (let j = 0; j < elements[i][2].length; j++) {
-                            // assign the stem's id back to these base pairs
-                            let pair = [elements[i][2][j], pt[elements[i][2][j]]].sort();
-                            let pairStr = `${pair[0]},{pair[1]}`;
-
-                            basepairsToStems[pairStr] = stemId;
-
-                            //assign the color uuids
-                            colors[pair[0]-1] = basepairsToStems[pairStr];
-                            colors[pair[1]-1] = basepairsToStems[pairStr];
-                        }
-
-                        stemColorsSet.add(stemId);
-                        d.colors = colors;
-                    }
-                });
-
-                console.log('stemColorsSet', stemColorsSet);
-
-                stemColor.domain(stemColorsSet.values())
                 color.domain(d3.set(data.map(function(d) { return d.id })).values());
 
                 lineX.domain(d3.extent(data, function(d) { return +d.time; }));
@@ -243,6 +200,57 @@ export function cotranscriptionalTimeSeriesLayout() {
                 .attr('y2', lineChartHeight)
                 .classed('time-indicator', true);
 
+
+                // here we draw a little rectangle to indicate which stem each 
+                // nucleotide is in at this time point
+                let maxStructLength = 0;
+
+                for (let i = 0; i < dataByTime.length ; i++) {
+                    dataByTime[i].dt = 0;
+
+                    // calculate the length of each rectangle
+                    if (i < dataByTime.length - 1)
+                        dataByTime[i].dt = (+dataByTime[i+1].key) - (+dataByTime[i].key)
+
+                    // the length of the simulation as well as the length of the structure
+                    // after it's fully transcribed
+                    maxStructLength = +dataByTime[i].values[0].struct.length;
+                }
+
+                let minTime = d3.min(dataByTime.map((d) => { return d.key; }));
+                let maxTime = d3.max(dataByTime.map((d) => { return d.key; }));
+                /*
+                */
+
+                console.log('maxTime:', maxTime);
+                console.log('maxTime.range():', rectX.range());
+                rectX.domain([minTime, maxTime]);
+                rectY.domain([0, maxStructLength]);
+
+                let dataRectangles = svg.selectAll('.data-rectangle-group')
+                .data(dataByTime)
+                .enter()
+                .append('g')
+                .classed('data-rectangle-group', true)
+                .attr('transform', (d) => { return `translate(${rectX(+d.key)},0)`; })
+                .each(function(d) {
+                    let rectWidth = Math.abs(rectX(+d.key) - rectX(+d.key + d.dt));
+                    let rectPos = rectX(+d.key);
+
+                    console.log('rectPos', rectPos, rectPos + rectWidth);
+                    
+                    d3.select(this).selectAll('.data-rectangle')
+                    .data(d.values[0].colors)
+                    .enter()
+                    .append('rect')
+                    .attr('y', (d,i) => { return rectY(i); })
+                    .attr('height', Math.abs(rectY.range()[1] - rectY.range()[0]) / maxStructLength)
+                    .attr('width', rectWidth)
+                    .attr('fill', (d) => {return d;});
+                
+                });
+                
+
                 var nestedData = d3.nest().key(function(d) { return +d.id; }).entries(data)
                 function createInitialRoot(nestedData) {
                     let root = {'name': 'graph',
@@ -262,8 +270,6 @@ export function cotranscriptionalTimeSeriesLayout() {
                 let populatedValues = [];
                 var containers = {};
 
-                console.log('nestedData:', nestedData);
-
                 var node = treemapDiv.datum(root).selectAll('.treemapNode')
                 .data(treemap.nodes)
                 .enter().append('div')
@@ -273,31 +279,29 @@ export function cotranscriptionalTimeSeriesLayout() {
                 //.style('background', function(d) { return d.children ? color(d.name) : null; })
                 //.text(function(d) { return d.children ? null : d.name; })
                 .each(function(d) { 
-                    console.log('d:', d);
                     if (typeof d.struct != 'undefined') {
                         containers[divName(d)] = new FornaContainer('#' + divName(d), options);
                         containers[divName(d)].transitionRNA(d.struct);
                         //containers[divName(d)].setOutlineColor(color(d.name));
 
                         let colorStrings = d.colors.map(function(d, i) {
-                            if (stemColorsSet.has(d)) {
-                                return `${i+1}:${stemColor(d)}`;
-                            }
+                            return `${i+1}:${d}`;
                         });
 
                         let colorString = colorStrings.join(' ');
-                        console.log('colorString:', colorString);
 
                         containers[divName(d)].addCustomColorsText(colorString);
                     }
                 } );
 
+                /*
                 concProfilePaths = concProfile.append('path')
                 .attr('class', 'line')
                 .attr('d', function(d) { return line(d.values); })
                 .style('stroke', function(d) { 
                     return color(d.key); 
                 });
+                */
 
                 xAxisOverlayRect = svg.append('rect')
                 .attr('class', 'overlay')
@@ -314,7 +318,6 @@ export function cotranscriptionalTimeSeriesLayout() {
 
                     updateCurrentTime(_xCoord);
                     /*
-                       console.log('mouseleave');
 
                        var xy = d3.mouse(this);
 
@@ -339,9 +342,53 @@ export function cotranscriptionalTimeSeriesLayout() {
                     });
                 }
 
-                function updateCurrentTime(xCoord) {
-                    //saveSvgAsPng(document.getElementById('whole-div'), 'rnax.png', 4);
+                function calculateColorPerTimePoint(dataByTime) {
+                    dataByTime.forEach((d) => {
+                        d.values.sort((a,b) => { return b.conc - a.conc; });
+                    });
+                }
 
+                function calculateNucleotideColors(data) {
+                    data.forEach(function(d) {
+                        // determine the colors of each nucleotide according to the position
+                        // of the stem that they're in
+                        // each 'd' is a line in the dr transfomer output
+                        d.time = +d.time;
+                        d.conc = +d.conc;
+
+                        // get a pairtable and a list of the secondary structure elements
+                        let pt = rnaUtilities.dotbracketToPairtable(d.struct);
+                        let elements = rnaUtilities.ptToElements(pt, 0, 1, pt[0], []);
+
+                        // store the colors of each nucleotide
+                        let colors = Array(pt[0]).fill('white');
+
+                        for (let i = 0; i < elements.length; i++) {
+                            if (elements[i][0] != 's')
+                                continue;     //we're not interested in anything but stems
+
+                            // for each nucleotide in the stem
+                            // assign it the stem's average nucleotide number
+                            let averageBpNum = elements[i][2].reduce(
+                                (a,b) => { return a+b }, 0) / elements[i][2].length;
+
+                            // convert average nucleotide numbers to colors
+                            elements[i][2].map((d) => { 
+                                let nucleotideNormPosition = nucleotideScale(averageBpNum);
+                                colors[d-1] = rainbowScale(nucleotideNormPosition);
+                            });
+
+
+                            // each structure gets its own set of structures
+                            d.colors = colors;
+                        }
+                    });
+                }
+
+                function valuesAtXPoint(xCoord) {
+                    // get the interpolated concentrations at a given coordinate
+
+                    //saveSvgAsPng(document.getElementById('whole-div'), 'rnax.png', 4);
                     var y0 = lineX.invert(xCoord);
 
                     let i = bisectTime(data, y0, 1);
@@ -350,9 +397,6 @@ export function cotranscriptionalTimeSeriesLayout() {
 
                         if (i >= data.values.length || i == 0)
                             return {'name': data.key, 'struct': data.values[0].struct, 'size': 0};
-
-                        var d0 = data.values[i-1];
-                        var d1 = data.values[i];
 
                         var sc = d3.scale.linear()
                         .domain([data.values[i-1].time, data.values[i].time])
@@ -365,7 +409,19 @@ export function cotranscriptionalTimeSeriesLayout() {
                         return retVal;
                     });
 
+
+                    return values;
+
+                }
+
+                function updateCurrentTime(xCoord) {
+                    let values = valuesAtXPoint(xCoord);
                     populatedValues = values.filter(d => { return d.size > 0; });
+                    
+                    /*
+                    console.log('values:', values);
+                    console.log('populatedValues:', populatedValues);
+                    */
 
                     if (newTimePointCallback != null)
                         newTimePointCallback(populatedValues);
