@@ -196,14 +196,6 @@ export function cotranscriptionalTimeSeriesLayout() {
                 .style('text-anchor', 'end')
                 .text('Density (%)');
                 
-                currentTimeIndicatorLine = svg.append('line')
-                .attr('x1', currentTime)
-                .attr('y1', 0)
-                .attr('x2', currentTime)
-                .attr('y2', lineChartHeight)
-                .classed('time-indicator', true);
-
-
                 // here we draw a little rectangle to indicate which stem each 
                 // nucleotide is in at this time point
 
@@ -248,6 +240,15 @@ export function cotranscriptionalTimeSeriesLayout() {
                     .attr('fill', (d) => {return d;});
                 
                 });
+
+                currentTimeIndicatorLine = svg.append('line')
+                .attr('x1', currentTime)
+                .attr('y1', 0)
+                .attr('x2', currentTime)
+                .attr('y2', lineChartHeight)
+                .classed('time-indicator', true);
+
+
                 
 
                 var nestedData = d3.nest().key(function(d) { return +d.id; }).entries(data)
@@ -348,7 +349,7 @@ export function cotranscriptionalTimeSeriesLayout() {
                 }
 
                 function calculateNucleotideColors(data) {
-                    data.forEach(function(d) {
+                    data.forEach(function(d, i) {
                         // determine the colors of each nucleotide according to the position
                         // of the stem that they're in
                         // each 'd' is a line in the dr transfomer output
@@ -379,8 +380,8 @@ export function cotranscriptionalTimeSeriesLayout() {
 
 
                             // each structure gets its own set of structures
-                            d.colors = colors;
                         }
+                        d.colors = colors;
                     });
                 }
 
