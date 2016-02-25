@@ -74,6 +74,9 @@ export function cotranscriptionalTimeSeriesLayout() {
     var updateTreemap = null;
     var root = null;
 
+    var dataRectangleGroups = null;
+    let maxStructLength = 0;
+
     function chart(selection) {
         selection.each(function(data) {
             treemap = d3.layout.treemap()
@@ -203,7 +206,6 @@ export function cotranscriptionalTimeSeriesLayout() {
 
                 // here we draw a little rectangle to indicate which stem each 
                 // nucleotide is in at this time point
-                let maxStructLength = 0;
 
                 for (let i = 0; i < dataByTime.length ; i++) {
                     dataByTime[i].dt = 0;
@@ -222,12 +224,10 @@ export function cotranscriptionalTimeSeriesLayout() {
                 /*
                 */
 
-                console.log('maxTime:', maxTime);
-                console.log('maxTime.range():', rectX.range());
                 rectX.domain([minTime, maxTime]);
                 rectY.domain([0, maxStructLength]);
 
-                let dataRectangles = svg.selectAll('.data-rectangle-group')
+                dataRectangleGroups = svg.selectAll('.data-rectangle-group')
                 .data(dataByTime)
                 .enter()
                 .append('g')
@@ -237,12 +237,11 @@ export function cotranscriptionalTimeSeriesLayout() {
                     let rectWidth = Math.abs(rectX(+d.key) - rectX(+d.key + d.dt));
                     let rectPos = rectX(+d.key);
 
-                    console.log('rectPos', rectPos, rectPos + rectWidth);
-                    
                     d3.select(this).selectAll('.data-rectangle')
                     .data(d.values[0].colors)
                     .enter()
                     .append('rect')
+                    .classed('data-rectangle', true)
                     .attr('y', (d,i) => { return rectY(i); })
                     .attr('height', Math.abs(rectY.range()[1] - rectY.range()[0]) / maxStructLength)
                     .attr('width', rectWidth)
@@ -418,11 +417,6 @@ export function cotranscriptionalTimeSeriesLayout() {
                     let values = valuesAtXPoint(xCoord);
                     populatedValues = values.filter(d => { return d.size > 0; });
                     
-                    /*
-                    console.log('values:', values);
-                    console.log('populatedValues:', populatedValues);
-                    */
-
                     if (newTimePointCallback != null)
                         newTimePointCallback(populatedValues);
 
@@ -478,6 +472,9 @@ export function cotranscriptionalTimeSeriesLayout() {
 
         lineX = lineX.range([0, lineChartWidth]);
         lineY = lineY.range([lineChartHeight, 0]);
+
+        rectX.range([0, lineChartWidth]);
+        rectY.range([lineChartHeight, 0]);
 
         wholeDiv
         .style('width', (treemapWidth + margin.left + margin.right) + 'px')
@@ -536,6 +533,21 @@ export function cotranscriptionalTimeSeriesLayout() {
         if (concProfilePaths != null)
             concProfilePaths
             .attr('d', function(d) { return line(d.values); })
+
+        if (dataRectangleGroups != null) {
+            dataRectangleGroups
+                .attr('transform', (d) => { return `translate(${rectX(+d.key)},0)`; })
+
+            dataRectangleGroups.each(function(d) {
+                let rectWidth = Math.abs(rectX(+d.key) - rectX(+d.key + d.dt));
+                let rectPos = rectX(+d.key);
+
+                d3.select(this).selectAll('.data-rectangle')
+                    .attr('y', (d,i) => { return rectY(i); })
+                    .attr('height', Math.abs(rectY.range()[1] - rectY.range()[0]) / maxStructLength)
+                    .attr('width', rectWidth);
+            });
+        }
 
 
         if (yAxisText != null)
