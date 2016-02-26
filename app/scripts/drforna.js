@@ -211,8 +211,8 @@ export function cotranscriptionalTimeSeriesLayout() {
                     maxStructLength = +dataByTime[i].values[0].struct.length;
                 }
 
-                let minTime = d3.min(dataByTime.map((d) => { return d.key; }));
-                let maxTime = d3.max(dataByTime.map((d) => { return d.key; }));
+                let minTime = d3.min(dataByTime.map((d) => { return +d.key; }));
+                let maxTime = d3.max(dataByTime.map((d) => { return +d.key; }));
                 /*
                 */
 

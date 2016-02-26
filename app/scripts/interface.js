@@ -107,7 +107,7 @@ $ ( document ).ready(function() {
     })
     .on('click', function(){ this.value = null; });
 
-    $.get('data/pete.growing', result => {
+    $.get('data/pete.result', result => {
         let file = {target: {}}
         file.target.result = result;
         createNewPlot(file);
