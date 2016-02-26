@@ -1,5 +1,6 @@
 import d3 from 'd3';
 import {FornaContainer} from 'fornac';
+import {rnaUtilities} from 'rnautils';
 
 import '../styles/treemap.css';
 import '../styles/drforna.css';
@@ -25,6 +26,13 @@ function doStepwiseAnimation(elementName, structs, duration) {
                                        funcs[funcs.length-1]();
 }
 
+function uuid() {
+    return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, function(c) {
+        var r = Math.random()*16|0, v = c == 'x' ? r : (r&0x3|0x8);
+        return v.toString(16);
+    });
+}
+
 export function cotranscriptionalTimeSeriesLayout() {
     var options = {'applyForce': false, 
         'allowPanningAndZooming': true,
@@ -32,7 +40,7 @@ export function cotranscriptionalTimeSeriesLayout() {
         'resizeSvgOnResize': false,    //don't trigger a reflow and keep things speedy
         'transitionDuration': 0}
 
-    var margin = {top: 10, right: 60, bottom: 80, left: 50};
+    var margin = {top: 10, right: 60, bottom: 40, left: 50};
     var totalWidth = 700;
     var totalHeight = 400;
 
@@ -44,6 +52,9 @@ export function cotranscriptionalTimeSeriesLayout() {
 
     var lineX = d3.scale.linear().range([0, lineChartWidth]);
     var lineY = d3.scale.linear().range([lineChartHeight, 0]);
+
+    var rectX = d3.scale.linear().range([0, lineChartWidth]);
+    var rectY = d3.scale.linear().range([lineChartHeight, 0]);
     var line;
 
     var color = d3.scale.category20();
@@ -62,6 +73,9 @@ export function cotranscriptionalTimeSeriesLayout() {
 
     var updateTreemap = null;
     var root = null;
+
+    var dataRectangleGroups = null;
+    let maxStructLength = 0;
 
     function chart(selection) {
         selection.each(function(data) {
@@ -103,7 +117,7 @@ export function cotranscriptionalTimeSeriesLayout() {
             .classed('outline-div', true)
             .style('position', 'absolute')
             .style('left', margin.left + 'px')
-            .style('top', margin.top + 'px');
+            .style('top', margin.top + 'px')
 
             svg = lineChartDiv.append('svg')
             .attr('width', lineChartWidth)
@@ -123,12 +137,16 @@ export function cotranscriptionalTimeSeriesLayout() {
             var bisectTime = d3.bisector(function(d) { return d.time; }).left;
 
             function drawCotranscriptionalLine() {
-                data.forEach(function(d) {
-                    d.time = +d.time;
-                    d.conc = +d.conc;
-                    //d.full_id = d.id + '-' + d.struct.length;
-                    //console.log('d.full_id', d.full_id);
-                });
+                let rainbowScale = (t) => { return d3.hcl(t * 360, 100, 55); };
+                let nucleotideScale = d3.scale.linear()
+                                      .domain([0, data[data.length-1].struct.length])
+                                      .range([0,1]);
+
+                calculateNucleotideColors(data);
+
+                var dataByTime = d3.nest().key(function(d) { return +d.time;}).entries(data);
+                calculateColorPerTimePoint(dataByTime);
+                console.log('dataByTime:', dataByTime);
 
                 color.domain(d3.set(data.map(function(d) { return d.id })).values());
 
@@ -166,19 +184,65 @@ export function cotranscriptionalTimeSeriesLayout() {
                 .attr('transform', 'translate(' + (0) + ',0)')
                 .call(yAxis)
                 .append('text')
-                .attr('transform', 'translate(-30,0)rotate(-90)')
+                .attr('transform', 'translate(-25,0)rotate(-90)')
                 .style('text-anchor', 'end')
-                .text('Population');
+                .text('Nucleotide');
 
                 svg.append('g')
                 .attr('class', 'y axis')
                 .attr('transform', 'translate(' + (0) + ',0)')
                 .call(yAxis)
                 .append('text')
-                .attr('transform', 'translate(-15,0)rotate(-90)')
+                .attr('transform', 'translate(-10,5)rotate(-90)')
                 .style('text-anchor', 'end')
-                .text('Density (%)');
+                .text('Position');
                 
+                // here we draw a little rectangle to indicate which stem each 
+                // nucleotide is in at this time point
+
+                for (let i = 0; i < dataByTime.length ; i++) {
+                    dataByTime[i].dt = 0;
+
+                    // calculate the length of each rectangle
+                    if (i < dataByTime.length - 1)
+                        dataByTime[i].dt = (+dataByTime[i+1].key) - (+dataByTime[i].key)
+
+                    // the length of the simulation as well as the length of the structure
+                    // after it's fully transcribed
+                    maxStructLength = +dataByTime[i].values[0].struct.length;
+                }
+
+                let minTime = d3.min(dataByTime.map((d) => { return +d.key; }));
+                let maxTime = d3.max(dataByTime.map((d) => { return +d.key; }));
+                /*
+                */
+
+                rectX.domain([minTime, maxTime]);
+                rectY.domain([0, maxStructLength]);
+
+                dataRectangleGroups = svg.selectAll('.data-rectangle-group')
+                .data(dataByTime)
+                .enter()
+                .append('g')
+                .classed('data-rectangle-group', true)
+                .attr('transform', (d) => { return `translate(${rectX(+d.key)},0)`; })
+                .each(function(d) {
+                    let rectWidth = Math.abs(rectX(+d.key) - rectX(+d.key + d.dt));
+                    let rectPos = rectX(+d.key);
+                    //console.log('d:', d);
+
+                    d3.select(this).selectAll('.data-rectangle')
+                    .data(d.values[0].colors)
+                    .enter()
+                    .append('rect')
+                    .classed('data-rectangle', true)
+                    .attr('y', (d,i) => { return rectY(i); })
+                    .attr('height', Math.abs(rectY.range()[1] - rectY.range()[0]) / maxStructLength)
+                    .attr('width', rectWidth)
+                    .attr('fill', (d) => {return d;});
+                
+                });
+
                 currentTimeIndicatorLine = svg.append('line')
                 .attr('x1', currentTime)
                 .attr('y1', 0)
@@ -186,19 +250,23 @@ export function cotranscriptionalTimeSeriesLayout() {
                 .attr('y2', lineChartHeight)
                 .classed('time-indicator', true);
 
+
+                
+
                 var nestedData = d3.nest().key(function(d) { return +d.id; }).entries(data)
+                function createInitialRoot(nestedData) {
+                    let root = {'name': 'graph',
+                        'children': nestedData.map(function(d) { return {'name': d.key, 'struct': 
+                                                   d.values[0].struct, 'size': 1 / nestedData.length,
+                                                   'colors': d.values[0].colors};})};
+                        return root;
+
+                }
+
                 var concProfile = svg.selectAll('.concProfile')
                 .data(nestedData)
                 .enter().append('g')
                 .attr('class', 'concProfile');
-
-                function createInitialRoot(nestedData) {
-                    let root = {'name': 'graph',
-                        'children': nestedData.map(function(d) { return {'name': d.key, 'struct': 
-                                                   d.values[0].struct, 'size': 1 / nestedData.length};})};
-                        return root;
-
-                }
 
                 root = createInitialRoot(nestedData);
                 let populatedValues = [];
@@ -216,16 +284,26 @@ export function cotranscriptionalTimeSeriesLayout() {
                     if (typeof d.struct != 'undefined') {
                         containers[divName(d)] = new FornaContainer('#' + divName(d), options);
                         containers[divName(d)].transitionRNA(d.struct);
-                        containers[divName(d)].setOutlineColor(color(d.name));
+                        //containers[divName(d)].setOutlineColor(color(d.name));
+
+                        let colorStrings = d.colors.map(function(d, i) {
+                            return `${i+1}:${d}`;
+                        });
+
+                        let colorString = colorStrings.join(' ');
+
+                        containers[divName(d)].addCustomColorsText(colorString);
                     }
                 } );
 
+                /*
                 concProfilePaths = concProfile.append('path')
                 .attr('class', 'line')
                 .attr('d', function(d) { return line(d.values); })
                 .style('stroke', function(d) { 
                     return color(d.key); 
                 });
+                */
 
                 xAxisOverlayRect = svg.append('rect')
                 .attr('class', 'overlay')
@@ -242,7 +320,6 @@ export function cotranscriptionalTimeSeriesLayout() {
 
                     updateCurrentTime(_xCoord);
                     /*
-                       console.log('mouseleave');
 
                        var xy = d3.mouse(this);
 
@@ -262,14 +339,58 @@ export function cotranscriptionalTimeSeriesLayout() {
                             var cont = containers[divName(d)];
                             cont.setSize();
 
-                            cont.setOutlineColor(color(d.name));
+                            //cont.setOutlineColor(color(d.name));
                         }
                     });
                 }
 
-                function updateCurrentTime(xCoord) {
-                    //saveSvgAsPng(document.getElementById('whole-div'), 'rnax.png', 4);
+                function calculateColorPerTimePoint(dataByTime) {
+                    dataByTime.forEach((d) => {
+                        d.values.sort((a,b) => { return (+b.conc) - (+a.conc); });
+                    });
+                }
 
+                function calculateNucleotideColors(data) {
+                    data.forEach(function(d, i) {
+                        // determine the colors of each nucleotide according to the position
+                        // of the stem that they're in
+                        // each 'd' is a line in the dr transfomer output
+                        d.time = +d.time;
+                        d.conc = +d.conc;
+
+                        // get a pairtable and a list of the secondary structure elements
+                        let pt = rnaUtilities.dotbracketToPairtable(d.struct);
+                        let elements = rnaUtilities.ptToElements(pt, 0, 1, pt[0], []);
+
+                        // store the colors of each nucleotide
+                        let colors = Array(pt[0]).fill('white');
+
+                        for (let i = 0; i < elements.length; i++) {
+                            if (elements[i][0] != 's')
+                                continue;     //we're not interested in anything but stems
+
+                            // for each nucleotide in the stem
+                            // assign it the stem's average nucleotide number
+                            let averageBpNum = elements[i][2].reduce(
+                                (a,b) => { return a+b }, 0) / elements[i][2].length;
+
+                            // convert average nucleotide numbers to colors
+                            elements[i][2].map((d) => { 
+                                let nucleotideNormPosition = nucleotideScale(averageBpNum);
+                                colors[d-1] = rainbowScale(nucleotideNormPosition);
+                            });
+
+
+                            // each structure gets its own set of structures
+                        }
+                        d.colors = colors;
+                    });
+                }
+
+                function valuesAtXPoint(xCoord) {
+                    // get the interpolated concentrations at a given coordinate
+
+                    //saveSvgAsPng(document.getElementById('whole-div'), 'rnax.png', 4);
                     var y0 = lineX.invert(xCoord);
 
                     let i = bisectTime(data, y0, 1);
@@ -278,9 +399,6 @@ export function cotranscriptionalTimeSeriesLayout() {
 
                         if (i >= data.values.length || i == 0)
                             return {'name': data.key, 'struct': data.values[0].struct, 'size': 0};
-
-                        var d0 = data.values[i-1];
-                        var d1 = data.values[i];
 
                         var sc = d3.scale.linear()
                         .domain([data.values[i-1].time, data.values[i].time])
@@ -293,8 +411,15 @@ export function cotranscriptionalTimeSeriesLayout() {
                         return retVal;
                     });
 
-                    populatedValues = values.filter(d => { return d.size > 0; });
 
+                    return values;
+
+                }
+
+                function updateCurrentTime(xCoord) {
+                    let values = valuesAtXPoint(xCoord);
+                    populatedValues = values.filter(d => { return d.size > 0; });
+                    
                     if (newTimePointCallback != null)
                         newTimePointCallback(populatedValues);
 
@@ -350,6 +475,9 @@ export function cotranscriptionalTimeSeriesLayout() {
 
         lineX = lineX.range([0, lineChartWidth]);
         lineY = lineY.range([lineChartHeight, 0]);
+
+        rectX.range([0, lineChartWidth]);
+        rectY.range([lineChartHeight, 0]);
 
         wholeDiv
         .style('width', (treemapWidth + margin.left + margin.right) + 'px')
@@ -408,6 +536,21 @@ export function cotranscriptionalTimeSeriesLayout() {
         if (concProfilePaths != null)
             concProfilePaths
             .attr('d', function(d) { return line(d.values); })
+
+        if (dataRectangleGroups != null) {
+            dataRectangleGroups
+                .attr('transform', (d) => { return `translate(${rectX(+d.key)},0)`; })
+
+            dataRectangleGroups.each(function(d) {
+                let rectWidth = Math.abs(rectX(+d.key) - rectX(+d.key + d.dt));
+                let rectPos = rectX(+d.key);
+
+                d3.select(this).selectAll('.data-rectangle')
+                    .attr('y', (d,i) => { return rectY(i); })
+                    .attr('height', Math.abs(rectY.range()[1] - rectY.range()[0]) / maxStructLength)
+                    .attr('width', rectWidth);
+            });
+        }
 
 
         if (yAxisText != null)

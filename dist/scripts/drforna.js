@@ -75,6 +75,8 @@ return /******/ (function(modules) { // webpackBootstrap
 
 	var _fornac = __webpack_require__(3);
 
+	var _rnautils = __webpack_require__(!(function webpackMissingModule() { var e = new Error("Cannot find module \"rnautils\""); e.code = 'MODULE_NOT_FOUND'; throw e; }()));
+
 	__webpack_require__(4);
 
 	__webpack_require__(8);
@@ -85,7 +87,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	    var container = new _fornac.FornaContainer(elementName, { 'applyForce': false,
 	        'allowPanningAndZooming': true,
 	        'labelInterval': 0,
-	        'initialSize': [800, 800],
+	        'initialSize': null,
 	        'transitionDuration': duration });
 
 	    var funcs = [];
@@ -103,6 +105,14 @@ return /******/ (function(modules) { // webpackBootstrap
 	    }
 
 	    funcs[funcs.length - 1]();
+	}
+
+	function uuid() {
+	    return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, function (c) {
+	        var r = Math.random() * 16 | 0,
+	            v = c == 'x' ? r : r & 0x3 | 0x8;
+	        return v.toString(16);
+	    });
 	}
 
 	function cotranscriptionalTimeSeriesLayout() {
@@ -125,22 +135,49 @@ return /******/ (function(modules) { // webpackBootstrap
 	    var lineX = _d2.default.scale.linear().range([0, lineChartWidth]);
 	    var lineY = _d2.default.scale.linear().range([lineChartHeight, 0]);
 
+	    var rectX = _d2.default.scale.linear().range([0, lineChartWidth]);
+	    var rectY = _d2.default.scale.linear().range([lineChartHeight, 0]);
+	    var line;
+
 	    var color = _d2.default.scale.category20();
 	    var newTimePointCallback = null;
 	    var newTimeClickCallback = null;
 
+	    var treemap, wholeDiv, treemapDiv, labelSvg, labelDiv;
+	    var lineChartDiv,
+	        outlineDiv,
+	        svg,
+	        currentTime = 0;
+
+	    var concProfilePaths = null;
+
+	    var gXAxis = null,
+	        gYAxis = null;
+	    var yAxisText = null,
+	        currentTimeIndicatorLine = null;
+	    var xAxis = null,
+	        yAxis = null;
+	    var xAxisOverlayRect = null;
+
+	    var updateTreemap = null;
+	    var root = null;
+
+	    var dataRectangleGroups = null;
+	    var maxStructLength = 0;
+
 	    function chart(selection) {
 	        selection.each(function (data) {
-
-	            var treemap = _d2.default.layout.treemap().size([treemapWidth, treemapHeight]).sticky(false).value(function (d) {
+	            treemap = _d2.default.layout.treemap().size([treemapWidth, treemapHeight]).sticky(false).value(function (d) {
 	                return d.size;
 	            });
 
-	            var wholeDiv = _d2.default.select(this).append('div').style('position', 'relative').style('width', treemapWidth + margin.left + margin.right + 'px').style('height', treemapHeight + lineChartHeight + margin.top + margin.bottom + 'px').attr('id', 'whole-div');
+	            wholeDiv = _d2.default.select(this).append('div').style('position', 'relative').attr('id', 'whole-div');
 
-	            var treemapDiv = wholeDiv.append('div').classed('treemap-div', true).style('position', 'absolute').style('width', treemapWidth + 'px').style('height', treemapHeight + 'px').style('left', margin.left + 'px').style('top', margin.top + 'px');
+	            treemapDiv = wholeDiv.append('div').classed('treemap-div', true).style('position', 'absolute').style('left', margin.left + 'px').style('top', margin.top + 'px');
 
-	            var labelSvg = wholeDiv.append('div').style('position', 'absolute').style('width', margin.left + 'px').style('height', treemapHeight).style('top', margin.top + 'px').append('svg').attr('width', margin.left + 'px').attr('height', treemapHeight);
+	            labelDiv = wholeDiv.append('div').style('position', 'absolute').style('top', margin.top + 'px');
+
+	            labelSvg = labelDiv.append('svg');
 
 	            /*
 	            labelSvg.append('text')
@@ -148,13 +185,13 @@ return /******/ (function(modules) { // webpackBootstrap
 	            .text('Structures')
 	            */
 
-	            var lineChartDiv = wholeDiv.append('div').style('position', 'absolute').style('width', lineChartWidth + margin.right + 'px').style('height', lineChartHeight + margin.bottom + margin.top + 'px').style('left', 0 + 'px').style('top', treemapHeight + 'px');
+	            lineChartDiv = wholeDiv.append('div').style('position', 'absolute').style('left', 0 + 'px');
 
-	            var outlineDiv = wholeDiv.append('div').classed('outline-div', true).style('position', 'absolute').style('width', treemapWidth + 'px').style('height', treemapHeight + 'px').style('left', margin.left + 'px').style('top', margin.top + 'px');
+	            outlineDiv = wholeDiv.append('div').classed('outline-div', true).style('position', 'absolute').style('left', margin.left + 'px').style('top', margin.top + 'px');
 
-	            var svg = lineChartDiv.append('svg').attr('width', lineChartWidth).attr('height', lineChartHeight).append('g').attr('transform', 'translate(' + margin.left + ',' + margin.top + ')');
+	            svg = lineChartDiv.append('svg').attr('width', lineChartWidth).attr('height', lineChartHeight).append('g').attr('transform', 'translate(' + margin.left + ',' + margin.top + ')');
 
-	            var line = _d2.default.svg.line().interpolate('basis').x(function (d) {
+	            line = _d2.default.svg.line().interpolate('basis').x(function (d) {
 	                return lineX(+d.time);
 	            }).y(function (d) {
 	                return lineY(+d.conc);
@@ -169,12 +206,17 @@ return /******/ (function(modules) { // webpackBootstrap
 	            }).left;
 
 	            function drawCotranscriptionalLine() {
-	                data.forEach(function (d) {
-	                    d.time = +d.time;
-	                    d.conc = +d.conc;
-	                    //d.full_id = d.id + '-' + d.struct.length;
-	                    //console.log('d.full_id', d.full_id);
-	                });
+	                var rainbowScale = function rainbowScale(t) {
+	                    return _d2.default.hcl(t * 360, 100, 55);
+	                };
+	                var nucleotideScale = _d2.default.scale.linear().domain([0, data[data.length - 1].struct.length]).range([0, 1]);
+
+	                calculateNucleotideColors(data);
+
+	                var dataByTime = _d2.default.nest().key(function (d) {
+	                    return +d.time;
+	                }).entries(data);
+	                calculateColorPerTimePoint(dataByTime);
 
 	                color.domain(_d2.default.set(data.map(function (d) {
 	                    return d.id;
@@ -187,37 +229,79 @@ return /******/ (function(modules) { // webpackBootstrap
 	                    return +d.conc;
 	                }));
 
-	                var xAxis = _d2.default.svg.axis().scale(lineX).orient('bottom');
+	                xAxis = _d2.default.svg.axis().scale(lineX).orient('bottom');
 
-	                var yAxis = _d2.default.svg.axis().scale(lineY).orient('left').ticks(0);
+	                yAxis = _d2.default.svg.axis().scale(lineY).orient('left').ticks(0);
 
 	                var _xCoord = 0;
 	                var runAnimation = false;
 
-	                svg.append('g').attr('class', 'x axis').attr('transform', 'translate(0,' + lineChartHeight + ')').call(xAxis);
+	                gXAxis = svg.append('g').attr('class', 'x axis').call(xAxis);
 
-	                svg.append('g').attr('class', 'y axis').attr('transform', 'translate(' + 0 + ',0)').call(yAxis).append('text').attr('x', lineChartWidth / 2).attr('y', lineChartHeight + 25).attr('dy', '.71em').style('text-anchor', 'middle').text('Time (Seconds)');
+	                gYAxis = svg.append('g').attr('class', 'y axis').call(yAxis);
+
+	                yAxisText = gYAxis.append('text').attr('dy', '.71em').style('text-anchor', 'middle').text('Time (Seconds)');
 
 	                svg.append('g').attr('class', 'y axis').attr('transform', 'translate(' + 0 + ',0)').call(yAxis).append('text').attr('transform', 'translate(-30,0)rotate(-90)').style('text-anchor', 'end').text('Population');
 
 	                svg.append('g').attr('class', 'y axis').attr('transform', 'translate(' + 0 + ',0)').call(yAxis).append('text').attr('transform', 'translate(-15,0)rotate(-90)').style('text-anchor', 'end').text('Density (%)');
 
-	                var currentTimeIndicatorLine = svg.append('line').attr('x1', 0).attr('y1', 0).attr('x2', 0).attr('y2', lineChartHeight).classed('time-indicator', true);
+	                currentTimeIndicatorLine = svg.append('line').attr('x1', currentTime).attr('y1', 0).attr('x2', currentTime).attr('y2', lineChartHeight).classed('time-indicator', true);
+
+	                // here we draw a little rectangle to indicate which stem each
+	                // nucleotide is in at this time point
+
+	                for (var _i = 0; _i < dataByTime.length; _i++) {
+	                    dataByTime[_i].dt = 0;
+
+	                    // calculate the length of each rectangle
+	                    if (_i < dataByTime.length - 1) dataByTime[_i].dt = +dataByTime[_i + 1].key - +dataByTime[_i].key;
+
+	                    // the length of the simulation as well as the length of the structure
+	                    // after it's fully transcribed
+	                    maxStructLength = +dataByTime[_i].values[0].struct.length;
+	                }
+
+	                var minTime = _d2.default.min(dataByTime.map(function (d) {
+	                    return d.key;
+	                }));
+	                var maxTime = _d2.default.max(dataByTime.map(function (d) {
+	                    return d.key;
+	                }));
+	                /*
+	                */
+
+	                rectX.domain([minTime, maxTime]);
+	                rectY.domain([0, maxStructLength]);
+
+	                dataRectangleGroups = svg.selectAll('.data-rectangle-group').data(dataByTime).enter().append('g').classed('data-rectangle-group', true).attr('transform', function (d) {
+	                    return 'translate(' + rectX(+d.key) + ',0)';
+	                }).each(function (d) {
+	                    var rectWidth = Math.abs(rectX(+d.key) - rectX(+d.key + d.dt));
+	                    var rectPos = rectX(+d.key);
+
+	                    _d2.default.select(this).selectAll('.data-rectangle').data(d.values[0].colors).enter().append('rect').classed('data-rectangle', true).attr('y', function (d, i) {
+	                        return rectY(i);
+	                    }).attr('height', Math.abs(rectY.range()[1] - rectY.range()[0]) / maxStructLength).attr('width', rectWidth).attr('fill', function (d) {
+	                        return d;
+	                    });
+	                });
 
 	                var nestedData = _d2.default.nest().key(function (d) {
 	                    return +d.id;
 	                }).entries(data);
-	                var concProfile = svg.selectAll('.concProfile').data(nestedData).enter().append('g').attr('class', 'concProfile');
-
 	                function createInitialRoot(nestedData) {
 	                    var root = { 'name': 'graph',
 	                        'children': nestedData.map(function (d) {
-	                            return { 'name': d.key, 'struct': d.values[0].struct, 'size': 1 / nestedData.length };
+	                            return { 'name': d.key, 'struct': d.values[0].struct, 'size': 1 / nestedData.length,
+	                                'colors': d.values[0].colors };
 	                        }) };
 	                    return root;
 	                }
 
-	                var root = createInitialRoot(nestedData);
+	                var concProfile = svg.selectAll('.concProfile').data(nestedData).enter().append('g').attr('class', 'concProfile');
+
+	                root = createInitialRoot(nestedData);
 	                var populatedValues = [];
 	                var containers = {};
 
@@ -228,17 +312,28 @@ return /******/ (function(modules) { // webpackBootstrap
 	                    if (typeof d.struct != 'undefined') {
 	                        containers[divName(d)] = new _fornac.FornaContainer('#' + divName(d), options);
 	                        containers[divName(d)].transitionRNA(d.struct);
-	                        containers[divName(d)].setOutlineColor(color(d.name));
+	                        //containers[divName(d)].setOutlineColor(color(d.name));
+
+	                        var colorStrings = d.colors.map(function (d, i) {
+	                            return i + 1 + ':' + d;
+	                        });
+
+	                        var colorString = colorStrings.join(' ');
+
+	                        containers[divName(d)].addCustomColorsText(colorString);
 	                    }
 	                });
 
-	                concProfile.append('path').attr('class', 'line').attr('d', function (d) {
-	                    return line(d.values);
-	                }).style('stroke', function (d) {
-	                    return color(d.key);
+	                /*
+	                concProfilePaths = concProfile.append('path')
+	                .attr('class', 'line')
+	                .attr('d', function(d) { return line(d.values); })
+	                .style('stroke', function(d) { 
+	                    return color(d.key); 
 	                });
+	                */
 
-	                svg.append('rect').attr('class', 'overlay').attr('width', lineChartWidth).attr('height', lineChartHeight).on('mouseover', function () {}).on('mousemove', mousemove).on('click', mouseclick);
+	                xAxisOverlayRect = svg.append('rect').attr('class', 'overlay').on('mouseover', function () {}).on('mousemove', mousemove).on('click', mouseclick);
 
 	                wholeDiv.on('mouseenter', function () {
 	                    runAnimation = false;
@@ -247,7 +342,6 @@ return /******/ (function(modules) { // webpackBootstrap
 
 	                    updateCurrentTime(_xCoord);
 	                    /*
-	                       console.log('mouseleave');
 	                        var xy = d3.mouse(this);
 	                        if (xy[0] > treemapWidth + lineChartWidth) {
 	                       var root = createInitialRoot(nestedData);
@@ -256,20 +350,71 @@ return /******/ (function(modules) { // webpackBootstrap
 	                       */
 	                });
 
-	                function updateTreemap(root) {
+	                updateTreemap = function updateTreemap(root) {
 	                    var node = treemapDiv.datum(root).selectAll('.treemapNode').data(treemap.nodes).call(position).each(function (d) {
 	                        if (typeof d.struct != 'undefined') {
 	                            var cont = containers[divName(d)];
 	                            cont.setSize();
 
-	                            cont.setOutlineColor(color(d.name));
+	                            //cont.setOutlineColor(color(d.name));
+	                        }
+	                    });
+	                };
+
+	                function calculateColorPerTimePoint(dataByTime) {
+	                    dataByTime.forEach(function (d) {
+	                        d.values.sort(function (a, b) {
+	                            return b.conc - a.conc;
+	                        });
+	                    });
+	                }
+
+	                function calculateNucleotideColors(data) {
+	                    data.forEach(function (d) {
+	                        // determine the colors of each nucleotide according to the position
+	                        // of the stem that they're in
+	                        // each 'd' is a line in the dr transfomer output
+	                        d.time = +d.time;
+	                        d.conc = +d.conc;
+
+	                        // get a pairtable and a list of the secondary structure elements
+	                        var pt = _rnautils.rnaUtilities.dotbracketToPairtable(d.struct);
+	                        var elements = _rnautils.rnaUtilities.ptToElements(pt, 0, 1, pt[0], []);
+
+	                        // store the colors of each nucleotide
+	                        var colors = Array(pt[0]).fill('white');
+
+	                        var _loop = function _loop(_i2) {
+	                            if (elements[_i2][0] != 's') return 'continue'; //we're not interested in anything but stems
+
+	                            // for each nucleotide in the stem
+	                            // assign it the stem's average nucleotide number
+	                            var averageBpNum = elements[_i2][2].reduce(function (a, b) {
+	                                return a + b;
+	                            }, 0) / elements[_i2][2].length;
+
+	                            // convert average nucleotide numbers to colors
+	                            elements[_i2][2].map(function (d) {
+	                                var nucleotideNormPosition = nucleotideScale(averageBpNum);
+	                                colors[d - 1] = rainbowScale(nucleotideNormPosition);
+	                            });
+
+	                            // each structure gets its own set of structures
+	                            d.colors = colors;
+	                        };
+
+	                        for (var _i2 = 0; _i2 < elements.length; _i2++) {
+	                            var _ret = _loop(_i2);
+
+	                            if (_ret === 'continue') continue;
 	                        }
 	                    });
 	                }
 
-	                function updateCurrentTime(xCoord) {
-	                    //saveSvgAsPng(document.getElementById('whole-div'), 'rnax.png', 4);
+	                function valuesAtXPoint(xCoord) {
+	                    // get the interpolated concentrations at a given coordinate
 
+	                    //saveSvgAsPng(document.getElementById('whole-div'), 'rnax.png', 4);
 	                    var y0 = lineX.invert(xCoord);
 
 	                    var i = bisectTime(data, y0, 1);
@@ -277,9 +422,6 @@ return /******/ (function(modules) { // webpackBootstrap
 	                        var i = bisectTime(data.values, y0, 0);
 
 	                        if (i >= data.values.length || i == 0) return { 'name': data.key, 'struct': data.values[0].struct, 'size': 0 };
-
-	                        var d0 = data.values[i - 1];
-	                        var d1 = data.values[i];
 
 	                        var sc = _d2.default.scale.linear().domain([data.values[i - 1].time, data.values[i].time]).range([data.values[i - 1].conc, data.values[i].conc]);
 
@@ -290,13 +432,18 @@ return /******/ (function(modules) { // webpackBootstrap
 	                        return retVal;
 	                    });
 
+	                    return values;
+	                }
+
+	                function updateCurrentTime(xCoord) {
+	                    var values = valuesAtXPoint(xCoord);
 	                    populatedValues = values.filter(function (d) {
 	                        return d.size > 0;
 	                    });
 
 	                    if (newTimePointCallback != null) newTimePointCallback(populatedValues);
 
-	                    var root = { 'name': 'graph',
+	                    root = { 'name': 'graph',
 	                        'children': values };
 
 	                    updateTreemap(root);
@@ -334,7 +481,90 @@ return /******/ (function(modules) { // webpackBootstrap
 	                });
 	            }
 	        });
+
+	        updateDimensions();
 	    }
+
+	    var updateDimensions = function updateDimensions() {
+	        treemapWidth = totalWidth - margin.left - margin.right;
+	        treemapHeight = totalHeight * 0.85 - margin.top - margin.bottom;
+
+	        lineChartHeight = totalHeight - treemapHeight - margin.top - margin.bottom;
+
+	        lineChartWidth = totalWidth - margin.left - margin.right;
+	        lineChartHeight = totalHeight - treemapHeight - margin.top - margin.bottom;
+
+	        lineX = lineX.range([0, lineChartWidth]);
+	        lineY = lineY.range([lineChartHeight, 0]);
+
+	        rectX.range([0, lineChartWidth]);
+	        rectY.range([lineChartHeight, 0]);
+
+	        wholeDiv.style('width', treemapWidth + margin.left + margin.right + 'px').style('height', treemapHeight + lineChartHeight + margin.top + margin.bottom + 'px');
+
+	        treemapDiv.style('width', treemapWidth + 'px').style('height', treemapHeight + 'px');
+
+	        labelDiv.style('width', margin.left + 'px').style('height', treemapHeight);
+
+	        labelSvg.attr('width', margin.left + 'px').attr('height', treemapHeight);
+
+	        lineChartDiv.style('width', lineChartWidth + margin.right + 'px').style('height', lineChartHeight + margin.bottom + margin.top + 'px').style('top', treemapHeight + 'px');
+
+	        outlineDiv.style('width', treemapWidth + 'px').style('height', treemapHeight + 'px');
+
+	        line.x(function (d) {
+	            return lineX(+d.time);
+	        }).y(function (d) {
+	            return lineY(+d.conc);
+	        });
+
+	        if (gXAxis != null) gXAxis.attr('transform', 'translate(0,' + lineChartHeight + ')');
+
+	        if (gYAxis != null) gYAxis.attr('transform', 'translate(' + 0 + ',0)');
+
+	        if (xAxis != null) {
+	            xAxis.scale(lineX);
+
+	            gXAxis.call(xAxis);
+	        }
+
+	        if (yAxis != null) {
+	            yAxis.scale(lineY);
+
+	            gYAxis.call(yAxis);
+	        }
+
+	        if (xAxisOverlayRect != null) xAxisOverlayRect.attr('width', lineChartWidth).attr('height', lineChartHeight);
+
+	        if (concProfilePaths != null) concProfilePaths.attr('d', function (d) {
+	            return line(d.values);
+	        });
+
+	        if (dataRectangleGroups != null) {
+	            dataRectangleGroups.attr('transform', function (d) {
+	                return 'translate(' + rectX(+d.key) + ',0)';
+	            });
+
+	            dataRectangleGroups.each(function (d) {
+	                var rectWidth = Math.abs(rectX(+d.key) - rectX(+d.key + d.dt));
+	                var rectPos = rectX(+d.key);
+
+	                _d2.default.select(this).selectAll('.data-rectangle').attr('y', function (d, i) {
+	                    return rectY(i);
+	                }).attr('height', Math.abs(rectY.range()[1] - rectY.range()[0]) / maxStructLength).attr('width', rectWidth);
+	            });
+	        }
+
+	        if (yAxisText != null) yAxisText.attr('x', lineChartWidth / 2).attr('y', lineChartHeight + 25);
+
+	        if (currentTimeIndicatorLine != null) currentTimeIndicatorLine.attr('y2', lineChartHeight);
+
+	        treemap.size([treemapWidth, treemapHeight]);
+
+	        if (updateTreemap != null) updateTreemap(root);
+	    };
+
+	    chart.updateDimensions = updateDimensions;
 
 	    chart.width = function (_) {
 	        if (!arguments.length) return totalWidth;else totalWidth = _;

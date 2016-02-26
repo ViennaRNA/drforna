@@ -79,12 +79,10 @@ $ ( document ).ready(function() {
         //window.addEventListener('resize', currentLayout.setSize, false);
         function setLayoutSize(layout) {
             let svgW = window.innerWidth;
-            let svgH = window.innerHeight;
+            let svgH = window.innerHeight-40;
 
             currentLayout.width(svgW)
             .height(svgH)
-
-            console.log('width:', currentLayout.width());
 
             currentLayout.updateDimensions();
         }
@@ -109,7 +107,7 @@ $ ( document ).ready(function() {
     })
     .on('click', function(){ this.value = null; });
 
-    $.get('data/pete.short', result => {
+    $.get('data/pete.result', result => {
         let file = {target: {}}
         file.target.result = result;
         createNewPlot(file);
