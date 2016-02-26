@@ -117,7 +117,7 @@ export function cotranscriptionalTimeSeriesLayout() {
             .classed('outline-div', true)
             .style('position', 'absolute')
             .style('left', margin.left + 'px')
-            .style('top', margin.top + 'px');
+            .style('top', margin.top + 'px')
 
             svg = lineChartDiv.append('svg')
             .attr('width', lineChartWidth)
@@ -184,18 +184,18 @@ export function cotranscriptionalTimeSeriesLayout() {
                 .attr('transform', 'translate(' + (0) + ',0)')
                 .call(yAxis)
                 .append('text')
-                .attr('transform', 'translate(-30,0)rotate(-90)')
+                .attr('transform', 'translate(-25,0)rotate(-90)')
                 .style('text-anchor', 'end')
-                .text('Population');
+                .text('Nucleotide');
 
                 svg.append('g')
                 .attr('class', 'y axis')
                 .attr('transform', 'translate(' + (0) + ',0)')
                 .call(yAxis)
                 .append('text')
-                .attr('transform', 'translate(-15,0)rotate(-90)')
+                .attr('transform', 'translate(-10,5)rotate(-90)')
                 .style('text-anchor', 'end')
-                .text('Density (%)');
+                .text('Position');
                 
                 // here we draw a little rectangle to indicate which stem each 
                 // nucleotide is in at this time point
