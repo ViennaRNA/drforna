@@ -52,7 +52,7 @@ gulp.task('lint', lint('app/scripts/**/*.js'));
 gulp.task('lint:test', lint('test/spec/**/*.js', testLintOptions));
 
 gulp.task('build', ['styles', 'scripts'], () => {
-    return gulp.src(['.tmp/scripts/drforna.js'])
+    return gulp.src(['.tmp/scripts/drforna.js', '.tmp/scripts/drforna_interface.js'])
     //.pipe($.uglify())
     .pipe(gulp.dest('dist/scripts'))
 });
@@ -66,7 +66,7 @@ gulp.task('buildJs', ['styles', 'scripts'], () => {
 gulp.task('html', ['styles', 'scripts'], () => {
   return gulp.src('app/*.html')
     .pipe($.useref({searchPath: ['.tmp', 'app', '.']}))
-    .pipe($.if('*.js', $.uglify()))
+    //.pipe($.if('*.js', $.uglify()))
     .pipe($.if('*.css', $.cssnano()))
     .pipe($.if('*.html', $.htmlmin({collapseWhitespace: true})))
     .pipe(gulp.dest('dist'));
