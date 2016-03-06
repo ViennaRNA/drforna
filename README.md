@@ -23,6 +23,10 @@ concentration are measures. `conc` is the occupancy of that structures at that t
 The secondary structure is encoded as a dot-bracket string in the `struct` column while
 the free energy (in kcal / mol) is shown in the `energy` column.
 
+## Screenshot
+
+<img src="https://raw.githubusercontent.com/pkerpedjiev/drforna/master/doc/img/drforna_screenshot.png" />
+
 ## Starting the Web Server
 
 To start this project in development mode, please run:
