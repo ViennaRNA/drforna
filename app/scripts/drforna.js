@@ -73,6 +73,7 @@ export function cotranscriptionalTimeSeriesLayout() {
 
     var updateTreemap = null;
     var root = null;
+    var updateCurrentTime = null;
 
     var dataRectangleGroups = null;
     let maxStructLength = 0;
@@ -416,7 +417,7 @@ export function cotranscriptionalTimeSeriesLayout() {
 
                 }
 
-                function updateCurrentTime(xCoord) {
+                updateCurrentTime = function(xCoord) {
                     let values = valuesAtXPoint(xCoord);
                     populatedValues = values.filter(d => { return d.size > 0; });
                     
@@ -569,6 +570,7 @@ export function cotranscriptionalTimeSeriesLayout() {
     }
 
     chart.updateDimensions = updateDimensions;
+    chart.updateCurrentTime = chart.updateCurrentTime;
 
     chart.width = function(_) {
         if (!arguments.length) return totalWidth;
