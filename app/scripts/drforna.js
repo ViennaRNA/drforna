@@ -147,7 +147,6 @@ export function cotranscriptionalTimeSeriesLayout() {
 
                 var dataByTime = d3.nest().key(function(d) { return +d.time;}).entries(data);
                 calculateColorPerTimePoint(dataByTime);
-                console.log('dataByTime:', dataByTime);
 
                 color.domain(d3.set(data.map(function(d) { return d.id })).values());
 
@@ -230,7 +229,6 @@ export function cotranscriptionalTimeSeriesLayout() {
                 .each(function(d) {
                     let rectWidth = Math.abs(rectX(+d.key) - rectX(+d.key + d.dt));
                     let rectPos = rectX(+d.key);
-                    //console.log('d:', d);
 
                     d3.select(this).selectAll('.data-rectangle')
                     .data(d.values[0].colors)
@@ -439,6 +437,8 @@ export function cotranscriptionalTimeSeriesLayout() {
 
                 }
 
+                chart.updateCurrentTime = updateCurrentTime;
+
                 function mousemove() {
                     _xCoord = (d3.mouse(this)[0]);
 
@@ -570,7 +570,7 @@ export function cotranscriptionalTimeSeriesLayout() {
     }
 
     chart.updateDimensions = updateDimensions;
-    chart.updateCurrentTime = chart.updateCurrentTime;
+    //chart.updateCurrentTime = updateCurrentTime;
 
     chart.width = function(_) {
         if (!arguments.length) return totalWidth;
@@ -594,6 +594,10 @@ export function cotranscriptionalTimeSeriesLayout() {
         if (!arguments.length) return options.newTimeClickCallback;
         else newTimeClickCallback = _;
         return chart;
+    }
+
+    chart.margin = function(_) {
+        return margin;
     }
 
     return chart;

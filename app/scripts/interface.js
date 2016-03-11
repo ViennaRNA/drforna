@@ -50,6 +50,9 @@ $ ( document ).ready(function() {
             .attr('id', 'my-plot');
 
             svg.call(plotLayout);
+
+            plotLayout.updateCurrentTime(plotLayout.width() - plotLayout.margin().left
+                                        - plotLayout.margin().right);
         }
 
         var showTimeSeriesPlot = function() {
