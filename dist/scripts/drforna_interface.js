@@ -108,6 +108,8 @@ return /******/ (function(modules) { // webpackBootstrap
 	            .attr('id', 'my-plot');
 
 	            svg.call(plotLayout);
+
+	            plotLayout.updateCurrentTime(plotLayout.width() - plotLayout.margin().left - plotLayout.margin().right);
 	        };
 
 	        var showTimeSeriesPlot = function showTimeSeriesPlot() {
@@ -308,6 +310,7 @@ return /******/ (function(modules) { // webpackBootstrap
 
 	    var updateTreemap = null;
 	    var root = null;
+	    var updateCurrentTime = null;
 
 	    var dataRectangleGroups = null;
 	    var maxStructLength = 0;
@@ -364,7 +367,6 @@ return /******/ (function(modules) { // webpackBootstrap
 	                    return +d.time;
 	                }).entries(data);
 	                calculateColorPerTimePoint(dataByTime);
-	                console.log('dataByTime:', dataByTime);
 
 	                color.domain(_d2.default.set(data.map(function (d) {
 	                    return d.id;
@@ -425,7 +427,6 @@ return /******/ (function(modules) { // webpackBootstrap
 	                }).each(function (d) {
 	                    var rectWidth = Math.abs(rectX(+d.key) - rectX(+d.key + d.dt));
 	                    var rectPos = rectX(+d.key);
-	                    //console.log('d:', d);
 
 	                    _d2.default.select(this).selectAll('.data-rectangle').data(d.values[0].colors).enter().append('rect').classed('data-rectangle', true).attr('y', function (d, i) {
 	                        return rectY(i);
@@ -584,7 +585,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	                    return values;
 	                }
 
-	                function updateCurrentTime(xCoord) {
+	                updateCurrentTime = function updateCurrentTime(xCoord) {
 	                    var values = valuesAtXPoint(xCoord);
 	                    populatedValues = values.filter(function (d) {
 	                        return d.size > 0;
@@ -603,7 +604,9 @@ return /******/ (function(modules) { // webpackBootstrap
 	                        _xCoord += lineChartWidth / 100;
 	                        //setTimeout(function() { updateCurrentTime(_xCoord); }, 300);
 	                    }
-	                }
+	                };
+
+	                chart.updateCurrentTime = updateCurrentTime;
 
 	                function mousemove() {
 	                    _xCoord = _d2.default.mouse(this)[0];
@@ -714,6 +717,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	    };
 
 	    chart.updateDimensions = updateDimensions;
+	    //chart.updateCurrentTime = updateCurrentTime;
 
 	    chart.width = function (_) {
 	        if (!arguments.length) return totalWidth;else totalWidth = _;
@@ -733,6 +737,10 @@ return /******/ (function(modules) { // webpackBootstrap
 	    chart.newTimeClickCallback = function (_) {
 	        if (!arguments.length) return options.newTimeClickCallback;else newTimeClickCallback = _;
 	        return chart;
+	    };
+
+	    chart.margin = function (_) {
+	        return margin;
 	    };
 
 	    return chart;
