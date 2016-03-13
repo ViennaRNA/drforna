@@ -126,6 +126,9 @@ return /******/ (function(modules) { // webpackBootstrap
 	    var totalWidth = 700;
 	    var totalHeight = 400;
 
+	    var simulationTime = null;
+	    var sequenceLength = null;
+
 	    var treemapWidth = totalWidth - margin.left - margin.right;
 	    var treemapHeight = totalHeight * 0.85 - margin.top - margin.bottom;
 
@@ -210,7 +213,8 @@ return /******/ (function(modules) { // webpackBootstrap
 	                var rainbowScale = function rainbowScale(t) {
 	                    return _d2.default.hcl(t * 360, 100, 55);
 	                };
-	                var nucleotideScale = _d2.default.scale.linear().domain([0, data[data.length - 1].struct.length]).range([0, 1]);
+	                var nucleotideScale = _d2.default.scale.linear().range([0, 1]);
+	                if (sequenceLength == null) nucleotideScale.domain([0, data[data.length - 1].struct.length]);else nucleotideScale.domain([0, sequenceLength]);
 
 	                calculateNucleotideColors(data);
 
@@ -223,9 +227,10 @@ return /******/ (function(modules) { // webpackBootstrap
 	                    return d.id;
 	                })).values());
 
-	                lineX.domain(_d2.default.extent(data, function (d) {
+	                if (simulationTime != null) lineX.domain([0, simulationTime]);else lineX.domain(_d2.default.extent(data, function (d) {
 	                    return +d.time;
 	                }));
+
 	                lineY.domain(_d2.default.extent(data, function (d) {
 	                    return +d.conc;
 	                }));
@@ -270,7 +275,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	                /*
 	                */
 
-	                rectX.domain([minTime, maxTime]);
+	                rectX.domain(lineX.domain());
 	                rectY.domain([0, maxStructLength]);
 
 	                dataRectangleGroups = svg.selectAll('.data-rectangle-group').data(dataByTime).enter().append('g').classed('data-rectangle-group', true).attr('transform', function (d) {
@@ -592,6 +597,16 @@ return /******/ (function(modules) { // webpackBootstrap
 
 	    chart.margin = function (_) {
 	        return margin;
+	    };
+
+	    chart.simulationTime = function (_) {
+	        if (!arguments.length) return simulationTime;else simulationTime = _;
+	        return chart;
+	    };
+
+	    chart.sequenceLength = function (_) {
+	        if (!arguments.length) return sequenceLength;else sequenceLength = _;
+	        return chart;
 	    };
 
 	    return chart;

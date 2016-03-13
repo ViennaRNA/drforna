@@ -44,6 +44,9 @@ export function cotranscriptionalTimeSeriesLayout() {
     var totalWidth = 700;
     var totalHeight = 400;
 
+    let simulationTime = null;
+    let sequenceLength = null;
+
     var treemapWidth = totalWidth - margin.left - margin.right;
     var treemapHeight = totalHeight * 0.85 - margin.top - margin.bottom;
 
@@ -140,8 +143,11 @@ export function cotranscriptionalTimeSeriesLayout() {
             function drawCotranscriptionalLine() {
                 let rainbowScale = (t) => { return d3.hcl(t * 360, 100, 55); };
                 let nucleotideScale = d3.scale.linear()
-                                      .domain([0, data[data.length-1].struct.length])
-                                      .range([0,1]);
+                                          .range([0,1]);
+                if (sequenceLength == null)
+                    nucleotideScale.domain([0, data[data.length-1].struct.length])
+                else
+                    nucleotideScale.domain([0, sequenceLength]);
 
                 calculateNucleotideColors(data);
 
@@ -150,7 +156,11 @@ export function cotranscriptionalTimeSeriesLayout() {
 
                 color.domain(d3.set(data.map(function(d) { return d.id })).values());
 
-                lineX.domain(d3.extent(data, function(d) { return +d.time; }));
+                if (simulationTime != null)
+                    lineX.domain([0, simulationTime]);
+                else
+                    lineX.domain(d3.extent(data, function(d) { return +d.time; }));
+
                 lineY.domain(d3.extent(data, function(d) { return +d.conc; }));
 
                 xAxis = d3.svg.axis()
@@ -217,7 +227,7 @@ export function cotranscriptionalTimeSeriesLayout() {
                 /*
                 */
 
-                rectX.domain([minTime, maxTime]);
+                rectX.domain(lineX.domain());
                 rectY.domain([0, maxStructLength]);
 
                 dataRectangleGroups = svg.selectAll('.data-rectangle-group')
@@ -598,6 +608,18 @@ export function cotranscriptionalTimeSeriesLayout() {
 
     chart.margin = function(_) {
         return margin;
+    }
+
+    chart.simulationTime = function(_) {
+        if (!arguments.length) return simulationTime;
+        else simulationTime = _;
+        return chart;
+    }
+    
+    chart.sequenceLength = function(_) {
+        if (!arguments.length) return sequenceLength;
+        else sequenceLength = _;
+        return chart;
     }
 
     return chart;

@@ -41,13 +41,10 @@ $ ( document ).ready(function() {
             .append('div')   //add a div that we can easily remove
             .classed('removable-plot', true)
             .data([data])
-            /*
-               .enter()
-               .append('svg')
-               */
-            //.attr('width', plotLayout.width())
-            //.attr('height', plotLayout.height())
             .attr('id', 'my-plot');
+
+            //plotLayout.simulationTime(12);
+            //plotLayout.sequenceLength(300);
 
             svg.call(plotLayout);
 
