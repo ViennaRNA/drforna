@@ -516,7 +516,7 @@ return /******/ (function(modules) { // webpackBootstrap
 
 	        labelSvg.attr('width', margin.left + 'px').attr('height', treemapHeight);
 
-	        lineChartDiv.style('width', lineChartWidth + margin.right + 'px').style('height', lineChartHeight + margin.bottom + margin.top + 'px').style('top', treemapHeight + 'px');
+	        lineChartDiv.style('width', lineChartWidth + margin.left + 'px').style('height', lineChartHeight + margin.bottom + margin.top + 'px').style('top', treemapHeight + 'px');
 
 	        outlineDiv.style('width', treemapWidth + 'px').style('height', treemapHeight + 'px');
 

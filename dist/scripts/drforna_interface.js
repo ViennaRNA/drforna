@@ -100,7 +100,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	            var svg = _d2.default.select('#visContainer').append('div') //add a div that we can easily remove
 	            .classed('removable-plot', true).data([data]).attr('id', 'my-plot');
 
-	            //plotLayout.simulationTime(12);
+	            plotLayout.simulationTime(1.8);
 	            //plotLayout.sequenceLength(300);
 
 	            svg.call(plotLayout);
@@ -661,7 +661,7 @@ return /******/ (function(modules) { // webpackBootstrap
 
 	        labelSvg.attr('width', margin.left + 'px').attr('height', treemapHeight);
 
-	        lineChartDiv.style('width', lineChartWidth + margin.right + 'px').style('height', lineChartHeight + margin.bottom + margin.top + 'px').style('top', treemapHeight + 'px');
+	        lineChartDiv.style('width', lineChartWidth + margin.left + 'px').style('height', lineChartHeight + margin.bottom + margin.top + 'px').style('top', treemapHeight + 'px');
 
 	        outlineDiv.style('width', treemapWidth + 'px').style('height', treemapHeight + 'px');
 
