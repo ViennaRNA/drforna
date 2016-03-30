@@ -43,7 +43,7 @@ $ ( document ).ready(function() {
             .data([data])
             .attr('id', 'my-plot');
 
-            //plotLayout.simulationTime(12);
+            plotLayout.simulationTime(1.8);
             //plotLayout.sequenceLength(300);
 
             svg.call(plotLayout);

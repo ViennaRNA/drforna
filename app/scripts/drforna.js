@@ -259,9 +259,6 @@ export function cotranscriptionalTimeSeriesLayout() {
                 .attr('y2', lineChartHeight)
                 .classed('time-indicator', true);
 
-
-                
-
                 var nestedData = d3.nest().key(function(d) { return +d.id; }).entries(data)
                 function createInitialRoot(nestedData) {
                     let root = {'name': 'graph',
@@ -507,7 +504,7 @@ export function cotranscriptionalTimeSeriesLayout() {
             .attr('height', treemapHeight);
 
         lineChartDiv
-            .style('width', (lineChartWidth + margin.right) + 'px')
+            .style('width', (lineChartWidth + margin.left) + 'px')
             .style('height', (lineChartHeight + margin.bottom + margin.top) + 'px')
             .style('top', treemapHeight + 'px');
 
