@@ -50,6 +50,7 @@ export function cotranscriptionalTimeSeriesLayout() {
     var treemapWidth = totalWidth - margin.left - margin.right;
     var treemapHeight = totalHeight * 0.85 - margin.top - margin.bottom;
 
+
     var lineChartWidth = totalWidth - margin.left - margin.right;
     var lineChartHeight = totalHeight - treemapHeight - margin.top - margin.bottom;
 
@@ -161,7 +162,7 @@ export function cotranscriptionalTimeSeriesLayout() {
                 else
                     lineX.domain(d3.extent(data, function(d) { return +d.time; }));
 
-                lineY.domain(d3.extent(data, function(d) { return +d.conc; }));
+                //lineY.domain([0,data[data.length-1].struct.length]);
 
                 xAxis = d3.svg.axis()
                 .scale(lineX)
@@ -181,7 +182,6 @@ export function cotranscriptionalTimeSeriesLayout() {
 
                 gYAxis = svg.append('g')
                 .attr('class', 'y axis')
-                .call(yAxis)
 
                 yAxisText = gYAxis
                 .append('text')
@@ -192,7 +192,6 @@ export function cotranscriptionalTimeSeriesLayout() {
                 svg.append('g')
                 .attr('class', 'y axis')
                 .attr('transform', 'translate(' + (0) + ',0)')
-                .call(yAxis)
                 .append('text')
                 .attr('transform', 'translate(-25,0)rotate(-90)')
                 .style('text-anchor', 'end')
@@ -201,7 +200,6 @@ export function cotranscriptionalTimeSeriesLayout() {
                 svg.append('g')
                 .attr('class', 'y axis')
                 .attr('transform', 'translate(' + (0) + ',0)')
-                .call(yAxis)
                 .append('text')
                 .attr('transform', 'translate(-10,5)rotate(-90)')
                 .style('text-anchor', 'end')
@@ -325,15 +323,6 @@ export function cotranscriptionalTimeSeriesLayout() {
                     runAnimation = true;
 
                     updateCurrentTime(_xCoord);
-                    /*
-
-                       var xy = d3.mouse(this);
-
-                       if (xy[0] > treemapWidth + lineChartWidth) {
-                       var root = createInitialRoot(nestedData);
-                       updateTreemap(root);
-                       }
-                       */
                 })
 
                  updateTreemap = function(root) {
@@ -481,10 +470,10 @@ export function cotranscriptionalTimeSeriesLayout() {
         lineChartWidth = totalWidth - margin.left - margin.right;
         lineChartHeight = totalHeight - treemapHeight - margin.top - margin.bottom;
 
-        lineX = lineX.range([0, lineChartWidth]);
+        lineX = lineX.range([0, lineChartWidth - 10]);
         lineY = lineY.range([lineChartHeight, 0]);
 
-        rectX.range([0, lineChartWidth]);
+        rectX.range([0, lineChartWidth - 10]);
         rectY.range([lineChartHeight, 0]);
 
         wholeDiv
@@ -533,6 +522,7 @@ export function cotranscriptionalTimeSeriesLayout() {
         if (yAxis != null) {
             yAxis.scale(lineY)
 
+            // here is where we draw the y - axis
             gYAxis.call(yAxis)
         }
 
