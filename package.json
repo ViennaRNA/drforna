@@ -1,6 +1,6 @@
 {
   "name": "drforna",
-  "version": "0.7.0",
+  "version": "0.8.0",
   "description": "A cotranscriptional RNA folding visualization component",
   "main": "dist/scripts/drforna.js",
   "engines": {
