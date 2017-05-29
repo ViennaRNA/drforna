@@ -8,3 +8,4 @@ node_modules/**
 .tmp/**
 npm-debug.log
 rna.ps
+data/

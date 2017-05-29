@@ -31,6 +31,10 @@ $ ( document ).ready(function() {
 
         let currentLayout = cotranscriptionalTimeSeriesLayout();
 
+        // calculate the maximum time point in the simulation
+        let maxTime = Math.max(...data.slice(0,data.length-1).map(x => x.time))
+
+
         var showPlot = function(plotLayout) {
             //dotStructPlot.width(data.seq.length * 10);
             d3.select('#visContainer')
@@ -43,11 +47,12 @@ $ ( document ).ready(function() {
             .data([data])
             .attr('id', 'my-plot');
 
-            plotLayout.simulationTime(1.8);
+            plotLayout.simulationTime(maxTime);
             //plotLayout.sequenceLength(300);
 
             svg.call(plotLayout);
 
+            // the "- 10" is to make sure that the last structure is shown
             plotLayout.updateCurrentTime(plotLayout.width() - plotLayout.margin().left
                                         - plotLayout.margin().right);
         }
@@ -136,7 +141,6 @@ function saveSVG() {
     saveSvgAsPng(document.getElementById('dotplot'), 'dotplot.png', 4);
     return;
 
-    console.log("saving svg..."); 
     var svg = document.getElementById('dotplot'); 
 
     //get svg source. 

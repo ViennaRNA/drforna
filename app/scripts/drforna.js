@@ -54,10 +54,10 @@ export function cotranscriptionalTimeSeriesLayout() {
     var lineChartWidth = totalWidth - margin.left - margin.right;
     var lineChartHeight = totalHeight - treemapHeight - margin.top - margin.bottom;
 
-    var lineX = d3.scale.linear().range([0, lineChartWidth]);
+    var lineX = d3.scale.log().range([0, lineChartWidth]);
     var lineY = d3.scale.linear().range([lineChartHeight, 0]);
 
-    var rectX = d3.scale.linear().range([0, lineChartWidth]);
+    var rectX = d3.scale.log().range([0, lineChartWidth]);
     var rectY = d3.scale.linear().range([lineChartHeight, 0]);
     var line;
 
@@ -158,7 +158,7 @@ export function cotranscriptionalTimeSeriesLayout() {
                 color.domain(d3.set(data.map(function(d) { return d.id })).values());
 
                 if (simulationTime != null)
-                    lineX.domain([0, simulationTime]);
+                    lineX.domain([0.1, simulationTime]);
                 else
                     lineX.domain(d3.extent(data, function(d) { return +d.time; }));
 
@@ -470,10 +470,10 @@ export function cotranscriptionalTimeSeriesLayout() {
         lineChartWidth = totalWidth - margin.left - margin.right;
         lineChartHeight = totalHeight - treemapHeight - margin.top - margin.bottom;
 
-        lineX = lineX.range([0, lineChartWidth - 10]);
+        lineX = lineX.range([0, lineChartWidth]);
         lineY = lineY.range([lineChartHeight, 0]);
 
-        rectX.range([0, lineChartWidth - 10]);
+        rectX.range([0, lineChartWidth]);
         rectY.range([lineChartHeight, 0]);
 
         wholeDiv
