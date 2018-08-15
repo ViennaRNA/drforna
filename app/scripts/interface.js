@@ -24,16 +24,15 @@ $ ( document ).ready(function() {
 
     function createNewPlot(file) {
         var data = d3.dsv(' ').parse(file.target.result);
-
+        console.log(data)
         let currentCTView = 'time-series'
         var width = 800;
         var height = 600;
 
-        let currentLayout = cotranscriptionalTimeSeriesLayout();
+        let currentLayout = cotranscriptionalTimeSeriesLayout("GACUCGAUCGUAGUCGUCAGUCAGACUGCAUGACUGCAUGACUGCAUAGAUCGCUAGCUGCUGCAUGCAUGCAUGCAUAGCUCAGCUGCUGCUGCAUGCAUGCAUAGCUGAUAGAUCG");
 
         // calculate the maximum time point in the simulation
         let maxTime = Math.max(...data.slice(0,data.length-1).map(x => x.time))
-
 
         var showPlot = function(plotLayout) {
             //dotStructPlot.width(data.seq.length * 10);
@@ -57,10 +56,14 @@ $ ( document ).ready(function() {
                                         - plotLayout.margin().right);
         }
 
+        var printTimePointCallback = function(dataAtTimePoint) {
+          console.log(dataAtTimePoint);
+        }
+
         var showTimeSeriesPlot = function() {
             showPlot(currentLayout
                     .newTimePointCallback((d) => {})
-                    .newTimeClickCallback((d) => {}));
+                    .newTimeClickCallback((d) => printTimePointCallback(d)));
 
             if (toggleView == showTimeSeriesPlot)
                 toggleView = showSmallMultiplesPlot;
@@ -126,7 +129,7 @@ function savePNG() {
 }
 
 function combineDotAndStruct() {
-    var svg = document.getElementById('dotplot'); 
+    var svg = document.getElementById('dotplot');
 
     var gMiddle = d3.select('#middle-layer');
     var gRoot = d3.select('#root-g');
@@ -141,24 +144,24 @@ function saveSVG() {
     saveSvgAsPng(document.getElementById('dotplot'), 'dotplot.png', 4);
     return;
 
-    var svg = document.getElementById('dotplot'); 
+    var svg = document.getElementById('dotplot');
 
-    //get svg source. 
-    var serializer = new XMLSerializer(); 
-    var source = serializer.serializeToString(svg); 
+    //get svg source.
+    var serializer = new XMLSerializer();
+    var source = serializer.serializeToString(svg);
 
-    //add name spaces. 
-    if(!source.match(/^<svg[^>]+xmlns="http\:\/\/www\.w3\.org\/2000\/svg"/)){ 
-        source = source.replace(/^<svg/, '<svg xmlns="http://www.w3.org/2000/svg"'); 
-    } 
-    if(!source.match(/^<svg[^>]+"http\:\/\/www\.w3\.org\/1999\/xlink"/)){ 
+    //add name spaces.
+    if(!source.match(/^<svg[^>]+xmlns="http\:\/\/www\.w3\.org\/2000\/svg"/)){
+        source = source.replace(/^<svg/, '<svg xmlns="http://www.w3.org/2000/svg"');
+    }
+    if(!source.match(/^<svg[^>]+"http\:\/\/www\.w3\.org\/1999\/xlink"/)){
         source = source.replace(/^<svg/, '<svg xmlns:xlink="http://www.w3.org/1999/xlink"');
-    } 
+    }
 
-    //add xml declaration 
-    source = '<?xml version="1.0" standalone="no"?>\r\n' + source; 
+    //add xml declaration
+    source = '<?xml version="1.0" standalone="no"?>\r\n' + source;
 
-    // use FileSave to get a downloadable SVG File 
-    var file = new Blob([source], {type: "data:image/svg+xml;charset=utf-8"}); 
-    saveAs(file, "dotplot.svg"); 
+    // use FileSave to get a downloadable SVG File
+    var file = new Blob([source], {type: "data:image/svg+xml;charset=utf-8"});
+    saveAs(file, "dotplot.svg");
 }

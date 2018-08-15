@@ -7,23 +7,23 @@ import '../styles/drforna.css';
 
 function doStepwiseAnimation(elementName, structs, duration) {
     var container = new FornaContainer(elementName, {'applyForce': false,
-                                       'allowPanningAndZooming': true,
-                                       'labelInterval':0,
-                                       'initialSize': null,
-                                       'transitionDuration': duration });
+       'allowPanningAndZooming': true,
+       'labelInterval':0,
+       'initialSize': null,
+       'transitionDuration': duration });
 
-                                       var funcs = []
+       var funcs = []
 
-                                       for (i = 0; i < structs.length; i++) {
-                                           if (funcs.length === 0)
-                                               (function(val) { funcs.push(function() { container.transitionRNA(structs[val]); container.setOutlineColor('white');
-                                               })} )(i);
-                                               else
-                                                   (function(val, prevFunc) { funcs.push(function() { container.transitionRNA(structs[val], prevFunc); container.setOutlineColor('white');
-                                                   })} )(i, funcs[funcs.length-1] );
-                                       }
+       for (i = 0; i < structs.length; i++) {
+           if (funcs.length === 0)
+               (function(val) { funcs.push(function() { container.transitionRNA(structs[val]); container.setOutlineColor('#ffffff');
+               })} )(i);
+               else
+                   (function(val, prevFunc) { funcs.push(function() { container.transitionRNA(structs[val], prevFunc); container.setOutlineColor('#ffffff');
+                   })} )(i, funcs[funcs.length-1] );
+       }
 
-                                       funcs[funcs.length-1]();
+       funcs[funcs.length-1]();
 }
 
 function uuid() {
@@ -34,11 +34,13 @@ function uuid() {
 }
 
 export function cotranscriptionalTimeSeriesLayout() {
-    var options = {'applyForce': false, 
-        'allowPanningAndZooming': true,
-        'labelInterval':0,
-        'resizeSvgOnResize': false,    //don't trigger a reflow and keep things speedy
-        'transitionDuration': 0}
+    var options = {
+      'applyForce': false,
+      'allowPanningAndZooming': true,
+      'labelInterval':0,
+      'resizeSvgOnResize': false,    //don't trigger a reflow and keep things speedy
+      'transitionDuration': 0
+    };
 
     var margin = {top: 10, right: 60, bottom: 40, left: 50};
     var totalWidth = 700;
@@ -66,7 +68,7 @@ export function cotranscriptionalTimeSeriesLayout() {
     var newTimeClickCallback = null;
 
     var treemap, wholeDiv, treemapDiv, labelSvg, labelDiv;
-    var lineChartDiv, outlineDiv, svg, currentTime = 0; 
+    var lineChartDiv, outlineDiv, svg, currentTime = 0;
 
     var concProfilePaths = null;
 
@@ -204,8 +206,8 @@ export function cotranscriptionalTimeSeriesLayout() {
                 .attr('transform', 'translate(-10,5)rotate(-90)')
                 .style('text-anchor', 'end')
                 .text('Position');
-                
-                // here we draw a little rectangle to indicate which stem each 
+
+                // here we draw a little rectangle to indicate which stem each
                 // nucleotide is in at this time point
 
                 for (let i = 0; i < dataByTime.length ; i++) {
@@ -247,7 +249,7 @@ export function cotranscriptionalTimeSeriesLayout() {
                     .attr('height', Math.abs(rectY.range()[1] - rectY.range()[0]) / maxStructLength)
                     .attr('width', rectWidth)
                     .attr('fill', (d) => {return d;});
-                
+
                 });
 
                 currentTimeIndicatorLine = svg.append('line')
@@ -260,7 +262,7 @@ export function cotranscriptionalTimeSeriesLayout() {
                 var nestedData = d3.nest().key(function(d) { return +d.id; }).entries(data)
                 function createInitialRoot(nestedData) {
                     let root = {'name': 'graph',
-                        'children': nestedData.map(function(d) { return {'name': d.key, 'struct': 
+                        'children': nestedData.map(function(d) { return {'name': d.key, 'struct':
                                                    d.values[0].struct, 'size': 1 / nestedData.length,
                                                    'colors': d.values[0].colors};})};
                         return root;
@@ -284,7 +286,7 @@ export function cotranscriptionalTimeSeriesLayout() {
                 .call(position)
                 //.style('background', function(d) { return d.children ? color(d.name) : null; })
                 //.text(function(d) { return d.children ? null : d.name; })
-                .each(function(d) { 
+                .each(function(d) {
                     if (typeof d.struct != 'undefined') {
                         containers[divName(d)] = new FornaContainer('#' + divName(d), options);
                         containers[divName(d)].transitionRNA(d.struct);
@@ -304,8 +306,8 @@ export function cotranscriptionalTimeSeriesLayout() {
                 concProfilePaths = concProfile.append('path')
                 .attr('class', 'line')
                 .attr('d', function(d) { return line(d.values); })
-                .style('stroke', function(d) { 
-                    return color(d.key); 
+                .style('stroke', function(d) {
+                    return color(d.key);
                 });
                 */
 
@@ -319,7 +321,7 @@ export function cotranscriptionalTimeSeriesLayout() {
                 .on('mouseenter', function() {
                     runAnimation = false;
                 })
-                .on('mouseleave', function() { 
+                .on('mouseleave', function() {
                     runAnimation = true;
 
                     updateCurrentTime(_xCoord);
@@ -329,7 +331,7 @@ export function cotranscriptionalTimeSeriesLayout() {
                     var node = treemapDiv.datum(root).selectAll('.treemapNode')
                     .data(treemap.nodes)
                     .call(position)
-                    .each(function(d) { 
+                    .each(function(d) {
                         if (typeof d.struct != 'undefined') {
                             var cont = containers[divName(d)];
                             cont.setSize();
@@ -358,7 +360,7 @@ export function cotranscriptionalTimeSeriesLayout() {
                         let elements = rnaUtilities.ptToElements(pt, 0, 1, pt[0], []);
 
                         // store the colors of each nucleotide
-                        let colors = Array(pt[0]).fill('white');
+                        let colors = Array(pt[0]).fill(d3.hsl("white"));
 
                         for (let i = 0; i < elements.length; i++) {
                             if (elements[i][0] != 's')
@@ -370,7 +372,7 @@ export function cotranscriptionalTimeSeriesLayout() {
                                 (a,b) => { return a+b }, 0) / elements[i][2].length;
 
                             // convert average nucleotide numbers to colors
-                            elements[i][2].map((d) => { 
+                            elements[i][2].map((d) => {
                                 let nucleotideNormPosition = nucleotideScale(averageBpNum);
                                 colors[d-1] = rainbowScale(nucleotideNormPosition);
                             });
@@ -389,11 +391,16 @@ export function cotranscriptionalTimeSeriesLayout() {
                     var y0 = lineX.invert(xCoord);
 
                     let i = bisectTime(data, y0, 1);
-                    var values = nestedData.map(function(data) { 
+                    var values = nestedData.map(function(data) {
                         var i = bisectTime(data.values, y0, 0)
 
+                        var formatColors = function(colors) {
+                          return colors.map(function(c) {
+                            return c.rgb().toString();
+                          });
+                        }
                         if (i >= data.values.length || i == 0)
-                            return {'name': data.key, 'struct': data.values[0].struct, 'size': 0};
+                            return {'time': data.values[0].time, 'name': data.key, 'struct': data.values[0].struct, 'energy': data.values[0].energy, 'colors': formatColors(data.values[0].colors), 'size': 0};
 
                         var sc = d3.scale.linear()
                         .domain([data.values[i-1].time, data.values[i].time])
@@ -401,7 +408,7 @@ export function cotranscriptionalTimeSeriesLayout() {
 
                         var value = sc(y0);
 
-                        var retVal= {'name': data.key, 'struct': data.values[0].struct, 'size': +value};
+                        var retVal= {'time': data.values[i].time, 'name': data.key, 'struct': data.values[i].struct, 'energy': data.values[i].energy, 'colors': formatColors(data.values[i].colors), 'size': + value};
                         containers[divName(retVal)].transitionRNA(data.values[i].struct)
                         return retVal;
                     });
@@ -414,7 +421,7 @@ export function cotranscriptionalTimeSeriesLayout() {
                 updateCurrentTime = function(xCoord) {
                     let values = valuesAtXPoint(xCoord);
                     populatedValues = values.filter(d => { return d.size > 0; });
-                    
+
                     if (newTimePointCallback != null)
                         newTimePointCallback(populatedValues);
 
@@ -555,7 +562,7 @@ export function cotranscriptionalTimeSeriesLayout() {
             yAxisText
                 .attr('x', lineChartWidth /2)
                 .attr('y', lineChartHeight + 25)
-        
+
         if (currentTimeIndicatorLine != null)
             currentTimeIndicatorLine
             .attr('y2', lineChartHeight)
@@ -602,7 +609,7 @@ export function cotranscriptionalTimeSeriesLayout() {
         else simulationTime = _;
         return chart;
     }
-    
+
     chart.sequenceLength = function(_) {
         if (!arguments.length) return sequenceLength;
         else sequenceLength = _;
@@ -644,9 +651,9 @@ export function cotranscriptionalSmallMultiplesLayout() {
             nestedData.sort(function(a,b) { return (+a.key) - (+b.key); });
 
             var inputData = nestedData.map(function(x) {
-                return { 
+                return {
                     'children': x.values.map(function(y) {
-                        return { 
+                        return {
                             'structure': y.struct,
                             'sequence': getOrCreateSequence(y),
                             'size': y.conc,
@@ -675,7 +682,7 @@ export function cotranscriptionalSmallMultiplesLayout() {
             .padding(padding)
             .nodeSize([treemapWidth, treemapHeight]);
             var rectData = rectGrid(inputData)
-                .map(function(d) { 
+                .map(function(d) {
                     d.pos = { x: d.x, y: d.y }
                     return d;
                 });
@@ -691,7 +698,7 @@ export function cotranscriptionalSmallMultiplesLayout() {
             .data(rectData)
             .enter()
             .append('g')
-            .attr('transform', function(d) { 
+            .attr('transform', function(d) {
                 return 'translate(' + d.x + ',' + d.y + ')'; })
             .classed('rna-treemap', true)
             .call(rnaTreemap);
@@ -700,14 +707,14 @@ export function cotranscriptionalSmallMultiplesLayout() {
             .data(rectData)
             .enter()
             .append('g')
-            .attr('transform', function(d) { 
+            .attr('transform', function(d) {
                 return 'translate(' + d.pos.x + ',' + d.pos.y + ')'; })
             .classed('time-g', true)
             .append('text')
             .attr('x', treemapWidth / 2)
             .attr('y', treemapHeight - textHeight + 16)
             .classed('time-label', true)
-            .text(function(d) { 
+            .text(function(d) {
                   return 'time: ' + d.children[0].time
             });
         });
@@ -727,4 +734,3 @@ export function cotranscriptionalSmallMultiplesLayout() {
 
     return chart;
 }
-
