@@ -24,12 +24,11 @@ $ ( document ).ready(function() {
 
     function createNewPlot(file) {
         var data = d3.dsv(' ').parse(file.target.result);
-        console.log(data)
         let currentCTView = 'time-series'
         var width = 800;
         var height = 600;
 
-        let currentLayout = cotranscriptionalTimeSeriesLayout("GACUCGAUCGUAGUCGUCAGUCAGACUGCAUGACUGCAUGACUGCAUAGAUCGCUAGCUGCUGCAUGCAUGCAUGCAUAGCUCAGCUGCUGCUGCAUGCAUGCAUAGCUGAUAGAUCG");
+        let currentLayout = cotranscriptionalTimeSeriesLayout();
 
         // calculate the maximum time point in the simulation
         let maxTime = Math.max(...data.slice(0,data.length-1).map(x => x.time))
