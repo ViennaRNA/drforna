@@ -59,6 +59,7 @@
     }
   },
   "dependencies": {
+    "file-saver": "^2.0.0",
     "fornac": "~1.1.0"
   }
 }

@@ -1,11 +1,39 @@
 import $ from 'jquery';
 import d3 from 'd3';
-
+import {saveAs} from 'file-saver';
 import {cotranscriptionalTimeSeriesLayout, cotranscriptionalSmallMultiplesLayout} from './drforna.js';
 
 var toggleView = function() {};
 
-$ ( document ).ready(function() {
+function savePNG() {
+    saveSvgAsPng(document.getElementById('dotplot'), 'dotplot.png', 10);
+    return;
+}
+
+function saveSVG() {
+    var svg = document.getElementById('visContainer');
+
+    //get svg source.
+    var serializer = new XMLSerializer();
+    var source = serializer.serializeToString(svg);
+
+    //add name spaces.
+    if(!source.match(/^<svg[^>]+xmlns="http\:\/\/www\.w3\.org\/2000\/svg"/)){
+        source = source.replace(/^<svg/, '<svg xmlns="http://www.w3.org/2000/svg"');
+    }
+    if(!source.match(/^<svg[^>]+"http\:\/\/www\.w3\.org\/1999\/xlink"/)){
+        source = source.replace(/^<svg/, '<svg xmlns:xlink="http://www.w3.org/1999/xlink"');
+    }
+
+    //add xml declaration
+    source = '<?xml version="1.0" standalone="no"?>\r\n' + source;
+
+    // use FileSave to get a downloadable SVG File
+    var file = new Blob([source], {type: "data:image/svg+xml;charset=utf-8"});
+    saveAs(file, "drtrafo.svg");
+}
+
+$( document ).ready(function() {
     //window.addEventListener("resize", setSize, false);
 
     /*
@@ -99,8 +127,8 @@ $ ( document ).ready(function() {
 
     //createNewPlot('data/pete.growing');
 
-    /* add event listener to the file browse button */
-  $('#files').on('change', function(evt) {
+    /* add event listener to the buttons */
+    $('#files').on('change', function(evt) {
       var files = evt.target.files; // FileList object
 
       // files is a FileList of File objects. List some properties.
@@ -114,6 +142,10 @@ $ ( document ).ready(function() {
     })
     .on('click', function(){ this.value = null; });
 
+    $("#buttonSVG").on("click", saveSVG);
+    $("#buttonView").on("click", toggleView);
+
+
     $.get('data/pete.result', result => {
         let file = {target: {}}
         file.target.result = result;
@@ -122,45 +154,3 @@ $ ( document ).ready(function() {
 
 })
 
-function savePNG() {
-    saveSvgAsPng(document.getElementById('dotplot'), 'dotplot.png', 10);
-    return;
-}
-
-function combineDotAndStruct() {
-    var svg = document.getElementById('dotplot');
-
-    var gMiddle = d3.select('#middle-layer');
-    var gRoot = d3.select('#root-g');
-
-    if (gMiddle.attr('transform') == 'translate(0,0)')
-        gMiddle.transition().attr('transform', 'translate(' + gRoot.node().getBBox().width + ',0)').attr('opacity',1.0);
-    else
-        gMiddle.transition().attr('transform', 'translate(0,0)').attr('opacity', 0.4);
-}
-
-function saveSVG() {
-    saveSvgAsPng(document.getElementById('dotplot'), 'dotplot.png', 4);
-    return;
-
-    var svg = document.getElementById('dotplot');
-
-    //get svg source.
-    var serializer = new XMLSerializer();
-    var source = serializer.serializeToString(svg);
-
-    //add name spaces.
-    if(!source.match(/^<svg[^>]+xmlns="http\:\/\/www\.w3\.org\/2000\/svg"/)){
-        source = source.replace(/^<svg/, '<svg xmlns="http://www.w3.org/2000/svg"');
-    }
-    if(!source.match(/^<svg[^>]+"http\:\/\/www\.w3\.org\/1999\/xlink"/)){
-        source = source.replace(/^<svg/, '<svg xmlns:xlink="http://www.w3.org/1999/xlink"');
-    }
-
-    //add xml declaration
-    source = '<?xml version="1.0" standalone="no"?>\r\n' + source;
-
-    // use FileSave to get a downloadable SVG File
-    var file = new Blob([source], {type: "data:image/svg+xml;charset=utf-8"});
-    saveAs(file, "dotplot.svg");
-}
