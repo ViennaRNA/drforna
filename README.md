@@ -31,12 +31,12 @@ the free energy (in kcal / mol) is shown in the `energy` column.
 
 To start this project in development mode, please run:
 ```
-    npm install
-    npm run dev
+npm install
+npm run dev
 ```
 To build a release version run:
 ```
-    npm run build
+npm run build
 ```
 And find the output javascript and style files in the `dist/` directory.
 
