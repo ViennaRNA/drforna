@@ -30,14 +30,13 @@ the free energy (in kcal / mol) is shown in the `energy` column.
 ## Starting the Web Server
 
 To start this project in development mode, please run:
-
+```
     npm install
-    bower install
-    gulp serve
-
+    npm run dev
+```
 To build a release version run:
-
-    gulp build
-
-And find the output files in the `dist/scripts` directory.
+```
+    npm run build
+```
+And find the output javascript and style files in the `dist/` directory.
 
