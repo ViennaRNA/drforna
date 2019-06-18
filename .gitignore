@@ -7,5 +7,6 @@ bower_components/**
 node_modules/**
 .tmp/**
 npm-debug.log
-rna.ps
-data/
+package-lock.json
+webpack-stats.json
+

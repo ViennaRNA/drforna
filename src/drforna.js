@@ -1,14 +1,18 @@
 import d3 from 'd3';
-import {FornaContainer} from 'fornac';
-import {rnaUtilities} from 'rnautils';
+import {FornaContainer, RNAUtilities} from 'fornac';
 
-import '../styles/treemap.css';
-import '../styles/drforna.css';
+import 'fornac/src/fornac.css';
+import dstyle from './drforna.css';
+
+var rnaUtilities = new RNAUtilities();
 
 function doStepwiseAnimation(elementName, structs, duration) {
-    var container = new FornaContainer(elementName, {'applyForce': false,
-       'allowPanningAndZooming': true,
-       'labelInterval':0,
+    var container = new FornaContainer(elementName, 
+     {
+       'animation': false,
+       'editable': false,
+       'zoomable': false,
+       'labelInterval': 0,
        'initialSize': null,
        'transitionDuration': duration });
 
@@ -26,23 +30,16 @@ function doStepwiseAnimation(elementName, structs, duration) {
        funcs[funcs.length-1]();
 }
 
-function uuid() {
-    return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, function(c) {
-        var r = Math.random()*16|0, v = c == 'x' ? r : (r&0x3|0x8);
-        return v.toString(16);
-    });
-}
-
 export function cotranscriptionalTimeSeriesLayout() {
     var options = {
-      'applyForce': false,
-      'allowPanningAndZooming': true,
+      'animation': false,
+      'editable': false,
+      'zoomable': false,
       'labelInterval':0,
-      'resizeSvgOnResize': false,    //don't trigger a reflow and keep things speedy
       'transitionDuration': 0
     };
 
-    var margin = {top: 10, right: 60, bottom: 40, left: 50};
+    var margin = {top: 0, right: 0, bottom: 40, left: 50};
     var totalWidth = 700;
     var totalHeight = 400;
 
@@ -67,8 +64,8 @@ export function cotranscriptionalTimeSeriesLayout() {
     var newTimePointCallback = null;
     var newTimeClickCallback = null;
 
-    var treemap, wholeDiv, treemapDiv, labelSvg, labelDiv;
-    var lineChartDiv, outlineDiv, svg, currentTime = 0;
+    var treemap, wholeDiv, treemapDiv;
+    var lineChartDiv, svg, currentTime = 0;
 
     var concProfilePaths = null;
 
@@ -92,22 +89,11 @@ export function cotranscriptionalTimeSeriesLayout() {
             .value(function(d) { return d.size; });
 
             wholeDiv = d3.select(this).append('div')
-            .style('position', 'relative')
-            .attr('id', 'whole-div');
+            .classed(dstyle.plot, true);
 
             treemapDiv = wholeDiv.append('div')
-            .classed('treemap-div', true)
-            .style('position', 'absolute')
-            .style('left', margin.left + 'px')
-            .style('top', margin.top + 'px');
-
-
-            labelDiv = wholeDiv.append('div')
-            .style('position', 'absolute')
-            .style('top', margin.top + 'px')
-
-            labelSvg = labelDiv
-            .append('svg')
+            .classed(dstyle.treemap, true)
+            .style('left', margin.left + 'px');
 
             /*
             labelSvg.append('text')
@@ -116,19 +102,12 @@ export function cotranscriptionalTimeSeriesLayout() {
             */
 
             lineChartDiv = wholeDiv.append('div')
-            .style('position', 'absolute')
+            .classed(dstyle.lineChart, true)
             .style('left', 0 + 'px')
 
-
-            outlineDiv = wholeDiv.append('div')
-            .classed('outline-div', true)
-            .style('position', 'absolute')
-            .style('left', margin.left + 'px')
-            .style('top', margin.top + 'px')
-
             svg = lineChartDiv.append('svg')
-            .attr('width', lineChartWidth)
-            .attr('height', lineChartHeight)
+            .attr('preserveAspectRatio', 'xMidYMid meet')
+            .attr('viewBox', '0 0 ' + lineChartWidth + 'px' + ' ' + lineChartHeight + 'px')
             .append('g')
             .attr('transform', 'translate(' + margin.left + ',' + margin.top + ')');
 
@@ -179,11 +158,13 @@ export function cotranscriptionalTimeSeriesLayout() {
                 var runAnimation = false;
 
                 gXAxis = svg.append('g')
-                .attr('class', 'x axis')
+                .classed(dstyle.x, true)
+                .classed(dstyle.axis, true)
                 .call(xAxis);
 
                 gYAxis = svg.append('g')
-                .attr('class', 'y axis')
+                .classed(dstyle.y, true)
+                .classed(dstyle.axis, true)
 
                 yAxisText = gYAxis
                 .append('text')
@@ -192,7 +173,8 @@ export function cotranscriptionalTimeSeriesLayout() {
                 .text('Time (Seconds)');
 
                 svg.append('g')
-                .attr('class', 'y axis')
+                .classed(dstyle.y, true)
+                .classed(dstyle.axis, true)
                 .attr('transform', 'translate(' + (0) + ',0)')
                 .append('text')
                 .attr('transform', 'translate(-25,0)rotate(-90)')
@@ -200,7 +182,8 @@ export function cotranscriptionalTimeSeriesLayout() {
                 .text('Nucleotide');
 
                 svg.append('g')
-                .attr('class', 'y axis')
+                .classed(dstyle.y, true)
+                .classed(dstyle.axis, true)
                 .attr('transform', 'translate(' + (0) + ',0)')
                 .append('text')
                 .attr('transform', 'translate(-10,5)rotate(-90)')
@@ -257,7 +240,7 @@ export function cotranscriptionalTimeSeriesLayout() {
                 .attr('y1', 0)
                 .attr('x2', currentTime)
                 .attr('y2', lineChartHeight)
-                .classed('time-indicator', true);
+                .classed(dstyle.timeIndicator, true);
 
                 var nestedData = d3.nest().key(function(d) { return +d.id; }).entries(data)
                 function createInitialRoot(nestedData) {
@@ -278,10 +261,10 @@ export function cotranscriptionalTimeSeriesLayout() {
                 let populatedValues = [];
                 var containers = {};
 
-                var node = treemapDiv.datum(root).selectAll('.treemapNode')
+                var node = treemapDiv.datum(root).selectAll('.' + dstyle.treemapNode)
                 .data(treemap.nodes)
                 .enter().append('div')
-                .attr('class', 'treemapNode')
+                .attr('class', dstyle.treemapNode)
                 .attr('id', divName)
                 .call(position)
                 //.style('background', function(d) { return d.children ? color(d.name) : null; })
@@ -312,7 +295,7 @@ export function cotranscriptionalTimeSeriesLayout() {
                 */
 
                 xAxisOverlayRect = svg.append('rect')
-                .attr('class', 'overlay')
+                .attr('class', dstyle.overlay)
                 .on('mouseover', function() { })
                 .on('mousemove', mousemove)
                 .on('click', mouseclick);
@@ -328,17 +311,9 @@ export function cotranscriptionalTimeSeriesLayout() {
                 })
 
                  updateTreemap = function(root) {
-                    var node = treemapDiv.datum(root).selectAll('.treemapNode')
+                    var node = treemapDiv.datum(root).selectAll('.' + dstyle.treemapNode)
                     .data(treemap.nodes)
                     .call(position)
-                    .each(function(d) {
-                        if (typeof d.struct != 'undefined') {
-                            var cont = containers[divName(d)];
-                            cont.setSize();
-
-                            //cont.setOutlineColor(color(d.name));
-                        }
-                    });
                 }
 
                 function calculateColorPerTimePoint(dataByTime) {
@@ -386,8 +361,6 @@ export function cotranscriptionalTimeSeriesLayout() {
 
                 function valuesAtXPoint(xCoord) {
                     // get the interpolated concentrations at a given coordinate
-
-                    //saveSvgAsPng(document.getElementById('whole-div'), 'rnax.png', 4);
                     var y0 = lineX.invert(xCoord);
 
                     let i = bisectTime(data, y0, 1);
@@ -491,22 +464,10 @@ export function cotranscriptionalTimeSeriesLayout() {
             .style('width', (treemapWidth) + 'px')
             .style('height', (treemapHeight) + 'px')
 
-        labelDiv
-            .style('width', margin.left + 'px')
-            .style('height', treemapHeight)
-
-        labelSvg
-            .attr('width', margin.left + 'px')
-            .attr('height', treemapHeight);
-
         lineChartDiv
             .style('width', (lineChartWidth + margin.left) + 'px')
             .style('height', (lineChartHeight + margin.bottom + margin.top) + 'px')
             .style('top', treemapHeight + 'px');
-
-        outlineDiv
-            .style('width', (treemapWidth) + 'px')
-            .style('height', (treemapHeight) + 'px')
 
         line
             .x(function(d) { return lineX(+d.time); })
@@ -690,9 +651,9 @@ export function cotranscriptionalSmallMultiplesLayout() {
             // create an svg as a child of the #rna_ss div
             // and then a g for each grid cell
             var svg = d3.select(this)
-            .append('svg')
-            .attr('width', svgWidth)
-            .attr('height', svgHeight)
+            .append('svg')            
+            .attr('preserveAspectRatio', 'xMidYMid meet')
+            .attr('viewBox', '0 0 ' + svgWidth + 'px' + ' ' + svgHeight + 'px')
 
             svg.selectAll('.rna-treemap')
             .data(rectData)
@@ -713,7 +674,7 @@ export function cotranscriptionalSmallMultiplesLayout() {
             .append('text')
             .attr('x', treemapWidth / 2)
             .attr('y', treemapHeight - textHeight + 16)
-            .classed('time-label', true)
+            .classed(dstyle.timeLabel, true)
             .text(function(d) {
                   return 'time: ' + d.children[0].time
             });

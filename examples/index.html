@@ -1,0 +1,116 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <!-- The above 3 meta tags *must* come first in the head; any other head content must come *after* these tags -->
+    <title>DrForna Cotranscriptional Folding</title>
+    
+    <link rel="stylesheet" href="drforna.css" />
+  </head>
+  <body>
+    <div style="max-width: 800px; margin: auto;">
+      <input type="file" id="files" name="files" title="Enter an input file">
+      <div id="visContainer" class="svg-container" ></div>
+    </div>
+    
+    <script src="https://unpkg.com/jquery@3.4.1"></script>
+    <script src="https://unpkg.com/d3@3.5"></script>
+    <script src="drforna.js"></script>
+    
+    <script type='text/javascript'>
+      function createNewPlot(file) {
+          var data = d3.dsv(' ').parse(file.target.result);
+          let currentCTView = 'time-series'
+          var width = 800;
+          var height = 600;
+
+          let currentLayout = drforna.cotranscriptionalTimeSeriesLayout();
+
+          // calculate the maximum time point in the simulation
+          let maxTime = Math.max(...data.slice(0,data.length-1).map(x => x.time))
+
+          var showPlot = function(plotLayout) {
+            plotLayout.simulationTime(maxTime);
+            
+            d3.select('#visContainer')
+            .selectAll('div')
+            .remove();
+
+            var svg = d3.select('#visContainer')
+            .data([data])
+            .call(plotLayout);
+
+            // the "- 10" is to make sure that the last structure is shown
+            plotLayout.updateCurrentTime(plotLayout.width() - plotLayout.margin().left
+                                        - plotLayout.margin().right);
+          }
+
+          var printTimePointCallback = function(dataAtTimePoint) {
+            console.log(dataAtTimePoint);
+          }
+
+          var showTimeSeriesPlot = function() {
+              showPlot(currentLayout
+                      .newTimePointCallback((d) => {})
+                      .newTimeClickCallback((d) => printTimePointCallback(d)));
+
+              if (toggleView == showTimeSeriesPlot)
+                  toggleView = showSmallMultiplesPlot;
+              else
+                  toggleView = showTimeSeriesPlot;
+          }
+
+          var showSmallMultiplesPlot = function() {
+              showPlot(drforna.cotranscriptionalSmallMultiplesLayout().width(800));
+
+              if (toggleView == showTimeSeriesPlot)
+                  toggleView = showSmallMultiplesPlot;
+              else
+                  toggleView = showTimeSeriesPlot;
+          }
+
+          toggleView = showTimeSeriesPlot;
+          //toggleView = showSmallMultiplesPlot;
+          toggleView();
+
+          //window.addEventListener('resize', currentLayout.setSize, false);
+          function setLayoutSize(layout) {
+              let container = $('#visContainer')
+              let svgW = container.width();
+              let svgH = container.height();
+              console.log(svgW, svgH)
+
+              currentLayout.width(svgW)
+              .height(svgH)
+
+              currentLayout.updateDimensions();
+          }
+
+          window.addEventListener('resize', setLayoutSize, false);
+      }
+
+      /* add event listener to the buttons */
+      $('#files').on('change', function(evt) {
+        var files = evt.target.files; // FileList object
+
+        // files is a FileList of File objects. List some properties.
+        var output = [];
+        for (var i = 0, f; f = files[i]; i++) {
+            var reader = new FileReader()
+            reader.onload = createNewPlot;
+            reader.readAsText(f);
+
+        }
+      })
+      .on('click', function(){ this.value = null; });
+
+      $.get('data/pete.result', result => {
+          let file = {target: {}}
+          file.target.result = result;
+          createNewPlot(file);
+      });
+    </script>
+  </body>
+</html>
