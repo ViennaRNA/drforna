@@ -8,10 +8,36 @@
     <title>DrForna Cotranscriptional Folding</title>
     
     <link rel="stylesheet" href="drforna.css" />
+    <style>
+      .forminput {
+        float: left;
+        margin-left: 20px;
+        margin: 5px;
+      }
+      .form {
+        display: table;
+        margin: 5px;
+        padding: 5px;
+        clear: both;
+      }
+    </style>
   </head>
   <body>
     <div style="max-width: 800px; margin: auto;">
-      <input type="file" id="files" name="files" title="Enter an input file">
+      <div class="form">
+        Select:</br>
+        <div class="forminput"><input type="radio" name="fileinput" value="short" checked>short</div>
+        <div class="forminput"><input type="radio" name="fileinput" value="growing">growing</div>
+        <div class="forminput"><input type="radio" name="fileinput" value="result">result</div>
+        <div class="forminput"><input type="radio" name="fileinput" value="result1">result1</div>
+        <div class="forminput"><input type="radio" name="fileinput" value="result2">result2</div>
+        <div class="forminput"><input type="radio" name="fileinput" value="tRNA">tRNA</div>
+        <div class="forminput"><input type="radio" name="fileinput" value="bistable">bistable</div>
+      </div>
+      <div class="form">
+        Or provide own file:</br>
+        <div class="forminput"><input type="file" id="files" name="files" title="Enter an input file"></div>
+      </div>
       <div id="visContainer" class="svg-container" ></div>
     </div>
     
@@ -21,18 +47,18 @@
     
     <script type='text/javascript'>
       function createNewPlot(file) {
-          var data = d3.dsv(' ').parse(file.target.result);
+          let data = d3.dsv(' ').parse(file.target.result);
           let currentCTView = 'time-series'
-          var width = 800;
-          var height = 600;
+          let width = 800;
+          let height = 600;
 
           let currentLayout = drforna.cotranscriptionalTimeSeriesLayout();
 
           // calculate the maximum time point in the simulation
           let maxTime = Math.max(...data.slice(0,data.length-1).map(x => x.time))
 
-          var showPlot = function(plotLayout) {
-            plotLayout.simulationTime(maxTime);
+          let showPlot = function(plotLayout) {
+            //plotLayout.simulationTime(maxTime);
             
             d3.select('#visContainer')
             .selectAll('div')
@@ -41,42 +67,13 @@
             var svg = d3.select('#visContainer')
             .data([data])
             .call(plotLayout);
-
-            // the "- 10" is to make sure that the last structure is shown
+            
             plotLayout.updateCurrentTime(plotLayout.width() - plotLayout.margin().left
                                         - plotLayout.margin().right);
+            currentLayout.updateDimensions();
           }
-
-          var printTimePointCallback = function(dataAtTimePoint) {
-            console.log(dataAtTimePoint);
-          }
-
-          var showTimeSeriesPlot = function() {
-              showPlot(currentLayout
-                      .newTimePointCallback((d) => {})
-                      .newTimeClickCallback((d) => printTimePointCallback(d)));
-
-              if (toggleView == showTimeSeriesPlot)
-                  toggleView = showSmallMultiplesPlot;
-              else
-                  toggleView = showTimeSeriesPlot;
-          }
-
-          var showSmallMultiplesPlot = function() {
-              showPlot(drforna.cotranscriptionalSmallMultiplesLayout().width(800));
-
-              if (toggleView == showTimeSeriesPlot)
-                  toggleView = showSmallMultiplesPlot;
-              else
-                  toggleView = showTimeSeriesPlot;
-          }
-
-          toggleView = showTimeSeriesPlot;
-          //toggleView = showSmallMultiplesPlot;
-          toggleView();
-
-          //window.addEventListener('resize', currentLayout.setSize, false);
-          function setLayoutSize(layout) {
+          
+          let setLayoutSize = function(layout) {
               let container = $('#visContainer')
               let svgW = container.width();
               let svgH = container.height();
@@ -88,29 +85,46 @@
               currentLayout.updateDimensions();
           }
 
-          window.addEventListener('resize', setLayoutSize, false);
-      }
+          let printTimePointCallback = function(dataAtTimePoint) {
+            console.log(dataAtTimePoint);
+          }
 
+          showPlot(currentLayout
+                  .newTimePointCallback((d) => {})
+                  .newTimeClickCallback((d) => printTimePointCallback(d)));
+          
+          
+          
+          setLayoutSize()
+          window.addEventListener('resize', setLayoutSize, false);
+          console.log('loaded!')
+      }
+      
       /* add event listener to the buttons */
       $('#files').on('change', function(evt) {
-        var files = evt.target.files; // FileList object
-
-        // files is a FileList of File objects. List some properties.
-        var output = [];
-        for (var i = 0, f; f = files[i]; i++) {
-            var reader = new FileReader()
+        $('input[type=radio][name=fileinput]:checked').attr('checked', false)
+        console.log("loading: " + evt.target.files[0].name)
+        let files = evt.target.files
+        for (let i = 0, f; f = files[i]; i++) {
+            let reader = new FileReader()
             reader.onload = createNewPlot;
             reader.readAsText(f);
-
         }
       })
       .on('click', function(){ this.value = null; });
-
-      $.get('data/pete.result', result => {
-          let file = {target: {}}
-          file.target.result = result;
-          createNewPlot(file);
+      
+      $('input[type=radio][name=fileinput]').change(function() {
+          $('#files').val('');
+          console.log("loading: " + this.value)
+          $.get('data/' + this.value, result => {
+              let file = {target: {}}
+              file.target.result = result;
+              createNewPlot(file);
+          });
       });
+      
+      $("input[type=radio][name=fileinput]:checked").trigger('change');
+      
     </script>
   </body>
 </html>

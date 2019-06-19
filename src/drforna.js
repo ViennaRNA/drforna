@@ -1,5 +1,5 @@
 import d3 from 'd3';
-import {FornaContainer, RNAUtilities} from 'fornac';
+import {FornaContainer, RNAUtilities, rnaTreemap} from 'fornac';
 
 import 'fornac/src/fornac.css';
 import dstyle from './drforna.css';
@@ -107,7 +107,9 @@ export function cotranscriptionalTimeSeriesLayout() {
 
             svg = lineChartDiv.append('svg')
             .attr('preserveAspectRatio', 'xMidYMid meet')
-            .attr('viewBox', '0 0 ' + lineChartWidth + 'px' + ' ' + lineChartHeight + 'px')
+            //.attr('viewBox', '0 0 ' + lineChartWidth + ' ' + lineChartHeight)
+            .attr('width', lineChartWidth)
+            .attr('height', lineChartHeight)
             .append('g')
             .attr('transform', 'translate(' + margin.left + ',' + margin.top + ')');
 
@@ -468,7 +470,11 @@ export function cotranscriptionalTimeSeriesLayout() {
             .style('width', (lineChartWidth + margin.left) + 'px')
             .style('height', (lineChartHeight + margin.bottom + margin.top) + 'px')
             .style('top', treemapHeight + 'px');
-
+        
+        lineChartDiv.select('svg')
+            .attr('width', lineChartWidth)
+            .attr('height', lineChartHeight)
+        
         line
             .x(function(d) { return lineX(+d.time); })
             .y(function(d) { return lineY(+d.conc); });
@@ -630,7 +636,7 @@ export function cotranscriptionalSmallMultiplesLayout() {
             var svgHeight = Math.ceil(inputData.length / numCols) * (treemapHeight + padding[1]) - padding[1];
 
             // the rna treemap layout, which will be called for every grid point
-            var rnaTreemap = rnaTreemapChart()
+            var rnaTreemapChart = rnaTreemap()
             .width(treemapWidth)
             .height(treemapHeight - textHeight)
 
@@ -653,7 +659,7 @@ export function cotranscriptionalSmallMultiplesLayout() {
             var svg = d3.select(this)
             .append('svg')            
             .attr('preserveAspectRatio', 'xMidYMid meet')
-            .attr('viewBox', '0 0 ' + svgWidth + 'px' + ' ' + svgHeight + 'px')
+            .attr('viewBox', '0 0 ' + svgWidth + ' ' + svgHeight)
 
             svg.selectAll('.rna-treemap')
             .data(rectData)
@@ -662,7 +668,7 @@ export function cotranscriptionalSmallMultiplesLayout() {
             .attr('transform', function(d) {
                 return 'translate(' + d.x + ',' + d.y + ')'; })
             .classed('rna-treemap', true)
-            .call(rnaTreemap);
+            .call(rnaTreemapChart);
 
             svg.selectAll('.time-g')
             .data(rectData)
