@@ -7,7 +7,7 @@ import dstyle from './drforna.css';
 var rnaUtilities = new RNAUtilities();
 
 function doStepwiseAnimation(elementName, structs, duration) {
-    var container = new FornaContainer(elementName, 
+    var container = new FornaContainer(elementName,
      {
        'animation': false,
        'editable': false,
@@ -53,7 +53,7 @@ export function cotranscriptionalTimeSeriesLayout() {
 
     var lineChartWidth = totalWidth - margin.left - margin.right;
     var lineChartHeight = totalHeight - treemapHeight - margin.top - margin.bottom;
-    
+
     var lineX = d3.scale.log().interpolate(d3.interpolateRound).range([0, lineChartWidth]);
     var lineY = d3.scale.linear().interpolate(d3.interpolateRound).range([lineChartHeight, 0]);
 
@@ -245,7 +245,7 @@ export function cotranscriptionalTimeSeriesLayout() {
                 .attr('x2', currentTime)
                 .attr('y2', lineChartHeight)
                 .classed(dstyle.timeIndicator, true);
-                
+
                 var filteredData = data.filter((d) => { return d.conc > occupancyTreshold })
                 var nestedData = d3.nest().key(function(d) { return +d.id; }).entries(filteredData)
                 function createInitialRoot(nestedData) {
@@ -438,18 +438,18 @@ export function cotranscriptionalTimeSeriesLayout() {
             function position() {
               this.style('left', function(d) {  return d.x + 'px'; })
                   .style('top', function(d) { return d.y + 'px'; })
-                  .style('width', function(d) { 
+                  .style('width', function(d) {
                     if (d.dy == 0 || d.dx < 10) {
-                      return '0px'; 
-                    } else { 
-                      return Math.max(0, d.dx) + 'px'; 
+                      return '0px';
+                    } else {
+                      return Math.max(0, d.dx) + 'px';
                     }
                   })
-                  .style('height', function(d) { 
+                  .style('height', function(d) {
                     if (d.dx == 0 || d.dy < 10) {
-                      return '0px'; 
-                    } else { 
-                      return Math.max(0, d.dy) + 'px'; 
+                      return '0px';
+                    } else {
+                      return Math.max(0, d.dy) + 'px';
                     }
                   })
             }
@@ -485,11 +485,11 @@ export function cotranscriptionalTimeSeriesLayout() {
             .style('width', (lineChartWidth + margin.left) + 'px')
             .style('height', (lineChartHeight + margin.bottom + margin.top) + 'px')
             .style('top', treemapHeight + 'px');
-        
+
         lineChartDiv.select('svg')
             .attr('width', lineChartWidth)
             .attr('height', lineChartHeight)
-        
+
         line
             .x(function(d) { return lineX(+d.time); })
             .y(function(d) { return lineY(+d.conc); });
@@ -585,7 +585,7 @@ export function cotranscriptionalTimeSeriesLayout() {
     chart.margin = function(_) {
         return margin;
     }
-    
+
     chart.occupancyTreshold = function(_) {
       if (!arguments.length) return occupancyTreshold;
       else occupancyTreshold = _;
@@ -607,9 +607,8 @@ export function cotranscriptionalTimeSeriesLayout() {
     return chart;
 }
 
-export function currentTimepointTable(element) {
+export function currentTimepointTable(element, columns) {
   d3.select('#element')
-  var columns = ['struct', 'name', 'time', 'size', 'energy']
   var table = d3.select(element).append('table')
   var thead = table.append('thead')
   var tbody = table.append('tbody')
@@ -620,17 +619,17 @@ export function currentTimepointTable(element) {
     .data(columns).enter()
     .append('th')
     .text(function (column) { return column; });
-  
-  function chart(selection) {    
+
+  function chart(selection) {
     selection.each(function(data) {
+        console.log(data)
       // create a row for each object in the data
       var rows = tbody.selectAll('tr')
-        .data(data)
-      rows.enter()
-        .append('tr')
-        
-      rows.exit().remove()
-      
+      .remove()
+      .data(data)
+      .enter()
+      .append('tr')
+
       // create a cell in each row for each column
       var cells = rows.selectAll('td')
         .data(function (row) {
@@ -638,7 +637,7 @@ export function currentTimepointTable(element) {
             return {column: column, value: row[column]};
           });
         })
-        
+
         cells.enter()
         .append('td')
         .text(function (d) { return d.value; });
@@ -719,7 +718,7 @@ export function cotranscriptionalSmallMultiplesLayout() {
             // create an svg as a child of the #rna_ss div
             // and then a g for each grid cell
             var svg = d3.select(this)
-            .append('svg')            
+            .append('svg')
             .attr('preserveAspectRatio', 'xMidYMid meet')
             .attr('viewBox', '0 0 ' + svgWidth + ' ' + svgHeight)
 
