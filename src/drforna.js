@@ -45,6 +45,7 @@ export function cotranscriptionalTimeSeriesLayout() {
 
     let simulationTime = null;
     let sequenceLength = null;
+    let occupancyTreshold = 0.01;
 
     var treemapWidth = totalWidth - margin.left - margin.right;
     var treemapHeight = totalHeight * 0.85 - margin.top - margin.bottom;
@@ -52,12 +53,12 @@ export function cotranscriptionalTimeSeriesLayout() {
 
     var lineChartWidth = totalWidth - margin.left - margin.right;
     var lineChartHeight = totalHeight - treemapHeight - margin.top - margin.bottom;
+    
+    var lineX = d3.scale.log().interpolate(d3.interpolateRound).range([0, lineChartWidth]);
+    var lineY = d3.scale.linear().interpolate(d3.interpolateRound).range([lineChartHeight, 0]);
 
-    var lineX = d3.scale.log().range([0, lineChartWidth]);
-    var lineY = d3.scale.linear().range([lineChartHeight, 0]);
-
-    var rectX = d3.scale.log().range([0, lineChartWidth]);
-    var rectY = d3.scale.linear().range([lineChartHeight, 0]);
+    var rectX = d3.scale.log().interpolate(d3.interpolateRound).range([0, lineChartWidth]);
+    var rectY = d3.scale.linear().interpolate(d3.interpolateRound).range([lineChartHeight, 0]);
     var line;
 
     var color = d3.scale.category20();
@@ -222,6 +223,7 @@ export function cotranscriptionalTimeSeriesLayout() {
                 .classed('data-rectangle-group', true)
                 .attr('transform', (d) => { return `translate(${rectX(+d.key)},0)`; })
                 .each(function(d) {
+                    let rectHeight = Math.abs(rectY.range()[1] - rectY.range()[0]) / maxStructLength;
                     let rectWidth = Math.abs(rectX(+d.key) - rectX(+d.key + d.dt));
                     let rectPos = rectX(+d.key);
 
@@ -231,7 +233,7 @@ export function cotranscriptionalTimeSeriesLayout() {
                     .append('rect')
                     .classed('data-rectangle', true)
                     .attr('y', (d,i) => { return rectY(i); })
-                    .attr('height', Math.abs(rectY.range()[1] - rectY.range()[0]) / maxStructLength)
+                    .attr('height', rectHeight)
                     .attr('width', rectWidth)
                     .attr('fill', (d) => {return d;});
 
@@ -243,8 +245,9 @@ export function cotranscriptionalTimeSeriesLayout() {
                 .attr('x2', currentTime)
                 .attr('y2', lineChartHeight)
                 .classed(dstyle.timeIndicator, true);
-
-                var nestedData = d3.nest().key(function(d) { return +d.id; }).entries(data)
+                
+                var filteredData = data.filter((d) => { return d.conc > occupancyTreshold })
+                var nestedData = d3.nest().key(function(d) { return +d.id; }).entries(filteredData)
                 function createInitialRoot(nestedData) {
                     let root = {'name': 'graph',
                         'children': nestedData.map(function(d) { return {'name': d.key, 'struct':
@@ -435,8 +438,20 @@ export function cotranscriptionalTimeSeriesLayout() {
             function position() {
               this.style('left', function(d) {  return d.x + 'px'; })
                   .style('top', function(d) { return d.y + 'px'; })
-                  .style('width', function(d) { return Math.max(0, d.dx - 0) + 'px'; })
-                  .style('height', function(d) { return Math.max(0, d.dy - 0) + 'px'; })
+                  .style('width', function(d) { 
+                    if (d.dy == 0 || d.dx < 10) {
+                      return '0px'; 
+                    } else { 
+                      return Math.max(0, d.dx) + 'px'; 
+                    }
+                  })
+                  .style('height', function(d) { 
+                    if (d.dx == 0 || d.dy < 10) {
+                      return '0px'; 
+                    } else { 
+                      return Math.max(0, d.dy) + 'px'; 
+                    }
+                  })
             }
         });
 
@@ -570,6 +585,12 @@ export function cotranscriptionalTimeSeriesLayout() {
     chart.margin = function(_) {
         return margin;
     }
+    
+    chart.occupancyTreshold = function(_) {
+      if (!arguments.length) return occupancyTreshold;
+      else occupancyTreshold = _;
+      return chart;
+    }
 
     chart.simulationTime = function(_) {
         if (!arguments.length) return simulationTime;
@@ -584,6 +605,47 @@ export function cotranscriptionalTimeSeriesLayout() {
     }
 
     return chart;
+}
+
+export function currentTimepointTable(element) {
+  d3.select('#element')
+  var columns = ['struct', 'name', 'time', 'size', 'energy']
+  var table = d3.select(element).append('table')
+  var thead = table.append('thead')
+  var tbody = table.append('tbody')
+
+  // append the header row
+  thead.append('tr')
+    .selectAll('th')
+    .data(columns).enter()
+    .append('th')
+    .text(function (column) { return column; });
+  
+  function chart(selection) {    
+    selection.each(function(data) {
+      // create a row for each object in the data
+      var rows = tbody.selectAll('tr')
+        .data(data)
+      rows.enter()
+        .append('tr')
+        
+      rows.exit().remove()
+      
+      // create a cell in each row for each column
+      var cells = rows.selectAll('td')
+        .data(function (row) {
+          return columns.map(function (column) {
+            return {column: column, value: row[column]};
+          });
+        })
+        
+        cells.enter()
+        .append('td')
+        .text(function (d) { return d.value; });
+        cells.exit().remove()
+    })
+  }
+  return chart
 }
 
 export function cotranscriptionalSmallMultiplesLayout() {

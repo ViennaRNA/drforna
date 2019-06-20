@@ -16,16 +16,45 @@
       }
       .form {
         display: table;
-        margin: 5px;
-        padding: 5px;
+        padding: 10px;
         clear: both;
+      }
+      
+      .svg-container {
+        padding: 20px;
+      }
+      
+      .text-container {
+        font-family: monospace;
+        font-size: 8pt;
+        padding: 20px;
+        margin: 0px;
+        background-color: #eee;
+        display: none;
+        overflow: hidden;
+      }
+      
+      .collapseButton {
+        background-color: #eee;
+        color: #444;
+        cursor: pointer;
+        padding: 10px;
+        width: 100%;
+        border: none;
+        text-align: left;
+        outline: none;
+        font-size: 15px;
+      }
+      
+      .active, .collapsible:hover {
+        background-color: #ccc;
       }
     </style>
   </head>
   <body>
     <div style="max-width: 800px; margin: auto;">
       <div class="form">
-        Select:</br>
+        Select example:</br>
         <div class="forminput"><input type="radio" name="fileinput" value="short" checked>short</div>
         <div class="forminput"><input type="radio" name="fileinput" value="growing">growing</div>
         <div class="forminput"><input type="radio" name="fileinput" value="result">result</div>
@@ -35,10 +64,13 @@
         <div class="forminput"><input type="radio" name="fileinput" value="bistable">bistable</div>
       </div>
       <div class="form">
-        Or provide own file:</br>
+        Or provide a file:</br>
         <div class="forminput"><input type="file" id="files" name="files" title="Enter an input file"></div>
       </div>
       <div id="visContainer" class="svg-container" ></div>
+      <div id="tableContainer" class="table-container"></div>
+      <button class="collapseButton" id="collapseButton">Show Input</button>
+      <pre id="textContainer" class="text-container" ></pre>
     </div>
     
     <script src="https://unpkg.com/jquery@3.4.1"></script>
@@ -88,9 +120,13 @@
           let printTimePointCallback = function(dataAtTimePoint) {
             console.log(dataAtTimePoint);
           }
+          
+          var tableChart = drforna.currentTimepointTable('#tableContainer')
 
           showPlot(currentLayout
-                  .newTimePointCallback((d) => {})
+                  .newTimePointCallback((d) => d3.select('#tableContainer')
+                  .data([d])
+                  .call(tableChart))
                   .newTimeClickCallback((d) => printTimePointCallback(d)));
           
           
@@ -100,6 +136,20 @@
           console.log('loaded!')
       }
       
+      /* Collapsible Input field */
+      let coll = $("#collapseButton");
+      for (let i = 0; i < coll.length; i++) {
+        coll[i].addEventListener("click", function() {
+          this.classList.toggle("active");
+          var content = this.nextElementSibling;
+          if (content.style.display === "block") {
+            content.style.display = "none";
+          } else {
+            content.style.display = "block";
+          }
+        });
+      }
+      
       /* add event listener to the buttons */
       $('#files').on('change', function(evt) {
         $('input[type=radio][name=fileinput]:checked').attr('checked', false)
@@ -107,7 +157,10 @@
         let files = evt.target.files
         for (let i = 0, f; f = files[i]; i++) {
             let reader = new FileReader()
-            reader.onload = createNewPlot;
+            reader.onload = (val) => {
+              $('#textContainer').text(val);
+              createNewPlot(val);
+            }
             reader.readAsText(f);
         }
       })
@@ -119,6 +172,7 @@
           $.get('data/' + this.value, result => {
               let file = {target: {}}
               file.target.result = result;
+              $('#textContainer').text(result);
               createNewPlot(file);
           });
       });
