@@ -378,7 +378,7 @@ export function cotranscriptionalTimeSeriesLayout() {
                           });
                         }
                         if (i >= data.values.length || i == 0)
-                            return {'time': data.values[0].time, 'name': data.key, 'struct': data.values[0].struct, 'energy': data.values[0].energy, 'colors': formatColors(data.values[0].colors), 'size': 0};
+                            return {'time': data.values[0].time, 'name': data.key, 'struct': data.values[0].struct, 'energy': Number(data.values[0].energy), 'colors': formatColors(data.values[0].colors), 'size': 0};
 
                         var sc = d3.scale.linear()
                         .domain([data.values[i-1].time, data.values[i].time])
@@ -386,19 +386,20 @@ export function cotranscriptionalTimeSeriesLayout() {
 
                         var value = sc(y0);
 
-                        var retVal= {'time': data.values[i].time, 'name': data.key, 'struct': data.values[i].struct, 'energy': data.values[i].energy, 'colors': formatColors(data.values[i].colors), 'size': + value};
+                        var retVal= {'time': data.values[i].time, 'name': data.key, 'struct': data.values[i].struct, 'energy': Number(data.values[i].energy), 'colors': formatColors(data.values[i].colors), 'size': + value};
                         containers[divName(retVal)].transitionRNA(data.values[i].struct)
                         return retVal;
                     });
 
 
                     return values;
-
                 }
 
                 updateCurrentTime = function(xCoord) {
                     let values = valuesAtXPoint(xCoord);
-                    populatedValues = values.filter(d => { return d.size > 0; });
+                    populatedValues = values
+                    .filter(d => { return d.size > 0; })
+                    .sort((a, b) => { return (b.size - a.size); });
 
                     if (newTimePointCallback != null)
                         newTimePointCallback(populatedValues);
@@ -607,7 +608,7 @@ export function cotranscriptionalTimeSeriesLayout() {
     return chart;
 }
 
-export function currentTimepointTable(element) {  
+export function currentTimepointTable(element) {
   var columns = ['name', 'struct', 'size', 'energy'];
   var colnames = ['ID', 'Structure', 'Occupancy', 'Energy'];
   
@@ -625,6 +626,17 @@ export function currentTimepointTable(element) {
     .data(colnames).enter()
     .append('th')
     .text(function (column) { return column; });
+  
+  let drawStructure = function(data, i) {
+    let elem = d3.select(this)
+    elem.selectAll('span').remove()
+    for (let i = 0; i < data.value.length; i++) {
+      
+      elem.append('span')
+      .style('background-color', data.colors[i])
+      .text((d) => data.value[i])
+    }
+  }
 
   function chart(selection) {
     selection.each(function(data) {
@@ -641,15 +653,22 @@ export function currentTimepointTable(element) {
       var cells = tbody.selectAll('tr').selectAll('td')
         .data((row) => {
           return columns.map((column) => {
-            return { column: column, value: row[column] };
+            let rowData = { column: column, value: row[column] }
+            if (column == 'struct') {
+              rowData.colors = row['colors']
+            }
+            return rowData;
           });
         })
-
+        
         cells.enter()
         .append('td')
-        .attr('class', (d) => { return dstyle['table-' + d.column]; })
+        .attr('class', (d) => { return dstyle['table' + d.column]; })
         cells.exit().remove()
-        cells.text((d) => { if (!isNaN(d.value)) { return Math.round(d.value * 100) / 100; } else { return d.value; }});
+        cells.text((d) => { if (!isNaN(d.value)) { return Math.round(d.value * 100) / 100; }});
+        
+        cells.filter((d) => { return d.column == 'struct' })
+        .each(drawStructure)
     })
   }
   return chart
