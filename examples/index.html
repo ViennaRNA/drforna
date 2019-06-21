@@ -35,6 +35,10 @@
         max-height: 200px;
         overflow: scroll;
       }
+      
+      .table-container {
+        padding: 20px;
+      }
 
       .collapseButton {
         background-color: #eee;
@@ -50,11 +54,6 @@
 
       .active, .collapsible:hover {
         background-color: #ccc;
-      }
-
-      table {
-          width: 100%;
-          padding: 20px;
       }
     </style>
   </head>
@@ -128,7 +127,7 @@
             console.log(dataAtTimePoint);
           }
 
-          var tableChart = drforna.currentTimepointTable('#tableContainer', ['name', 'struct', 'time', 'size', 'energy'])
+          var tableChart = drforna.currentTimepointTable('#tableContainer')
 
           showPlot(currentLayout
                   .newTimePointCallback((d) => d3.select('#tableContainer')

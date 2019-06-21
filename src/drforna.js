@@ -607,41 +607,49 @@ export function cotranscriptionalTimeSeriesLayout() {
     return chart;
 }
 
-export function currentTimepointTable(element, columns) {
-  d3.select('#element')
-  var table = d3.select(element).append('table')
+export function currentTimepointTable(element) {  
+  var columns = ['name', 'struct', 'size', 'energy'];
+  var colnames = ['ID', 'Structure', 'Occupancy', 'Energy'];
+  
+  
+  d3.select(element).selectAll('table').remove()
+  var table = d3.select(element)
+              .append('table')
+              .classed(dstyle.timePointTable, true)
   var thead = table.append('thead')
   var tbody = table.append('tbody')
 
   // append the header row
   thead.append('tr')
     .selectAll('th')
-    .data(columns).enter()
+    .data(colnames).enter()
     .append('th')
     .text(function (column) { return column; });
 
   function chart(selection) {
     selection.each(function(data) {
-        console.log(data)
       // create a row for each object in the data
-      var rows = tbody.selectAll('tr')
-      .remove()
+      let rows = tbody.selectAll('tr')
       .data(data)
-      .enter()
+      
+      rows.enter()
       .append('tr')
+      rows.exit()
+      .remove()
 
       // create a cell in each row for each column
-      var cells = rows.selectAll('td')
-        .data(function (row) {
-          return columns.map(function (column) {
-            return {column: column, value: row[column]};
+      var cells = tbody.selectAll('tr').selectAll('td')
+        .data((row) => {
+          return columns.map((column) => {
+            return { column: column, value: row[column] };
           });
         })
 
         cells.enter()
         .append('td')
-        .text(function (d) { return d.value; });
+        .attr('class', (d) => { return dstyle['table-' + d.column]; })
         cells.exit().remove()
+        cells.text((d) => { if (!isNaN(d.value)) { return Math.round(d.value * 100) / 100; } else { return d.value; }});
     })
   }
   return chart
