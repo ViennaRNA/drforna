@@ -175,12 +175,13 @@
       $('input[type=radio][name=fileinput]').change(function() {
           $('#files').val('');
           console.log("loading: " + this.value)
-          $.get('data/' + this.value, result => {
+          $.get('data/' + this.value, (result) => {
               let file = {target: {}}
               file.target.result = result;
+              file.type = 'text/plain';
               $('#textContainer').text(result);
               createNewPlot(file);
-          });
+          }, "text");
       });
 
       $("input[type=radio][name=fileinput]:checked").trigger('change');
