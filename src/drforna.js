@@ -7,7 +7,7 @@ import dstyle from './drforna.css';
 var rnaUtilities = new RNAUtilities();
 
 function doStepwiseAnimation(elementName, structs, duration) {
-    var container = new FornaContainer(elementName, 
+    var container = new FornaContainer(elementName,
      {
        'animation': false,
        'editable': false,
@@ -45,6 +45,7 @@ export function cotranscriptionalTimeSeriesLayout() {
 
     let simulationTime = null;
     let sequenceLength = null;
+    let occupancyTreshold = 0.01;
 
     var treemapWidth = totalWidth - margin.left - margin.right;
     var treemapHeight = totalHeight * 0.85 - margin.top - margin.bottom;
@@ -53,11 +54,11 @@ export function cotranscriptionalTimeSeriesLayout() {
     var lineChartWidth = totalWidth - margin.left - margin.right;
     var lineChartHeight = totalHeight - treemapHeight - margin.top - margin.bottom;
 
-    var lineX = d3.scale.log().range([0, lineChartWidth]);
-    var lineY = d3.scale.linear().range([lineChartHeight, 0]);
+    var lineX = d3.scale.log().interpolate(d3.interpolateRound).range([0, lineChartWidth]);
+    var lineY = d3.scale.linear().interpolate(d3.interpolateRound).range([lineChartHeight, 0]);
 
-    var rectX = d3.scale.log().range([0, lineChartWidth]);
-    var rectY = d3.scale.linear().range([lineChartHeight, 0]);
+    var rectX = d3.scale.log().interpolate(d3.interpolateRound).range([0, lineChartWidth]);
+    var rectY = d3.scale.linear().interpolate(d3.interpolateRound).range([lineChartHeight, 0]);
     var line;
 
     var color = d3.scale.category20();
@@ -222,6 +223,7 @@ export function cotranscriptionalTimeSeriesLayout() {
                 .classed('data-rectangle-group', true)
                 .attr('transform', (d) => { return `translate(${rectX(+d.key)},0)`; })
                 .each(function(d) {
+                    let rectHeight = Math.abs(rectY.range()[1] - rectY.range()[0]) / maxStructLength;
                     let rectWidth = Math.abs(rectX(+d.key) - rectX(+d.key + d.dt));
                     let rectPos = rectX(+d.key);
 
@@ -231,7 +233,7 @@ export function cotranscriptionalTimeSeriesLayout() {
                     .append('rect')
                     .classed('data-rectangle', true)
                     .attr('y', (d,i) => { return rectY(i); })
-                    .attr('height', Math.abs(rectY.range()[1] - rectY.range()[0]) / maxStructLength)
+                    .attr('height', rectHeight)
                     .attr('width', rectWidth)
                     .attr('fill', (d) => {return d;});
 
@@ -244,7 +246,8 @@ export function cotranscriptionalTimeSeriesLayout() {
                 .attr('y2', lineChartHeight)
                 .classed(dstyle.timeIndicator, true);
 
-                var nestedData = d3.nest().key(function(d) { return +d.id; }).entries(data)
+                var filteredData = data.filter((d) => { return d.conc > occupancyTreshold })
+                var nestedData = d3.nest().key(function(d) { return +d.id; }).entries(filteredData)
                 function createInitialRoot(nestedData) {
                     let root = {'name': 'graph',
                         'children': nestedData.map(function(d) { return {'name': d.key, 'struct':
@@ -375,7 +378,7 @@ export function cotranscriptionalTimeSeriesLayout() {
                           });
                         }
                         if (i >= data.values.length || i == 0)
-                            return {'time': data.values[0].time, 'name': data.key, 'struct': data.values[0].struct, 'energy': data.values[0].energy, 'colors': formatColors(data.values[0].colors), 'size': 0};
+                            return {'time': data.values[0].time, 'name': data.key, 'struct': data.values[0].struct, 'energy': Number(data.values[0].energy), 'colors': formatColors(data.values[0].colors), 'size': 0};
 
                         var sc = d3.scale.linear()
                         .domain([data.values[i-1].time, data.values[i].time])
@@ -383,19 +386,20 @@ export function cotranscriptionalTimeSeriesLayout() {
 
                         var value = sc(y0);
 
-                        var retVal= {'time': data.values[i].time, 'name': data.key, 'struct': data.values[i].struct, 'energy': data.values[i].energy, 'colors': formatColors(data.values[i].colors), 'size': + value};
+                        var retVal= {'time': data.values[i].time, 'name': data.key, 'struct': data.values[i].struct, 'energy': Number(data.values[i].energy), 'colors': formatColors(data.values[i].colors), 'size': + value};
                         containers[divName(retVal)].transitionRNA(data.values[i].struct)
                         return retVal;
                     });
 
 
                     return values;
-
                 }
 
                 updateCurrentTime = function(xCoord) {
                     let values = valuesAtXPoint(xCoord);
-                    populatedValues = values.filter(d => { return d.size > 0; });
+                    populatedValues = values
+                    .filter(d => { return d.size > 0; })
+                    .sort((a, b) => { return (b.size - a.size); });
 
                     if (newTimePointCallback != null)
                         newTimePointCallback(populatedValues);
@@ -435,8 +439,20 @@ export function cotranscriptionalTimeSeriesLayout() {
             function position() {
               this.style('left', function(d) {  return d.x + 'px'; })
                   .style('top', function(d) { return d.y + 'px'; })
-                  .style('width', function(d) { return Math.max(0, d.dx - 0) + 'px'; })
-                  .style('height', function(d) { return Math.max(0, d.dy - 0) + 'px'; })
+                  .style('width', function(d) {
+                    if (d.dy == 0 || d.dx < 10) {
+                      return '0px';
+                    } else {
+                      return Math.max(0, d.dx) + 'px';
+                    }
+                  })
+                  .style('height', function(d) {
+                    if (d.dx == 0 || d.dy < 10) {
+                      return '0px';
+                    } else {
+                      return Math.max(0, d.dy) + 'px';
+                    }
+                  })
             }
         });
 
@@ -470,11 +486,11 @@ export function cotranscriptionalTimeSeriesLayout() {
             .style('width', (lineChartWidth + margin.left) + 'px')
             .style('height', (lineChartHeight + margin.bottom + margin.top) + 'px')
             .style('top', treemapHeight + 'px');
-        
+
         lineChartDiv.select('svg')
             .attr('width', lineChartWidth)
             .attr('height', lineChartHeight)
-        
+
         line
             .x(function(d) { return lineX(+d.time); })
             .y(function(d) { return lineY(+d.conc); });
@@ -571,6 +587,12 @@ export function cotranscriptionalTimeSeriesLayout() {
         return margin;
     }
 
+    chart.occupancyTreshold = function(_) {
+      if (!arguments.length) return occupancyTreshold;
+      else occupancyTreshold = _;
+      return chart;
+    }
+
     chart.simulationTime = function(_) {
         if (!arguments.length) return simulationTime;
         else simulationTime = _;
@@ -584,6 +606,72 @@ export function cotranscriptionalTimeSeriesLayout() {
     }
 
     return chart;
+}
+
+export function currentTimepointTable(element) {
+  var columns = ['name', 'struct', 'size', 'energy'];
+  var colnames = ['ID', 'Structure', 'Occupancy', 'Energy'];
+  
+  
+  d3.select(element).selectAll('table').remove()
+  var table = d3.select(element)
+              .append('table')
+              .classed(dstyle.timePointTable, true)
+  var thead = table.append('thead')
+  var tbody = table.append('tbody')
+
+  // append the header row
+  thead.append('tr')
+    .selectAll('th')
+    .data(colnames).enter()
+    .append('th')
+    .text(function (column) { return column; });
+  
+  let drawStructure = function(data, i) {
+    let elem = d3.select(this)
+    elem.selectAll('span').remove()
+    for (let i = 0; i < data.value.length; i++) {
+      
+      elem.append('span')
+      .style('background-color', data.colors[i])
+      .text((d) => data.value[i])
+    }
+  }
+
+  function chart(selection) {
+    selection.each(function(data) {
+      // create a row for each object in the data
+      let rows = tbody.selectAll('tr')
+      .data(data)
+      
+      rows.enter()
+      .append('tr')
+      rows.exit()
+      .remove()
+
+      // create a cell in each row for each column
+      var cells = tbody.selectAll('tr').selectAll('td')
+        .data((row) => {
+          return columns.map((column) => {
+            let rowData = { column: column, value: row[column] }
+            if (column == 'struct') {
+              rowData.colors = row['colors']
+            }
+            return rowData;
+          });
+        })
+        
+        cells.enter()
+        .append('td')
+        .attr('class', (d) => { return dstyle['table' + d.column]; })
+        cells.exit().remove()
+        cells.text((d) => { if (!isNaN(d.value)) { return Math.round(d.value * 100) / 100; }});
+        
+        cells.filter((d) => { return d.column == 'struct' })
+        .each(drawStructure)
+    })
+  }
+  return chart
 }
 
 export function cotranscriptionalSmallMultiplesLayout() {
@@ -657,7 +745,7 @@ export function cotranscriptionalSmallMultiplesLayout() {
             // create an svg as a child of the #rna_ss div
             // and then a g for each grid cell
             var svg = d3.select(this)
-            .append('svg')            
+            .append('svg')
             .attr('preserveAspectRatio', 'xMidYMid meet')
             .attr('viewBox', '0 0 ' + svgWidth + ' ' + svgHeight)
 

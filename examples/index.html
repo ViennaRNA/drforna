@@ -6,7 +6,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <!-- The above 3 meta tags *must* come first in the head; any other head content must come *after* these tags -->
     <title>DrForna Cotranscriptional Folding</title>
-    
+
     <link rel="stylesheet" href="drforna.css" />
     <style>
       .forminput {
@@ -16,16 +16,51 @@
       }
       .form {
         display: table;
-        margin: 5px;
-        padding: 5px;
+        padding: 10px;
         clear: both;
+      }
+
+      .svg-container {
+        padding: 20px;
+      }
+
+      .text-container {
+        font-family: monospace;
+        font-size: 8pt;
+        padding: 20px;
+        margin: 0px;
+        background-color: #eee;
+        display: none;
+        overflow: hidden;
+        max-height: 200px;
+        overflow: scroll;
+      }
+      
+      .table-container {
+        padding: 20px;
+      }
+
+      .collapseButton {
+        background-color: #eee;
+        color: #444;
+        cursor: pointer;
+        padding: 10px;
+        width: 100%;
+        border: none;
+        text-align: left;
+        outline: none;
+        font-size: 15px;
+      }
+
+      .active, .collapsible:hover {
+        background-color: #ccc;
       }
     </style>
   </head>
   <body>
     <div style="max-width: 800px; margin: auto;">
       <div class="form">
-        Select:</br>
+        Select example:</br>
         <div class="forminput"><input type="radio" name="fileinput" value="short" checked>short</div>
         <div class="forminput"><input type="radio" name="fileinput" value="growing">growing</div>
         <div class="forminput"><input type="radio" name="fileinput" value="result">result</div>
@@ -35,16 +70,19 @@
         <div class="forminput"><input type="radio" name="fileinput" value="bistable">bistable</div>
       </div>
       <div class="form">
-        Or provide own file:</br>
+        Or provide a file:</br>
         <div class="forminput"><input type="file" id="files" name="files" title="Enter an input file"></div>
       </div>
+      <button class="collapseButton" id="collapseButton">Show Input</button>
+      <pre id="textContainer" class="text-container" ></pre>
       <div id="visContainer" class="svg-container" ></div>
+      <div id="tableContainer" class="table-container"></div>
     </div>
-    
+
     <script src="https://unpkg.com/jquery@3.4.1"></script>
     <script src="https://unpkg.com/d3@3.5"></script>
     <script src="drforna.js"></script>
-    
+
     <script type='text/javascript'>
       function createNewPlot(file) {
           let data = d3.dsv(' ').parse(file.target.result);
@@ -59,7 +97,7 @@
 
           let showPlot = function(plotLayout) {
             //plotLayout.simulationTime(maxTime);
-            
+
             d3.select('#visContainer')
             .selectAll('div')
             .remove();
@@ -67,12 +105,12 @@
             var svg = d3.select('#visContainer')
             .data([data])
             .call(plotLayout);
-            
+
             plotLayout.updateCurrentTime(plotLayout.width() - plotLayout.margin().left
                                         - plotLayout.margin().right);
             currentLayout.updateDimensions();
           }
-          
+
           let setLayoutSize = function(layout) {
               let container = $('#visContainer')
               let svgW = container.width();
@@ -89,17 +127,35 @@
             console.log(dataAtTimePoint);
           }
 
+          var tableChart = drforna.currentTimepointTable('#tableContainer')
+
           showPlot(currentLayout
-                  .newTimePointCallback((d) => {})
+                  .newTimePointCallback((d) => d3.select('#tableContainer')
+                  .data([d])
+                  .call(tableChart))
                   .newTimeClickCallback((d) => printTimePointCallback(d)));
-          
-          
-          
+
+
+
           setLayoutSize()
           window.addEventListener('resize', setLayoutSize, false);
           console.log('loaded!')
       }
-      
+
+      /* Collapsible Input field */
+      let coll = $("#collapseButton");
+      for (let i = 0; i < coll.length; i++) {
+        coll[i].addEventListener("click", function() {
+          this.classList.toggle("active");
+          var content = this.nextElementSibling;
+          if (content.style.display === "block") {
+            content.style.display = "none";
+          } else {
+            content.style.display = "block";
+          }
+        });
+      }
+
       /* add event listener to the buttons */
       $('#files').on('change', function(evt) {
         $('input[type=radio][name=fileinput]:checked').attr('checked', false)
@@ -107,24 +163,28 @@
         let files = evt.target.files
         for (let i = 0, f; f = files[i]; i++) {
             let reader = new FileReader()
-            reader.onload = createNewPlot;
+            reader.onload = (val) => {
+              $('#textContainer').text(val);
+              createNewPlot(val);
+            }
             reader.readAsText(f);
         }
       })
       .on('click', function(){ this.value = null; });
-      
+
       $('input[type=radio][name=fileinput]').change(function() {
           $('#files').val('');
           console.log("loading: " + this.value)
           $.get('data/' + this.value, result => {
               let file = {target: {}}
               file.target.result = result;
+              $('#textContainer').text(result);
               createNewPlot(file);
           });
       });
-      
+
       $("input[type=radio][name=fileinput]:checked").trigger('change');
-      
+
     </script>
   </body>
 </html>

@@ -6,6 +6,10 @@ div {
   /*border: 1px solid red;*/
 }
 
+td {
+  /*border: 1px solid red;*/
+}
+
 .timeIndicator {
     stroke: black;
     stroke-width: 2px;
@@ -61,4 +65,29 @@ div {
   fill: none;
   stroke: steelblue;
   stroke-width: 2px;
+}
+
+.timePointTable {
+  text-align: center;
+  width: 100%;
+  border-collapse: collapse;
+}
+
+.timePointTable tr:nth-child(even) {
+  background-color: #f2f2f2
+}
+
+.timePointTable td {
+  padding: 5px;
+}
+
+.tablestruct {
+  font-family: monospace;
+  text-align: left;
+  padding-left: 5px;
+  width: 99%;
+}
+
+.tablename, .tablesize, .tableenergy {
+  white-space:nowrap
 }
