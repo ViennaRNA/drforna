@@ -63,7 +63,6 @@ export function cotranscriptionalTimeSeriesLayout() {
 
     var color = d3.scale.category20();
     var newTimePointCallback = null;
-    var newTimeClickCallback = null;
 
     var treemap, wholeDiv, treemapDiv;
     var lineChartDiv, svg, currentTime = 0;
@@ -122,8 +121,6 @@ export function cotranscriptionalTimeSeriesLayout() {
             function divName(d) {
                 return 'div' + d.name;
             }
-
-            var bisectTime = d3.bisector(function(d) { return d.time; }).left;
 
             function drawCotranscriptionalLine() {
                 let rainbowScale = (t) => { return d3.hcl(t * 360, 100, 55); };
@@ -263,7 +260,6 @@ export function cotranscriptionalTimeSeriesLayout() {
                 .attr('class', 'concProfile');
 
                 root = createInitialRoot(nestedData);
-                let populatedValues = [];
                 var containers = {};
 
                 var node = treemapDiv.datum(root).selectAll('.' + dstyle.treemapNode)
@@ -277,6 +273,7 @@ export function cotranscriptionalTimeSeriesLayout() {
                 .each(function(d) {
                     if (typeof d.struct != 'undefined') {
                         containers[divName(d)] = new FornaContainer('#' + divName(d), options);
+                        // Draw initial RNA
                         containers[divName(d)].transitionRNA(d.struct);
                         //containers[divName(d)].setOutlineColor(color(d.name));
 
@@ -302,8 +299,7 @@ export function cotranscriptionalTimeSeriesLayout() {
                 xAxisOverlayRect = svg.append('rect')
                 .attr('class', dstyle.overlay)
                 .on('mouseover', function() { })
-                .on('mousemove', mousemove)
-                .on('click', mouseclick);
+                .on('mousemove', mousemove);
 
                 wholeDiv
                 .on('mouseenter', function() {
@@ -364,59 +360,66 @@ export function cotranscriptionalTimeSeriesLayout() {
                     });
                 }
 
-                function valuesAtXPoint(xCoord) {
-                    // get the interpolated concentrations at a given coordinate
-                    var y0 = lineX.invert(xCoord);
+                let bisectTime = d3.bisector(function(d) { return d.time; }).left;
 
-                    let i = bisectTime(data, y0, 1);
-                    var values = nestedData.map(function(data) {
-                        var i = bisectTime(data.values, y0, 0)
+                function valuesAtTimePoint(time) {
+                    let values = nestedData.map(function(data) {
+                        let i = bisectTime(data.values, time, 0)
 
-                        var formatColors = function(colors) {
+                        let formatColors = function(colors) {
                           return colors.map(function(c) {
                             return c.rgb().toString();
                           });
                         }
                         if (i >= data.values.length || i == 0)
-                            return {'time': data.values[0].time, 'name': data.key, 'struct': data.values[0].struct, 'energy': Number(data.values[0].energy), 'colors': formatColors(data.values[0].colors), 'size': 0};
+                            return {'name': data.key, 'struct': data.values[0].struct, 'energy': Number(data.values[0].energy), 'colors': formatColors(data.values[0].colors), 'size': 0};
 
-                        var sc = d3.scale.linear()
+                        let sc = d3.scale.linear()
                         .domain([data.values[i-1].time, data.values[i].time])
                         .range([data.values[i-1].conc, data.values[i].conc])
 
-                        var value = sc(y0);
+                        let value = sc(time);
 
-                        var retVal= {'time': data.values[i].time, 'name': data.key, 'struct': data.values[i].struct, 'energy': Number(data.values[i].energy), 'colors': formatColors(data.values[i].colors), 'size': + value};
-                        containers[divName(retVal)].transitionRNA(data.values[i].struct)
+                        let retVal = {'name': data.key, 'struct': data.values[i].struct, 'energy': Number(data.values[i].energy), 'colors': formatColors(data.values[i].colors), 'size': + value};
+
+                        // TODO check if structure changed and only update if so
+                        if (true) {
+                            console.log(containers[divName(retVal)].toJSON())
+                            containers[divName(retVal)].transitionRNA(data.values[i].struct)
+                        }
+
                         return retVal;
                     });
-
 
                     return values;
                 }
 
                 updateCurrentTime = function(xCoord) {
-                    let values = valuesAtXPoint(xCoord);
-                    populatedValues = values
+                    // get the interpolated concentrations at a given coordinate
+                    let time = lineX.invert(xCoord);
+                    let values = valuesAtTimePoint(time);
+                    let populatedValues = values
                     .filter(d => { return d.size > 0; })
                     .sort((a, b) => { return (b.size - a.size); });
 
                     if (newTimePointCallback != null)
-                        newTimePointCallback(populatedValues);
+                        newTimePointCallback({
+                            'time': time,
+                            'values': populatedValues
+                        });
 
                     root = {'name': 'graph',
                         'children': values };
 
-                        updateTreemap(root);
+                    updateTreemap(root);
 
-                        currentTimeIndicatorLine.attr('x1', xCoord)
-                        .attr('x2', xCoord);
+                    currentTimeIndicatorLine.attr('x1', xCoord)
+                    .attr('x2', xCoord);
 
-                        if (runAnimation) {
-                            _xCoord += lineChartWidth / 100;
-                            //setTimeout(function() { updateCurrentTime(_xCoord); }, 300);
-                        }
-
+                    if (runAnimation) {
+                        _xCoord += lineChartWidth / 100;
+                        //setTimeout(function() { updateCurrentTime(_xCoord); }, 300);
+                    }
                 }
 
                 chart.updateCurrentTime = updateCurrentTime;
@@ -425,11 +428,6 @@ export function cotranscriptionalTimeSeriesLayout() {
                     _xCoord = (d3.mouse(this)[0]);
 
                     updateCurrentTime(_xCoord);
-                }
-
-                function mouseclick() {
-                    if (newTimeClickCallback != null)
-                        newTimeClickCallback(populatedValues);
                 }
             };
 
@@ -577,12 +575,6 @@ export function cotranscriptionalTimeSeriesLayout() {
         return chart;
     }
 
-    chart.newTimeClickCallback = function(_) {
-        if (!arguments.length) return options.newTimeClickCallback;
-        else newTimeClickCallback = _;
-        return chart;
-    }
-
     chart.margin = function(_) {
         return margin;
     }
@@ -611,8 +603,8 @@ export function cotranscriptionalTimeSeriesLayout() {
 export function currentTimepointTable(element) {
   var columns = ['name', 'struct', 'size', 'energy'];
   var colnames = ['ID', 'Structure', 'Occupancy', 'Energy'];
-  
-  
+
+
   d3.select(element).selectAll('table').remove()
   var table = d3.select(element)
               .append('table')
@@ -626,12 +618,12 @@ export function currentTimepointTable(element) {
     .data(colnames).enter()
     .append('th')
     .text(function (column) { return column; });
-  
+
   let drawStructure = function(data, i) {
     let elem = d3.select(this)
     elem.selectAll('span').remove()
     for (let i = 0; i < data.value.length; i++) {
-      
+
       elem.append('span')
       .style('background-color', data.colors[i])
       .text((d) => data.value[i])
@@ -642,8 +634,8 @@ export function currentTimepointTable(element) {
     selection.each(function(data) {
       // create a row for each object in the data
       let rows = tbody.selectAll('tr')
-      .data(data)
-      
+      .data(data.values)
+
       rows.enter()
       .append('tr')
       rows.exit()
@@ -660,13 +652,13 @@ export function currentTimepointTable(element) {
             return rowData;
           });
         })
-        
+
         cells.enter()
         .append('td')
         .attr('class', (d) => { return dstyle['table' + d.column]; })
         cells.exit().remove()
         cells.text((d) => { if (!isNaN(d.value)) { return Math.round(d.value * 100) / 100; }});
-        
+
         cells.filter((d) => { return d.column == 'struct' })
         .each(drawStructure)
     })
@@ -686,14 +678,14 @@ export function cotranscriptionalSmallMultiplesLayout() {
     function getOrCreateSequence(cotranscriptionalState) {
         // extract the sequence from a line of coTranscriptional output
         // and if it doesn't exist (which it shouldn't), just return
-        // a string of As
-        var letters;
+        // a string of Ns
+        let letters;
         if ('seq' in cotranscriptionalState)
             return cotranscriptionalState['seq']
         else {
             letters = '';
-            for (var i = 0; i < cotranscriptionalState['struct'].length; i++)
-                letters = letters + 'A';
+            for (let i = 0; i < cotranscriptionalState['struct'].length; i++)
+                letters = letters + 'N';
         }
 
         return letters;
@@ -716,7 +708,6 @@ export function cotranscriptionalSmallMultiplesLayout() {
                         };
                     })
                 }});
-
 
             // calculate the number of columns and the height of the SVG,
             // which is dependent on the on the number of data points

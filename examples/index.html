@@ -35,7 +35,7 @@
         max-height: 200px;
         overflow: scroll;
       }
-      
+
       .table-container {
         padding: 20px;
       }
@@ -132,8 +132,7 @@
           showPlot(currentLayout
                   .newTimePointCallback((d) => d3.select('#tableContainer')
                   .data([d])
-                  .call(tableChart))
-                  .newTimeClickCallback((d) => printTimePointCallback(d)));
+                  .call(tableChart)));
 
 
 
