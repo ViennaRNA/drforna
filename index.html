@@ -78,7 +78,9 @@
       </div>
       <button class="collapseButton" id="collapseButton">Show Input</button>
       <pre id="textContainer" class="text-container" ></pre>
-      <div id="visContainer" class="svg-container" ></div>
+      <div id="visContainer" class="svg-container" style="text-align: center;">
+          <span id="loading" style="font-size: 30px; font-weight: bold;">Loading...</span>
+      </div>
       <div id="tableContainer" class="table-container"></div>
     </div>
 
@@ -87,6 +89,16 @@
     <script src="drforna.js"></script>
 
     <script type='text/javascript'>
+      function clearPlotArea() {
+          d3.select('#visContainer')
+          .selectAll('div')
+          .remove();
+          d3.select('#tableContainer')
+          .selectAll('table')
+          .remove();
+          d3.select('#loading')
+          .style('display', 'inline');
+      }
       function createNewPlot(file) {
           let data = d3.dsv(' ').parse(file.target.result);
           let currentCTView = 'time-series'
@@ -100,14 +112,11 @@
 
           let showPlot = function(plotLayout) {
             //plotLayout.simulationTime(maxTime);
-
-            d3.select('#visContainer')
-            .selectAll('div')
-            .remove();
-
             var svg = d3.select('#visContainer')
             .data([data])
-            .call(plotLayout);
+            .call(plotLayout)
+            .select('#loading')
+            .style('display', 'none');
 
             plotLayout.updateCurrentTime(plotLayout.width() - plotLayout.margin().left
                                         - plotLayout.margin().right);
@@ -137,8 +146,6 @@
                   .data([d])
                   .call(tableChart)));
 
-
-
           setLayoutSize()
           window.addEventListener('resize', setLayoutSize, false);
           console.log('loaded!')
@@ -160,6 +167,7 @@
 
       /* add event listener to the buttons */
       $('#files').on('change', function(evt) {
+        clearPlotArea()
         $('input[type=radio][name=fileinput]:checked').attr('checked', false)
         console.log("loading: " + evt.target.files[0].name)
         let files = evt.target.files
@@ -175,6 +183,7 @@
       .on('click', function(){ this.value = null; });
 
       $('input[type=radio][name=fileinput]').change(function() {
+          clearPlotArea()
           $('#files').val('');
           console.log("loading: " + this.value)
           $.get('data/' + this.value, (result) => {
