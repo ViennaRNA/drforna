@@ -9,6 +9,9 @@
 
     <link rel="stylesheet" href="drforna.css" />
     <style>
+      body {
+        background: white;
+      }
       .forminput {
         float: left;
         margin-left: 20px;
@@ -35,7 +38,7 @@
         max-height: 200px;
         overflow: scroll;
       }
-      
+
       .table-container {
         padding: 20px;
       }
@@ -132,8 +135,7 @@
           showPlot(currentLayout
                   .newTimePointCallback((d) => d3.select('#tableContainer')
                   .data([d])
-                  .call(tableChart))
-                  .newTimeClickCallback((d) => printTimePointCallback(d)));
+                  .call(tableChart)));
 
 
 
