@@ -22,11 +22,6 @@
         padding: 10px;
         clear: both;
       }
-
-      .svg-container {
-        padding: 20px;
-      }
-
       .text-container {
         font-family: monospace;
         font-size: 8pt;
@@ -38,11 +33,6 @@
         max-height: 200px;
         overflow: scroll;
       }
-
-      .table-container {
-        padding: 20px;
-      }
-
       .collapseButton {
         background-color: #eee;
         color: #444;
@@ -54,9 +44,21 @@
         outline: none;
         font-size: 15px;
       }
-
       .active, .collapsible:hover {
         background-color: #ccc;
+      }
+      .fullScreenContainer, .drTrafoContainer {
+          background: #fff;
+          height: 100%;
+          width: 100%;
+      }
+      #visContainer, #tableContainer, #controlContainer {
+          padding: 20px;
+          background: #fff;
+      }
+      #loadingNotification {
+          font-weight: bold;
+          font-size: 30px;
       }
     </style>
   </head>
@@ -78,78 +80,23 @@
       </div>
       <button class="collapseButton" id="collapseButton">Show Input</button>
       <pre id="textContainer" class="text-container" ></pre>
-      <div id="visContainer" class="svg-container" style="text-align: center;">
-          <span id="loading" style="font-size: 30px; font-weight: bold;">Loading...</span>
+      <div id="fullScreenContainer">
+          <div id="controlContainer" style="text-align: right;">
+              <button id="toggleAnimation">Play/Pause</button>
+              <button id="downloadButton" title="Download plot as PNG">Download</button>
+              <button id="toggleFullScreen">Fullscreen</button>
+          </div>
+          <div id="drTrafoContainer"></div>
       </div>
-      <div id="tableContainer" class="table-container"></div>
     </div>
 
     <script src="https://unpkg.com/jquery@3.4.1"></script>
-    <script src="https://unpkg.com/d3@3.5"></script>
+    <script src="https://unpkg.com/dom-to-image@2.6.0"></script>
     <script src="drforna.js"></script>
 
     <script type='text/javascript'>
-      function clearPlotArea() {
-          d3.select('#visContainer')
-          .selectAll('div')
-          .remove();
-          d3.select('#tableContainer')
-          .selectAll('table')
-          .remove();
-          d3.select('#loading')
-          .style('display', 'inline');
-      }
-      function createNewPlot(file) {
-          let data = d3.dsv(' ').parse(file.target.result);
-          let currentCTView = 'time-series'
-          let width = 800;
-          let height = 600;
-
-          let currentLayout = drforna.cotranscriptionalTimeSeriesLayout();
-
-          // calculate the maximum time point in the simulation
-          let maxTime = Math.max(...data.slice(0,data.length-1).map(x => x.time))
-
-          let showPlot = function(plotLayout) {
-            //plotLayout.simulationTime(maxTime);
-            var svg = d3.select('#visContainer')
-            .data([data])
-            .call(plotLayout)
-            .select('#loading')
-            .style('display', 'none');
-
-            plotLayout.updateCurrentTime(plotLayout.width() - plotLayout.margin().left
-                                        - plotLayout.margin().right);
-            currentLayout.updateDimensions();
-          }
-
-          let setLayoutSize = function(layout) {
-              let container = $('#visContainer')
-              let svgW = container.width();
-              let svgH = container.height();
-              console.log(svgW, svgH)
-
-              currentLayout.width(svgW)
-              .height(svgH)
-
-              currentLayout.updateDimensions();
-          }
-
-          let printTimePointCallback = function(dataAtTimePoint) {
-            console.log(dataAtTimePoint);
-          }
-
-          var tableChart = drforna.currentTimepointTable('#tableContainer')
-
-          showPlot(currentLayout
-                  .newTimePointCallback((d) => d3.select('#tableContainer')
-                  .data([d])
-                  .call(tableChart)));
-
-          setLayoutSize()
-          window.addEventListener('resize', setLayoutSize, false);
-          console.log('loaded!')
-      }
+      var DrFornaContainer = null;
+      var containerName = "";
 
       /* Collapsible Input field */
       let coll = $("#collapseButton");
@@ -167,15 +114,16 @@
 
       /* add event listener to the buttons */
       $('#files').on('change', function(evt) {
-        clearPlotArea()
+        drforna.preparePlotArea('#drTrafoContainer')
         $('input[type=radio][name=fileinput]:checked').attr('checked', false)
-        console.log("loading: " + evt.target.files[0].name)
+        containerName = evt.target.files[0].name
+        console.log("loading: " + containerName)
         let files = evt.target.files
         for (let i = 0, f; f = files[i]; i++) {
             let reader = new FileReader()
             reader.onload = (val) => {
               $('#textContainer').text(val);
-              createNewPlot(val);
+              DrFornaContainer = drforna.drawDrFornaContainer('#drTrafoContainer', val.target.result)
             }
             reader.readAsText(f);
         }
@@ -183,20 +131,76 @@
       .on('click', function(){ this.value = null; });
 
       $('input[type=radio][name=fileinput]').change(function() {
-          clearPlotArea()
+          drforna.preparePlotArea('#drTrafoContainer')
           $('#files').val('');
-          console.log("loading: " + this.value)
+          containerName = this.value;
+          console.log("loading: " + containerName)
           $.get('data/' + this.value, (result) => {
-              let file = {target: {}}
-              file.target.result = result;
-              file.type = 'text/plain';
               $('#textContainer').text(result);
-              createNewPlot(file);
+              DrFornaContainer = drforna.drawDrFornaContainer('#drTrafoContainer', result);
           }, "text");
       });
 
       $("input[type=radio][name=fileinput]:checked").trigger('change');
 
+      $("#toggleAnimation").on('click', function() {
+          if (DrFornaContainer) {
+              DrFornaContainer.toggleAnimation();
+          }
+      })
+
+      $("#toggleFullScreen").on('click', function() {
+          toggleFullScreen(document.getElementById('fullScreenContainer'));
+      })
+
+      $("#downloadButton").on('click', function() {
+          downloadPng(document.getElementById('drTrafoContainer'));
+      })
+
+      function downloadPng(elem) {
+          console.log('Downloading... ', elem)
+          domtoimage.toPng(elem)
+          .then(function (dataUrl) {
+              let link = document.createElement('a');
+              link.download = containerName + '.png';
+              link.href = dataUrl;
+              link.click();
+          });
+      }
+
+      // thanks to https://developer.mozilla.org/en-US/docs/Web/Guide/API/DOM/Using_full_screen_mode
+      function toggleFullScreen(elem) {
+      if (!document.fullscreenElement &&    // alternative standard method
+        !document.mozFullScreenElement && !document.webkitFullscreenElement && !document.msFullscreenElement ) {  // current working methods
+            if (elem.requestFullscreen) {
+                elem.requestFullscreen();
+            } else if (elem.msRequestFullscreen) {
+                elem.msRequestFullscreen();
+            } else if (elem.mozRequestFullScreen) {
+                elem.mozRequestFullScreen();
+            } else if (elem.webkitRequestFullscreen) {
+                elem.webkitRequestFullscreen(Element.ALLOW_KEYBOARD_INPUT);
+            } else {
+                console.log("Fullscreen not working: ", elem)
+                return
+            }
+            DrFornaContainer.updateDimensions();
+        } else {
+            // exit fullScreen
+            if (document.exitFullscreen) {
+                document.exitFullscreen();
+            } else if (document.msExitFullscreen) {
+                document.msExitFullscreen();
+            } else if (document.mozCancelFullScreen) {
+                document.mozCancelFullScreen();
+            } else if (document.webkitExitFullscreen) {
+                document.webkitExitFullscreen();
+            } else {
+                console.log("Fullscreen not working: ", elem)
+                return
+            }
+        }
+    }
     </script>
   </body>
 </html>
