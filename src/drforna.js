@@ -1,5 +1,4 @@
 import d3 from 'd3';
-import domtoimage from 'dom-to-image';
 import {FornaContainer, RNAUtilities, rnaTreemap} from 'fornac';
 
 import 'fornac/src/fornac.css';
@@ -7,7 +6,7 @@ import dstyle from './drforna.css';
 
 var rnaUtilities = new RNAUtilities();
 
-export function preparePlotArea(elementName) {
+export function preparePlotArea(elementName, notificationContent = 'Loading...') {
     let container = d3.select(elementName)
 
     container
@@ -19,29 +18,15 @@ export function preparePlotArea(elementName) {
     .append('div')
     .attr('id', 'loadingNotification')
     .style('display', 'inline')
-    .style('font-size', '30px')
-    .style('font-weight', 'bold')
-    .text('Loading...')
+    .html(notificationContent)
     // treemap container
     container
     .append('div')
     .attr('id', 'visContainer')
-    .style('padding', '20px')
     // table container
     container
     .append('div')
     .attr('id', 'tableContainer')
-    .style('padding', '20px')
-}
-
-let downloadSVG = () => {
-    domtoimage.toJpeg(document.getElementById('my-node'), { quality: 0.95 })
-    .then(function (dataUrl) {
-        var link = document.createElement('a');
-        link.download = 'my-image-name.jpeg';
-        link.href = dataUrl;
-        link.click();
-    });
 }
 
 export function drawDrFornaContainer(elementName, drtrafoString) {
@@ -91,7 +76,6 @@ export function drawDrFornaContainer(elementName, drtrafoString) {
     setLayoutSize();
 
     window.addEventListener('resize', setLayoutSize, false);
-    console.log('loaded DrTrafo Container!')
     return currentLayout;
 }
 
@@ -447,6 +431,13 @@ export function cotranscriptionalTimeSeriesLayout() {
                 }
 
                 chart.updateCurrentTime = (xCoord = 0, animationDelay = 100) => {
+                    // stop condition for animations
+                    if (xCoord > lineChartWidth) {
+                        isAnimating = false;
+                        isPositionFrozen = false;
+                        xCoord = lineChartWidth;
+                    }
+
                     // get the interpolated concentrations at a given coordinate
                     currentTime = lineX.invert(xCoord);
                     let values = valuesAtTimePoint(currentTime);
@@ -476,16 +467,20 @@ export function cotranscriptionalTimeSeriesLayout() {
 
                     if (isAnimating) {
                        let newChoord = xCoord + (lineChartWidth / 100);
-                       if (newChoord > lineChartWidth) {
+
+                       if (animationDelay != 0) {
+                           // next frames
+                           setTimeout(() => {
+                               if (isAnimating) {
+                                   chart.updateCurrentTime(newChoord, animationDelay);
+                               }
+                           }, animationDelay);
+                       } else {
+                           // only show one next frame
                            isAnimating = false;
-                           isPositionFrozen = false;
-                           newChoord = lineChartWidth;
+                           chart.updateCurrentTime(newChoord, animationDelay);
                        }
 
-                       // next frame
-                       setTimeout(() => {
-                           chart.updateCurrentTime(newChoord, animationDelay);
-                       }, animationDelay);
                     }
                 }
 
@@ -530,10 +525,10 @@ export function cotranscriptionalTimeSeriesLayout() {
             }
         });
 
-        updateDimensions();
+        chart.updateDimensions();
     }
 
-    var updateDimensions = function() {
+    chart.updateDimensions = function() {
         treemapWidth = totalWidth - margin.left - margin.right;
         treemapHeight = totalHeight * 0.85 - margin.top - margin.bottom;
 
@@ -629,8 +624,6 @@ export function cotranscriptionalTimeSeriesLayout() {
         if (updateTreemap != null)
             updateTreemap(root)
     }
-
-    chart.updateDimensions = updateDimensions;
 
     chart.width = function(_) {
         if (!arguments.length) return totalWidth;
