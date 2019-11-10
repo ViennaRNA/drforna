@@ -1,4 +1,5 @@
 import d3 from 'd3';
+import domtoimage from 'dom-to-image';
 import {FornaContainer, RNAUtilities, rnaTreemap} from 'fornac';
 
 import 'fornac/src/fornac.css';
@@ -6,28 +7,92 @@ import dstyle from './drforna.css';
 
 var rnaUtilities = new RNAUtilities();
 
-function doStepwiseAnimation(elementName, structs, duration) {
-    var container = new FornaContainer(elementName,
-     {
-       'animation': false,
-       'editable': false,
-       'zoomable': false,
-       'labelInterval': 0,
-       'initialSize': null,
-       'transitionDuration': duration });
+export function preparePlotArea(elementName) {
+    let container = d3.select(elementName)
 
-       var funcs = []
+    container
+    .selectAll('div')
+    .remove()
+    // loading indicator
+    container
+    .style('text-align', 'center')
+    .append('div')
+    .attr('id', 'loadingNotification')
+    .style('display', 'inline')
+    .style('font-size', '30px')
+    .style('font-weight', 'bold')
+    .text('Loading...')
+    // treemap container
+    container
+    .append('div')
+    .attr('id', 'visContainer')
+    .style('padding', '20px')
+    // table container
+    container
+    .append('div')
+    .attr('id', 'tableContainer')
+    .style('padding', '20px')
+}
 
-       for (i = 0; i < structs.length; i++) {
-           if (funcs.length === 0)
-               (function(val) { funcs.push(function() { container.transitionRNA(structs[val]); container.setOutlineColor('#ffffff');
-               })} )(i);
-               else
-                   (function(val, prevFunc) { funcs.push(function() { container.transitionRNA(structs[val], prevFunc); container.setOutlineColor('#ffffff');
-                   })} )(i, funcs[funcs.length-1] );
-       }
+let downloadSVG = () => {
+    domtoimage.toJpeg(document.getElementById('my-node'), { quality: 0.95 })
+    .then(function (dataUrl) {
+        var link = document.createElement('a');
+        link.download = 'my-image-name.jpeg';
+        link.href = dataUrl;
+        link.click();
+    });
+}
 
-       funcs[funcs.length-1]();
+export function drawDrFornaContainer(elementName, drtrafoString) {
+
+    preparePlotArea(elementName)
+
+    let data = d3.dsv(' ').parse(drtrafoString);
+    let currentLayout = cotranscriptionalTimeSeriesLayout();
+
+    let showPlot = () => {
+
+      var svg = d3.select('#visContainer')
+      .data([data])
+      .call(currentLayout);
+
+      // remove loading indicator
+      d3.select(elementName)
+      .select('#loadingNotification')
+      .remove();
+
+      // set callback to update table
+      let tableChart = currentTimepointTable('#tableContainer')
+      currentLayout
+      .newTimePointCallback(
+          (d) => d3.select('#tableContainer')
+          .data([d])
+          .call(tableChart)
+      );
+      // update current time and dimension
+      currentLayout.updateDimensions();
+      currentLayout.updateCurrentTime();
+    }
+
+    let setLayoutSize = () => {
+        let container = $('#visContainer')
+        let svgW = container.width();
+        let svgH = container.height();
+        console.log(svgW, svgH)
+
+        currentLayout.width(svgW)
+        .height(svgH)
+
+        currentLayout.updateDimensions();
+    }
+
+    showPlot();
+    setLayoutSize();
+
+    window.addEventListener('resize', setLayoutSize, false);
+    console.log('loaded DrTrafo Container!')
+    return currentLayout;
 }
 
 export function cotranscriptionalTimeSeriesLayout() {
@@ -40,6 +105,8 @@ export function cotranscriptionalTimeSeriesLayout() {
     };
 
     var margin = {top: 0, right: 0, bottom: 40, left: 50};
+    var isAnimating = false;
+    var isPositionFrozen = false;
     var totalWidth = 700;
     var totalHeight = 400;
 
@@ -76,7 +143,6 @@ export function cotranscriptionalTimeSeriesLayout() {
 
     var updateTreemap = null;
     var root = null;
-    var updateCurrentTime = null;
 
     var dataRectangleGroups = null;
     let maxStructLength = 0;
@@ -153,9 +219,6 @@ export function cotranscriptionalTimeSeriesLayout() {
                 .scale(lineY)
                 .orient('left')
                 .ticks(0);
-
-                var _xCoord = 0;
-                var runAnimation = false;
 
                 gXAxis = svg.append('g')
                 .classed(dstyle.x, true)
@@ -299,16 +362,11 @@ export function cotranscriptionalTimeSeriesLayout() {
                 xAxisOverlayRect = svg.append('rect')
                 .attr('class', dstyle.overlay)
                 .on('mouseover', function() { })
-                .on('mousemove', mousemove);
-
-                wholeDiv
-                .on('mouseenter', function() {
-                    runAnimation = false;
-                })
-                .on('mouseleave', function() {
-                    runAnimation = true;
-
-                    updateCurrentTime(_xCoord);
+                .on('mousemove', mousemove)
+                .on('click', function() {
+                    if (!isAnimating) {
+                        isPositionFrozen = !isPositionFrozen;
+                    }
                 })
 
                  updateTreemap = function(root) {
@@ -382,29 +440,29 @@ export function cotranscriptionalTimeSeriesLayout() {
 
                         let retVal = {'name': data.key, 'struct': data.values[i].struct, 'energy': Number(data.values[i].energy), 'colors': formatColors(data.values[i].colors), 'size': + value};
 
-                        // TODO check if structure changed and only update if so
-                        if (true) {
-                            console.log(containers[divName(retVal)].toJSON())
-                            containers[divName(retVal)].transitionRNA(data.values[i].struct)
-                        }
-
                         return retVal;
                     });
 
                     return values;
                 }
 
-                updateCurrentTime = function(xCoord) {
+                chart.updateCurrentTime = (xCoord = 0, animationDelay = 100) => {
                     // get the interpolated concentrations at a given coordinate
-                    let time = lineX.invert(xCoord);
-                    let values = valuesAtTimePoint(time);
+                    currentTime = lineX.invert(xCoord);
+                    let values = valuesAtTimePoint(currentTime);
+
+                    values.forEach(function(v) {
+                        // update container structures
+                        containers[divName(v)].transitionRNA(v.struct)
+                    });
+
                     let populatedValues = values
                     .filter(d => { return d.size > 0; })
                     .sort((a, b) => { return (b.size - a.size); });
 
                     if (newTimePointCallback != null)
                         newTimePointCallback({
-                            'time': time,
+                            'time': currentTime,
                             'values': populatedValues
                         });
 
@@ -416,18 +474,36 @@ export function cotranscriptionalTimeSeriesLayout() {
                     currentTimeIndicatorLine.attr('x1', xCoord)
                     .attr('x2', xCoord);
 
-                    if (runAnimation) {
-                        _xCoord += lineChartWidth / 100;
-                        //setTimeout(function() { updateCurrentTime(_xCoord); }, 300);
+                    if (isAnimating) {
+                       let newChoord = xCoord + (lineChartWidth / 100);
+                       if (newChoord > lineChartWidth) {
+                           isAnimating = false;
+                           isPositionFrozen = false;
+                           newChoord = lineChartWidth;
+                       }
+
+                       // next frame
+                       setTimeout(() => {
+                           chart.updateCurrentTime(newChoord, animationDelay);
+                       }, animationDelay);
                     }
                 }
 
-                chart.updateCurrentTime = updateCurrentTime;
+                chart.toggleAnimation = (delay = 100, fromStart = false) => {
+                    isAnimating = !isAnimating;
+                    if (isAnimating) {
+                        let coord = +currentTimeIndicatorLine.attr('x1')
+                        if (fromStart) {
+                            coord = 0
+                        }
+                        chart.updateCurrentTime(coord, delay);
+                    }
+                }
 
                 function mousemove() {
-                    _xCoord = (d3.mouse(this)[0]);
-
-                    updateCurrentTime(_xCoord);
+                    if (!(isAnimating || isPositionFrozen)) {
+                        chart.updateCurrentTime(d3.mouse(this)[0]);
+                    }
                 }
             };
 
@@ -555,7 +631,6 @@ export function cotranscriptionalTimeSeriesLayout() {
     }
 
     chart.updateDimensions = updateDimensions;
-    //chart.updateCurrentTime = updateCurrentTime;
 
     chart.width = function(_) {
         if (!arguments.length) return totalWidth;
@@ -577,6 +652,10 @@ export function cotranscriptionalTimeSeriesLayout() {
 
     chart.margin = function(_) {
         return margin;
+    }
+
+    chart.isAnimating = function(_) {
+        return isAnimating;
     }
 
     chart.occupancyTreshold = function(_) {

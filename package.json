@@ -38,6 +38,7 @@
   },
   "dependencies": {
     "d3": "~3.5.13",
+    "dom-to-image": "^2.6.0",
     "fornac": "git://github.com/ViennaRNA/fornac.git#develop"
   }
 }
