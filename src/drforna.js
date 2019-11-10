@@ -63,11 +63,10 @@ export function drawDrFornaContainer(elementName, drtrafoString) {
     let setLayoutSize = () => {
         let container = d3.select('#visContainer').node();
         let svgW = +d3.select('#visContainer').style('width').slice(0, -2)
-        let svgH = +d3.select('#visContainer').style('height').slice(0, -2)
-        console.log(svgW, svgH)
+        console.log(svgW)
 
         currentLayout.width(svgW)
-        .height(svgH)
+        .height(500)
 
         currentLayout.updateDimensions();
     }
