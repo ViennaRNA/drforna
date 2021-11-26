@@ -1,0 +1,50 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Document</title>
+</head>
+<body style="background-color: rgb(251, 253, 243)">
+    <a href="about.html">about</a>
+    <h1 id="title" style="background-color: rgb(231, 248, 165)">DrForna</h1>
+    <h2 id="title"> Cotranscriptional folding visualisation</h2>
+    <ul id='result'>
+      
+        <div style="max-width: 1500px; margin: auto;">
+            <div class="form">
+              Select example:</br>
+              <div class="forminput"><input type="radio" name="fileinput" value="short">short</div>
+              <div class="forminput"><input type="radio" name="fileinput" value="SRP.drf">SRP</div>
+              <div class="forminput"><input type="radio" name="fileinput" value="bug">bug</div>              
+            </div>
+
+            <div class="form">
+              Or provide a file:</br>
+              <div class="fileinput"><input type="file" id="files" name="files" title="Enter an input file"></div>
+            </div>
+            <!-- <button class="collapseButton" id="collapseButton">Show Input file content</button> -->
+      <pre id="textContainer" class="text-container" ></pre>
+      <div id="fullScreenContainer">
+          <div id="controlContainer" style="text-align: right;">
+              <button id="toggleAnimation">Play/Pause</button>
+              <button id="downloadButton" title="Download plot as PNG">Download</button>
+              <button id="toggleFullScreen">Fullscreen</button>
+          </div>
+          <div id="drTrafoContainer" style="background-color: rgb(220, 228, 187); max-width: 1500px; margin: auto;" >
+            <div id="viscontainer" style='text-align: center;max-width: 1500px; margin: auto;'>See the results here</div></div>
+      </div>
+    </ul>
+    
+    <script language="JavaScript" src="bundle.js"></script>
+
+    <!-- <script src="https://unpkg.com/jquery@3.4.1"></script>
+    <script src="https://unpkg.com/dom-to-image@2.6.0"></script> 
+    <script src="./d3.js"></script> 
+    <script src="https://d3js.org/d3.v7.min.js"></script>
+    <script type="module" src="./drForna.js"> </script>--> 
+   
+    
+</body>
+</html>
