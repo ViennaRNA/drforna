@@ -1,4 +1,8 @@
 import * as d3 from "d3"
+import {FornaContainer, RNAUtilities, rnaTreemap} from 'fornac';
+
+var rnaUtilities = new RNAUtilities();
+
 const occupancyTreshold = 0.01
 
 // document.addEventListener("DOMContentLoaded", start());
@@ -20,7 +24,7 @@ function start() {
                 //console.log(reader)
                 reader.onload = (val) => {                                   
                    let a = d3.csvParse(val.target.result.replace(/ +/g, ","))                   
-                    ShowData(a)
+                   ShowData(a)
                 }            
                 reader.readAsText(f);
             }
@@ -31,9 +35,9 @@ function start() {
     document.querySelectorAll('.forminput').forEach((item) => {
         console.log('456');
         item.addEventListener('change', (event) => {
-            console.log(event)
+            //console.log(event)
             let fileName = item.lastElementChild.value
-            console.log("here", fileName)
+            //console.log("here", fileName)
             preparePlotArea(drTrafoContainer)
             let container = d3.select("#drTrafoContainer")
             container.select('#loadingNotification').remove()
@@ -59,7 +63,7 @@ let sequenceLength = null;
 
 
 function ShowData(data) {
-    console.log(data)
+    //console.log(data)
     let tableContainer = d3.select(`#tableContainer`)
     //const lineChartWidth=1450
     let visContainerWidth = d3.select('#visContainer').node().getBoundingClientRect().width
@@ -181,7 +185,6 @@ function ShowData(data) {
 
 
     drawCotranscriptionalLine()
-    //rnaU=new rnaUtilities()
     //console.log(rnaU)
     //calculateNucleotideColors(data)
 
@@ -193,11 +196,9 @@ function ShowData(data) {
 
         for (let t in data) {
             //console.log(data[t].time)
-            if (data[t].time <= mousetime) { realtime = data[t].time }//?? is there a way to only generate a new plot if the time has changed from the previous mouse position?
-            //maybe something like a band scale instead of a continuous scale....
+            if (data[t].time <= mousetime) { realtime = data[t].time }
         }
-        //console.log(realtime)
-        //console.log(nestedData)
+        
         if (prevtime != realtime) {
             prevtime = realtime
             PLOT(realtime)
@@ -278,6 +279,7 @@ function ShowData(data) {
             .attr('height', function (d) { return d.y1 - d.y0; })
             .style("stroke", "black")
             .style("fill", "#62b6a2");
+
         viscontainer.selectAll(".treemapsvg").selectAll("text")
             .data(root.leaves())
             .enter()
@@ -305,12 +307,36 @@ function ShowData(data) {
         //  .html(d => `<td>${d.id}</td><td>${d.time}</td><td>${d.struct}</td><td>${d.energy}</td>`)
         //structures.data(strToPlot).enter().append("tr")
 
+
+       
+
+
+
+
+
+
+
+
+
         return realtime
     }
     function drawCotranscriptionalLine() {
         let rainbowScale = (t) => { return d3.hcl(t * 360, 100, 55); };
     }
+    function RNAGraph( dotbracket = ''){
+        var self = this;
+        self.type = 'rna';
+        self.dotbracket = dotbracket;  
+        self.computePairtable = function() {
+            self.pairtable = rnaUtilities.dotbracketToPairtable(self.dotbracket);
+        };
+        self.computePairtable();
+
+
+
+    }
 }
+
 
 function preparePlotArea(elementName, notificationContent = 'Loading...') {
     let container = d3.select(elementName)
