@@ -42,7 +42,7 @@ let svg;
 let realtime;
 let prevtime=null
 let sequenceLength = null;
-
+let mouseactive=false;
 function ShowData(data) {
     preparePlotArea(drTrafoContainer); 
     let container = d3new.select("#drTrafoContainer");
@@ -55,6 +55,7 @@ function ShowData(data) {
     const onResize = () => {
         //retain position we are at and if animation was on an remake plots accordingly!
         playAnimation = false
+        
         tableContainer.selectAll("#timesvg").remove() //remove time scale
         //viscontainer.selectAll(".div").selectAll(".svg").remove() 
         viscontainer.selectAll("#treemapdiv").remove()//remove plots
@@ -104,14 +105,14 @@ function ShowData(data) {
     //Calculate the size of the linear and the log scale 
     //
     scale = d3new.scaleLinear()
-        .domain([mintime, maxtime])// + (maxtime-mintime)/100
+        .domain([mintime, maxtime])
         .range([20, lineChartWidth-20])
     scalel = d3new.scaleLinear()
-         .domain([minlintime, maxlintime])// + (maxtime-mintime)/100
-         .range([20, scale(maxlintime)])
+         .domain([minlintime, maxlintime])
+         .range([20, (lineChartWidth-20)*.75])
     logscale = d3new.scaleLog()
-          .domain([minlogtime, maxlogtime])// + (maxtime-mintime)/100
-          .range([scale(maxlintime), lineChartWidth-20])
+          .domain([minlogtime, maxlogtime])
+          .range([(lineChartWidth-20)*.75, lineChartWidth-20])
 
 
     const combinedScale = time => time < maxlintime
@@ -123,7 +124,7 @@ function ShowData(data) {
         .attr("width", lineChartWidth)
         .attr("height", 120)
         .attr("id", "timesvg");
-    let x_axis = d3new.axisBottom().scale(scale);
+    //let x_axis = d3new.axisBottom().scale(scale);
     let x_axislog = d3new.axisBottom()
          .scale(logscale);
     let x_axislin = d3new.axisBottom()
@@ -176,12 +177,13 @@ function ShowData(data) {
     }
     
     PLOT(prevtime)
-    showLine(scale(prevtime)) 
-    svg.append("line")
+    showLine(combinedScale(prevtime)) 
+
+    svg.append("line") //append black line to mark end of transcription
             .attr("class", "transcriplengthLine")
-            .attr("x1", scale(maxlintime))  
+            .attr("x1", combinedScale(maxlintime))  
             .attr("y1", 0)
-            .attr("x2", scale(maxlintime))  
+            .attr("x2", combinedScale(maxlintime))  
             .attr("y2", 120)
             .style("stroke-width", 0.5)
             .style("stroke","black")
@@ -199,7 +201,7 @@ function ShowData(data) {
                 }
             })
     })
-
+    
     const animationDelay = 1000;
     setInterval(() => {
         if (!playAnimation) {//console.log("aici ");\\ ruleaza o data pe secunda, nu e foarte frumos...
@@ -207,28 +209,25 @@ function ShowData(data) {
         }
         const element = nestedData[elementIndex];
         PLOT(element[0])
-        showLine(scale(element[0]))
+        showLine(combinedScale(element[0]))
         elementIndex += 1;
         if (elementIndex >= nestedData.length)
             elementIndex = 0;
     }, animationDelay);
-    
-    svg
-    // .on("mouseover", function (event, d) {
-    //     if (playAnimation) return;
-    //     const mousetime = scale.invert(d3new.pointer(event)[0]);        
-    //     for (let t in data) {
-    //         //console.log(data[t].time)
-    //         if (data[t].time <= mousetime) { realtime = data[t].time }
-    //     }        
-    //     if (prevtime != realtime) {
-    //         prevtime = realtime
-    //         PLOT(realtime)
-    //     }
-    // })
-    .on("mousemove", function (event, d) {
-        if (playAnimation) return;
-        const mousetime = scale.invert(d3new.pointer(event)[0]);
+
+    let mousetime=20
+    svg.on("click", function (event, d) {
+        if (playAnimation) {playAnimation=!playAnimation};
+        mouseactive=!mouseactive;
+     
+         
+        //scale invert for combined scale
+        (d3new.pointer(event)[0]<scalel(maxlintime))
+        ?mousetime = scalel.invert(d3new.pointer(event)[0]) 
+        :mousetime= logscale.invert(d3new.pointer(event)[0])
+        //console.log(mousetime-scale.invert(d3new.pointer(event)[0]) )
+       
+        
         if (d3new.pointer(event)[0] >= 20 && d3new.pointer(event)[0] <= lineChartWidth-20) {
             showLine(d3new.pointer(event)[0])
         }
@@ -242,6 +241,31 @@ function ShowData(data) {
             PLOT(realtime)
         }
     })
+    
+    svg.on("mousemove", function (event, d) {
+        if (playAnimation) return;
+        if (!mouseactive) return;
+        
+        //scale invert for combined scale
+        (d3new.pointer(event)[0]<=scalel(maxlintime))
+        ?mousetime = scalel.invert(d3new.pointer(event)[0]) 
+        :mousetime = logscale.invert(d3new.pointer(event)[0])
+       // console.log(mousetime- scale.invert(d3new.pointer(event)[0]) )
+
+        if (d3new.pointer(event)[0] >= 20 && d3new.pointer(event)[0] <= lineChartWidth-20) {
+            showLine(d3new.pointer(event)[0])
+        }
+        for (let t in data) {
+            if (data[t].time <= mousetime) { 
+                realtime = data[t].time 
+            }
+        }
+        if (prevtime != realtime) {
+            prevtime = realtime
+            PLOT(realtime)
+        }
+    })
+
     function showLine(coord, color="red") {
         svg.selectAll(".currenttimeLine").remove()
         svg.append("line")
@@ -298,7 +322,7 @@ function ShowData(data) {
             .selectAll(".svg").remove()
             .data(root.leaves())
             .enter()
-            .append("svg").attr("id",  function (d) { console.log(d);
+            .append("svg").attr("id",  function (d) { //console.log(d);
                 return "svg"+d.data.name})
             //.attr( 'display', 'inline')
             .style('position', 'absolute')
@@ -320,15 +344,12 @@ function ShowData(data) {
                         }
                     })
                 if ( str != '') {
-                    //plot=rnaPlot({'rnaLayout': 'naview'})
-                    //console.log(plot)
-                    //console.log(rectname);
                     containers[rectname] = new FornaContainer('#' + rectname, {zoomable:false});
                     // // Draw initial RNA
                    
                     containers[rectname].transitionRNA(str);//???
                     //console.log(containers)
-                    //containers[divName(d)].setOutlineColor(color(d.name));
+                    //containers["svg"+d].setOutlineColor(color(d.name));
 
                     //let colorStrings = d.colors.map(function(d, i) {
                     //    return `${i+1}:${d}`;
