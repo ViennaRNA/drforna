@@ -1,10 +1,38 @@
 import * as d3new from "d3"
 import {FornaContainer, RNAUtilities, rnaTreemap, rnaPlot} from 'fornac';
-//import { rnaPlot } from "fornac/src/rnaplot";
-//var rnaUtilities = new RNAUtilities();
+//import 'fornac/src/fornac.css';
+//import dstyle from './drforna.css';
+
+var rnaUtilities = new RNAUtilities();
+let containers = {};
+
 const occupancyTreshold = 0.01
+function preparePlotArea(elementName, notificationContent = 'Loading...') {
+    let container = d3new.select(elementName)
+    container.selectAll('div')
+        .remove()
+    // loading indicator
+    container.style('text-align', 'center')
+        .append('div')
+        .attr('id', 'loadingNotification')
+        .style('display', 'inline')
+        .html(notificationContent)
+
+    // treemap container
+    container
+        .append('div')
+        .attr('id', 'visContainer')
+        .attr("height", 500)
+        
+    // table container
+    container
+        .append('div')
+        .attr('id', 'tableContainer')
+        .html(" <p>and time table container-most populated structure</p>")
+}
 start();
 function start() {
+    
     //read from file
      document.querySelectorAll('.fileinput').forEach((item) => {
         item.addEventListener('change', (event) => {
@@ -12,7 +40,8 @@ function start() {
             for (let i = 0, f; f = files[i]; i++) {
                 let reader = new FileReader()
                 reader.onload = (val) => {                                   
-                   let a = d3new.csvParse(val.target.result.replace(/ +/g, ","))                   
+                   let a = d3new.csvParse(val.target.result.replace(/ +/g, ","))      
+                    containers = {};             
                    ShowData(a)
                 }            
                 reader.readAsText(f);
@@ -23,12 +52,10 @@ function start() {
     document.querySelectorAll('.forminput').forEach((item) => {
         item.addEventListener('change', (event) => {
             let fileName = item.lastElementChild.value
-            //preparePlotArea(drTrafoContainer)
-            //let container = d3new.select("#drTrafoContainer")
-            //container.select('#loadingNotification').remove()
             let a = []
             d3new.text(fileName).then(d => {
                 a = d3new.csvParse(d.replace(/ +/g, ","))
+                containers = {};
                 ShowData(Array.from(a))
             })
         })
@@ -44,14 +71,19 @@ let prevtime=null
 let sequenceLength = null;
 let mouseactive=false;
 function ShowData(data) {
+    containers = {};
     preparePlotArea(drTrafoContainer); 
     let container = d3new.select("#drTrafoContainer");
     container.select('#loadingNotification').remove(); //remove the loading notification 
+    
+    prevtime=null
     sequenceLength=data[data.length - 1].structure.length; //length of the transcribed sequence, used for seeing when the transcription ends
+    
     let visContainerWidth = d3new.select('#visContainer').node().getBoundingClientRect().width; //for resizing with window resize
     let lineChartWidth = visContainerWidth * .98; 
     let tableContainer = d3new.select(`#tableContainer`);
-
+    tableContainer.selectAll("svg").remove()
+    mouseactive=false
     const onResize = () => {
         //retain position we are at and if animation was on an remake plots accordingly!
         playAnimation = false
@@ -59,12 +91,14 @@ function ShowData(data) {
         tableContainer.selectAll("#timesvg").remove() //remove time scale
         //viscontainer.selectAll(".div").selectAll(".svg").remove() 
         viscontainer.selectAll("#treemapdiv").remove()//remove plots
-        ShowData(data);// redraw plots ?? update dimensions instead??
+        ShowData(data);// redraw plots
     }
+
     window.addEventListener("resize", debounce(onResize, 1000)); //when the window was resize, call the onResize function after 1000 ms
 
     let viscontainer = d3new.select('#visContainer')
     viscontainer.append('div').attr('id','treemapdiv').style('height', '500px')
+    
     
 
     let filteredData = data.filter((d) => { return d.occupancy > occupancyTreshold })//select structures with high enough occupancy
@@ -72,6 +106,7 @@ function ShowData(data) {
                     // assign equal ocupancies to all the structures and create treemaps with the plots 
                     //such that later I only resize the plots, not regenerate them for every time step
                     //to have less lag
+    //console.log(nestedID)
     let nestedData = Array.from(d3new.group(filteredData, d => d.time))//nest data by  time points to extract the structures to plot for every time step
     
     // havin the sequence length at the end, the end of transciption is identified as the first time step where the structures of that length occur
@@ -102,15 +137,15 @@ function ShowData(data) {
 
     tableContainer.selectAll("p").remove()
     tableContainer.selectAll("#timesvg").remove()
-    //Calculate the size of the linear and the log scale 
-    //
-    scale = d3new.scaleLinear()
-        .domain([mintime, maxtime])
-        .range([20, lineChartWidth-20])
+    
+   // scale = d3new.scaleLinear()
+    //    .domain([mintime, maxtime])
+    //    .range([20, lineChartWidth-20]) 
     scalel = d3new.scaleLinear()
          .domain([minlintime, maxlintime])
          .range([20, (lineChartWidth-20)*.75])
-    logscale = d3new.scaleLog()
+
+    logscale = d3new.scaleLog() //    LOG SCALE, treat 0 as exception still TO DO!!!!!
           .domain([minlogtime, maxlogtime])
           .range([(lineChartWidth-20)*.75, lineChartWidth-20])
 
@@ -129,7 +164,7 @@ function ShowData(data) {
          .scale(logscale);
     let x_axislin = d3new.axisBottom()
          .scale(scalel);
-
+    let rainbowScale = (t) => { return d3.hcl(360*t*t*t*t*t*t*t*t, 100, 55); };
     let nucleotideScale = d3new.scaleLinear()
         .range([80, 0]);
     if (sequenceLength == null)
@@ -138,7 +173,13 @@ function ShowData(data) {
         nucleotideScale.domain([0, sequenceLength]);
     var y_axis = d3new.axisLeft()
         .scale(nucleotideScale)
+
+
+     
+        calculateNucleotideColors(filteredData)  
+
     //Append group and insert axes
+
     svg.append("g").attr("width", lineChartWidth)
         .attr("height", 110)
         .attr("transform", "translate (20,10)")
@@ -150,10 +191,11 @@ function ShowData(data) {
     svg.append("g").attr("transform", "translate (0,90)").attr("height", 110).call(x_axislin);
     svg.append("g").attr("transform", "translate (0,90)").attr("height", 110).call(x_axislog).attr("color", "blue");
     
-    let join = viscontainer.selectAll("div").data([nestedData])
-    join.enter().append("div")
+    //let join = viscontainer.selectAll("div").data([nestedData])
+    //join.enter().append("div")
     //draw points on x axis for existing time points
     const timePoints = nestedData.map(d => +d[0]);
+    
     d3new.select("#timesvg").selectAll('.timePoint').remove();
     d3new.select("#timesvg").selectAll('.timePoint').data(timePoints)
         .enter()
@@ -166,7 +208,7 @@ function ShowData(data) {
                 .attr('stroke', 'black')
                 .attr('strokeWidth', 1);
 
-    let strToPlot
+    let strToPlot;
     nestedData.forEach(element => {
          if (element[0] == mintime) {
               strToPlot = element[1] 
@@ -181,9 +223,9 @@ function ShowData(data) {
 
     svg.append("line") //append black line to mark end of transcription
             .attr("class", "transcriplengthLine")
-            .attr("x1", combinedScale(maxlintime))  
+            .attr("x1", scalel(maxlintime))  
             .attr("y1", 0)
-            .attr("x2", combinedScale(maxlintime))  
+            .attr("x2", scalel(maxlintime))  
             .attr("y2", 120)
             .style("stroke-width", 0.5)
             .style("stroke","black")
@@ -202,7 +244,7 @@ function ShowData(data) {
             })
     })
     
-    const animationDelay = 1000;
+    const animationDelay = 400;
     setInterval(() => {
         if (!playAnimation) {//console.log("aici ");\\ ruleaza o data pe secunda, nu e foarte frumos...
                  return;
@@ -245,16 +287,17 @@ function ShowData(data) {
     svg.on("mousemove", function (event, d) {
         if (playAnimation) return;
         if (!mouseactive) return;
-        
+       
         //scale invert for combined scale
         (d3new.pointer(event)[0]<=scalel(maxlintime))
         ?mousetime = scalel.invert(d3new.pointer(event)[0]) 
         :mousetime = logscale.invert(d3new.pointer(event)[0])
        // console.log(mousetime- scale.invert(d3new.pointer(event)[0]) )
-
+        //console.log(mousetime)
         if (d3new.pointer(event)[0] >= 20 && d3new.pointer(event)[0] <= lineChartWidth-20) {
             showLine(d3new.pointer(event)[0])
         }
+
         for (let t in data) {
             if (data[t].time <= mousetime) { 
                 realtime = data[t].time 
@@ -262,7 +305,9 @@ function ShowData(data) {
         }
         if (prevtime != realtime) {
             prevtime = realtime
+            timer()
             PLOT(realtime)
+             timer("mouse")
         }
     })
 
@@ -278,11 +323,18 @@ function ShowData(data) {
             .style("stroke",color)
             .style("fill", "none");
     }
+    function formatColors (colors) {
+                return colors.map(function(c) {
+                  return c.rgb().toString();
+                })
+              }
 
-    function makeTreemapData(strToPlot) {
+    function makeTreemapData(data) {
         return [
-            { name: "parent", parent: null, value: 0 },
-            ...strToPlot.map(el => ({ name: el.id, parent: "parent", value: el.occupancy }))
+            { name: "parent", parent: null, value: 0, str:"", colors: "" },
+            ...data.map(el => (
+                { 
+                    name: el.id, parent: "parent", value: el.occupancy, str: el.structure, colors:formatColors(el.colors) }))
         ]
     }
 
@@ -292,8 +344,11 @@ function ShowData(data) {
                  strToPlot = element[1] 
                 } 
             })
+           
+       
            //generate treemap data
         const treemapData = makeTreemapData(strToPlot);
+       // console.log(treemapData)
         const svgWidth = lineChartWidth
         const svgHeight = 500
         var root = d3new.stratify()
@@ -306,21 +361,27 @@ function ShowData(data) {
             .padding(4)
             (root)
 
-
+            //  console.log(root.leaves())
         
-        const containers = {};
+        //const containers = {};
         viscontainer.select("#treemapdiv").remove()
-        viscontainer.append("div").attr("id", "treemapdiv")
-            .style('position', 'relative')
-            //.style('margin', '0px')
 
+        //what if I work with the join here 
+        //in both- update dimensions
+        //new, generate
+        //only in old, delete
+        
+
+
+        viscontainer.append("div").attr("id", "treemapdiv")
+ //let cells=viscontainer.select("#treemapdiv").
+            .style('position', 'relative')
             .style("width", `${svgWidth}px`)
             .style("height", `${svgHeight}px`)
-            //.style('position ', 'absolute')            
-            //.style("stroke", "black")
-            //.style("background-color", "#62b6a2")
             .selectAll(".svg").remove()
             .data(root.leaves())
+            //cells.exit().remove()
+           // cells//
             .enter()
             .append("svg").attr("id",  function (d) { //console.log(d);
                 return "svg"+d.data.name})
@@ -334,39 +395,29 @@ function ShowData(data) {
             .style("stroke", "black")
             .style("fill", "#62b6a2")
             .each(function (d) {
-                //console.log("d",d, strToPlot)
+               // console.log("d",d)
                 let str=''
-                let rectname=''; //console.log("here",strToPlot); 
-                    strToPlot.forEach(el=>{
-                        if (el.id==d.data.name){
-                            str=el.structure  
-                            rectname="svg"+d.data.name  
-                        }
-                    })
-                if ( str != '') {
-                    containers[rectname] = new FornaContainer('#' + rectname, {zoomable:false});
-                    // // Draw initial RNA
-                   
-                    containers[rectname].transitionRNA(str);//???
-                    //console.log(containers)
-                    //containers["svg"+d].setOutlineColor(color(d.name));
+                let rectname="svg"+d.data.name
+                if ( d.data.str != '') {
+                    //timer() 
+                    containers[rectname] = new FornaContainer('#' + rectname, 
+                    {zoomable:false, editable:false,animation:false, transitionDuration:0, });//labelInterval:0
+                   //timer("1")
+                    containers[rectname].transitionRNA(d.data.str);  
+                   //timer(2)
+                   // console.log(containers)   
+                   let colorStrings = d.data.colors.map(function(d, i) {
+                       //console.log(d)
+                    return `${i+1}:${d}`;
+                });
 
-                    //let colorStrings = d.colors.map(function(d, i) {
-                    //    return `${i+1}:${d}`;
-                    //}
-                   // );
+                let colorString = colorStrings.join(' ');
 
-                   // let colorString = colorStrings.join(' ');
-
-                   // containers[rectname].addCustomColorsText(colorString);
-                }
+                containers[rectname].addCustomColorsText(colorString);              
+                
+            }
                 });
             
-
-
-
-
-
         viscontainer.selectAll("#treemapdiv").selectAll("text")
             .data(root.leaves())
             .enter()
@@ -374,15 +425,12 @@ function ShowData(data) {
             .attr("x", function (d) { return d.x0 + 1 })    //  to adjust position (to the right)
             .attr("y", function (d) { return d.y0 + 8 })    //  to adjust position (lower)
             .text(function (d) {
-                    let str=""; //console.log("here",strToPlot); 
+                    let str=""; 
                     strToPlot.forEach(el=>{
                         if (el.id==d.data.name){
                             str=el.structure    
                         }
                     })
-                        //console.log(str)
-                        //let cont=new FornaContainer("#"+d).transitionRNA(str)
-                        //console.log(cont)
                     return d.data.name+"  "+str
                     })
             .attr("font-size", "10px")
@@ -399,70 +447,72 @@ function ShowData(data) {
         th.append("td").text("Ocupancy")
         th.append("td").text("Structure")
         th.append("td").text("Energy")
-//TODO monospace for structures
+
         structures.selectAll(".tableData").data(strToPlot).enter()
             .append("tr").attr("class", "tableData")
-            .selectAll("td").data(d => [d.id, d.time, d.occupancy, d.structure, d.energy]).enter()
+            .selectAll("td").data(d => [d.id, d.time, Math.round(d.occupancy*1000)/1000, d.structure, d.energy]).enter()
             .append("td").text(dd => dd);
-            //WHERE TO PUT MONOSPACE
+            
     return realtime
     }
-    function drawCotranscriptionalLine() {
-        let rainbowScale = (t) => { return d3new.hcl(t * 360, 100, 55); };
-        //console.log(rainbowScale)
-        //calculateNucleotideColors(data);
-        //calculateColorPerTimePoint(nestedData);
+    function calculateColorPerTimePoint(nestedData) {
+        nestedData.forEach((d) => {
+            d.values.sort((a,b) => { return (+b.occupancy) - (+a.occupancy); });
+        });
     }
-    // function RNAGraph( dotbracket = ''){
-    //     var self = this;
-    //     self.type = 'rna';
-    //     self.dotbracket = dotbracket;  
-    //     self.computePairtable = function() {
-    //         self.pairtable = rnaUtilities.dotbracketToPairtable(self.dotbracket);
-    //     };
-    //     self.computePairtable();
+
+    function calculateNucleotideColors(data) {
+        data.forEach(function(d, i) {
+            // determine the colors of each nucleotide according to the position
+            // of the stem that they're in
+            // each 'd' is a line in the dr transfomer output
+            d.time = +d.time;
+            d.occupancy = +d.occupancy;
+
+            // get a pairtable and a list of the secondary structure elements
+            let pt = rnaUtilities.dotbracketToPairtable(d.structure);
+            //console.log(pt)
+            let elements = rnaUtilities.ptToElements(pt, 0, 1, pt[0], []);
+
+            // store the colors of each nucleotide
+            let colors = Array(pt[0]).fill(d3.hsl("white"));
+            //console.log(elements)
+        
+
+            for (let i = 0; i < elements.length; i++) {
+                if (elements[i][0] != 's')
+                    continue;     //we're not interested in anything but stems
+
+                // for each nucleotide in the stem
+                // assign it the stem's average nucleotide number
+                let averageBpNum = elements[i][2].reduce(
+                    (a,b) => { return a+b }, 0) / elements[i][2].length;
+                   
+                // convert average nucleotide numbers to colors
+                elements[i][2].map((d) => {
+                    let nucleotideNormPosition = nucleotideScale(+averageBpNum);
+                    colors[d-1] = rainbowScale(nucleotideNormPosition);
+                    //console.log(elements[i])
+                    //console.log(i, averageBpNum, nucleotideNormPosition,  colors[d-1])
+                });
 
 
-
-   // }
+                // each structure gets its own set of structures
+            }
+            d.colors = colors;
+            //console.log(d)
+        });
+    }
+    
 }
 
 
-function preparePlotArea(elementName, notificationContent = 'Loading...') {
-    let container = d3new.select(elementName)
-    container.selectAll('div')
-        .remove()
-    // container.selectAll('p')
-    //     .remove()
-    // loading indicator
-    container.style('text-align', 'center')
-        .append('div')
-        .attr('id', 'loadingNotification')
-        .style('display', 'inline')
-        .html(notificationContent)
-    // treemap container
-    container
-        .append('div')
-        .attr('id', 'visContainer')
-        .attr("height", 500)
-        //.attr("width", )
-    //.html("treemap-visual container")
-    // table container
-    container
-        .append('div')
-        .attr('id', 'tableContainer')
-        .html(" <p>and time table container-most populated structure</p>")
+
+
+function timer(lap){ 
+    if(lap) console.log(`${lap} in: ${(performance.now()-timer.prev).toFixed(3)}ms`); 
+    timer.prev = performance.now();
 }
-
-
-
-
-
-
-
-
-
-
 function debounce(func, time){
     var time = time || 100; // 100 by default if no param
     var timer;
