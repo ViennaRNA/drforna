@@ -68,6 +68,7 @@ let scalel;
 let svg;
 let realtime;
 let prevtime=null
+let strtoPlotprev=null;
 let sequenceLength = null;
 let mouseactive=false;
 function ShowData(data) {
@@ -77,6 +78,7 @@ function ShowData(data) {
     container.select('#loadingNotification').remove(); //remove the loading notification 
     
     prevtime=null
+    strtoPlotprev=null
     sequenceLength=data[data.length - 1].structure.length; //length of the transcribed sequence, used for seeing when the transcription ends
     
     let visContainerWidth = d3new.select('#visContainer').node().getBoundingClientRect().width; //for resizing with window resize
@@ -233,6 +235,7 @@ function ShowData(data) {
     
 
     //toggle animation state on button click
+    let delayPLOT = undefined;
     let playAnimation = false;
     let play = d3new.select("#toggleAnimation");
     let elementIndex = 0;
@@ -284,18 +287,19 @@ function ShowData(data) {
         }
     })
     
-    svg.on("mousemove", function (event, d) {
+    svg.on("mousemove", (event) => {
         if (playAnimation) return;
         if (!mouseactive) return;
+        let x = d3new.pointer(event, event.target)[0];
        
         //scale invert for combined scale
-        (d3new.pointer(event)[0]<=scalel(maxlintime))
-        ?mousetime = scalel.invert(d3new.pointer(event)[0]) 
-        :mousetime = logscale.invert(d3new.pointer(event)[0])
-       // console.log(mousetime- scale.invert(d3new.pointer(event)[0]) )
+        (x <= scalel(maxlintime))
+              ? mousetime = scalel.invert(x) 
+              : mousetime = logscale.invert(x)
+       // console.log(mousetime- scale.invert(x) )
         //console.log(mousetime)
-        if (d3new.pointer(event)[0] >= 20 && d3new.pointer(event)[0] <= lineChartWidth-20) {
-            showLine(d3new.pointer(event)[0])
+        if (x >= 20 && x <= lineChartWidth-20) {
+            showLine(x)
         }
 
         for (let t in data) {
@@ -305,9 +309,12 @@ function ShowData(data) {
         }
         if (prevtime != realtime) {
             prevtime = realtime
-            timer()
-            PLOT(realtime)
-             timer("mouse")
+            
+            // timer()
+            if (delayPLOT) clearTimeout(delayPLOT);
+            delayPLOT = setTimeout(PLOT, 20, realtime);
+            // PLOT(realtime)
+            // timer("mouse")
         }
     })
 
@@ -338,13 +345,16 @@ function ShowData(data) {
         ]
     }
 
-    function PLOT(realtime) {        
+    function PLOT(realtime) {       
+         
         nestedData.forEach(element => { 
             if (element[0] == realtime) {
                  strToPlot = element[1] 
                 } 
             })
-           
+        
+        if (strtoPlotprev!=strToPlot) {
+           console.log(strToPlot)
        
            //generate treemap data
         const treemapData = makeTreemapData(strToPlot);
@@ -373,17 +383,17 @@ function ShowData(data) {
         
 
 
-        viscontainer.append("div").attr("id", "treemapdiv")
+        viscontainer.append("div").attr("id", "treemapdiv") 
  //let cells=viscontainer.select("#treemapdiv").
             .style('position', 'relative')
             .style("width", `${svgWidth}px`)
             .style("height", `${svgHeight}px`)
-            .selectAll(".svg").remove()
+            .selectAll(".svg").remove() // leave out
             .data(root.leaves())
-            //cells.exit().remove()
+            //cells.exit().remove() update size to 0
            // cells//
             .enter()
-            .append("svg").attr("id",  function (d) { //console.log(d);
+            .append("svg").attr("id",  function (d) { //console.log(d); // updare size 
                 return "svg"+d.data.name})
             //.attr( 'display', 'inline')
             .style('position', 'absolute')
@@ -417,7 +427,7 @@ function ShowData(data) {
                 
             }
                 });
-            
+        
         viscontainer.selectAll("#treemapdiv").selectAll("text")
             .data(root.leaves())
             .enter()
@@ -452,7 +462,8 @@ function ShowData(data) {
             .append("tr").attr("class", "tableData")
             .selectAll("td").data(d => [d.id, d.time, Math.round(d.occupancy*1000)/1000, d.structure, d.energy]).enter()
             .append("td").text(dd => dd);
-            
+    } 
+    else {strtoPlotprev=strToPlot}     
     return realtime
     }
     function calculateColorPerTimePoint(nestedData) {
@@ -503,8 +514,9 @@ function ShowData(data) {
             //console.log(d)
         });
     }
-    
-}
+} 
+
+
 
 
 
@@ -513,11 +525,12 @@ function timer(lap){
     if(lap) console.log(`${lap} in: ${(performance.now()-timer.prev).toFixed(3)}ms`); 
     timer.prev = performance.now();
 }
+
 function debounce(func, time){
     var time = time || 100; // 100 by default if no param
-    var timer;
+    var _timer;
     return function(event){
-        if(timer) clearTimeout(timer);
-        timer = setTimeout(func, time, event);
+        if (_timer) clearTimeout(_timer);
+        _timer = setTimeout(func, time, event);
     };
 }
