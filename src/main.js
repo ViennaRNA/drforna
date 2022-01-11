@@ -40,8 +40,10 @@ function start() {
             for (let i = 0, f; f = files[i]; i++) {
                 let reader = new FileReader()
                 reader.onload = (val) => {                                   
-                   let a = d3new.csvParse(val.target.result.replace(/ +/g, ","))      
-                    containers = {};             
+                   let a=[]
+                   a = d3new.csvParse(val.target.result.replace(/ +/g, ","))      
+                    containers = {}; 
+
                    ShowData(a)
                 }            
                 reader.readAsText(f);
@@ -56,6 +58,9 @@ function start() {
             d3new.text(fileName).then(d => {
                 a = d3new.csvParse(d.replace(/ +/g, ","))
                 containers = {};
+                let container = d3new.select("#visContainer")
+                container.remove()
+                
                 ShowData(Array.from(a))
             })
         })
