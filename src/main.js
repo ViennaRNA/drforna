@@ -1,4 +1,5 @@
 import * as d3new from "d3"
+import * as domtoimage from "dom-to-image"
 import {FornaContainer, RNAUtilities, rnaTreemap, rnaPlot} from 'fornac';
 //import 'fornac/src/fornac.css';
 //import dstyle from './drforna.css';
@@ -32,11 +33,22 @@ function preparePlotArea(elementName, notificationContent = 'Loading...') {
 }
 start();
 function start() {
+    let filename
+       
     
-    //read from file
+            //read from file
      document.querySelectorAll('.fileinput').forEach((item) => {
         item.addEventListener('change', (event) => {
+            let rb=document.querySelectorAll('input[type=radio][name=fileinput]:checked')
+            //console.log(rb)
+            if (rb.length!=0)
+                {rb[0].checked=false}
+        
+       
            let files = event.target.files
+           filename=files[0].name
+           console.log(files)
+           
             for (let i = 0, f; f = files[i]; i++) {
                 let reader = new FileReader()
                 reader.onload = (val) => {                                   
@@ -53,7 +65,9 @@ function start() {
     //read selected example 
     document.querySelectorAll('.forminput').forEach((item) => {
         item.addEventListener('change', (event) => {
+            document.querySelectorAll('.fileinput').forEach((item)=>{item.lastElementChild.value=""})
             let fileName = item.lastElementChild.value
+           
             let a = []
             d3new.text(fileName).then(d => {
                 a = d3new.csvParse(d.replace(/ +/g, ","))
@@ -65,6 +79,26 @@ function start() {
             })
         })
     })
+    d3new.select("#downloadButton").on('click', function() {
+        //console.log("here")
+        downloadPng(document.getElementById('drTrafoContainer'));
+    })
+    
+    function downloadPng(elem) {
+        //console.log('Downloading... ', elem)
+        domtoimage.toPng(elem)
+        .then(function (dataUrl) {
+            let link = document.createElement('a');
+            let today=new Date()
+            let date = today.getFullYear()+'_'+(today.getMonth()+1)+'_'+today.getDate();
+            let time = today.getHours() + "_" + today.getMinutes() + "_" + today.getSeconds();
+            
+            link.download = filename+"_"+date+"_"+time+'.png';
+            alert("File "+link.download+" was downloaded")
+            link.href = dataUrl;
+            link.click();
+        });
+    }
 }
 
 let scale;
@@ -119,7 +153,11 @@ function ShowData(data) {
     // havin the sequence length at the end, the end of transciption is identified as the first time step where the structures of that length occur
     let trascriptionSteps=[] 
     let AfterTrascription=[]
+    let maxNoStr=0
     nestedData.forEach(el=>{
+        if (el[1].length>maxNoStr){
+        maxNoStr=el[1].length}
+        //console.log(maxNoStr)
         if (el[1][0].structure.length<sequenceLength){
                 trascriptionSteps.push(el) //retain time as transcription step 
                                         //if the first structure in the list of structures for that time point is shorter than the end structure
@@ -150,11 +188,11 @@ function ShowData(data) {
     //    .range([20, lineChartWidth-20]) 
     scalel = d3new.scaleLinear()
          .domain([minlintime, maxlintime])
-         .range([20, (lineChartWidth-20)*.75])
+         .range([30, (lineChartWidth-30)*.75])
 
     logscale = d3new.scaleLog() //    LOG SCALE, treat 0 as exception still TO DO!!!!!
           .domain([minlogtime, maxlogtime])
-          .range([(lineChartWidth-20)*.75, lineChartWidth-20])
+          .range([(lineChartWidth-30)*.75, lineChartWidth-30])
 
 
     const combinedScale = time => time < maxlintime
@@ -172,6 +210,7 @@ function ShowData(data) {
     let x_axislin = d3new.axisBottom()
          .scale(scalel);
     let rainbowScale = (t) => { return d3.hcl(360*t*t*t*t*t*t*t*t, 100, 55); };
+
     let nucleotideScale = d3new.scaleLinear()
         .range([80, 0]);
     if (sequenceLength == null)
@@ -182,14 +221,58 @@ function ShowData(data) {
         .scale(nucleotideScale)
 
 
-     
-        calculateNucleotideColors(filteredData)  
+
+        calculateNucleotideColors(filteredData) 
+
+        
+        let mostoccupiedpertime=[]
+            nestedData.forEach(el=>{  
+                //console.log(Array.from(el))
+                let best=el[1][0]
+                //console.log(best)
+                let all=el[1]
+                all.forEach(e=>{ //console.log(best.occupancy, "   " ,e.occupancy)
+                    if (e.occupancy>=best.occupancy){best=e}})
+                mostoccupiedpertime.push([el[0], best])
+                })
+
+        
+               // mostoccupiedpertime=Array.from(mostoccupiedpertime)
+        //SELECT NESTED DATA CU MOST OCCUPIED STRUCTURE
+        //TRANSLATE PANA LA TIME PE X-SCALE
+        //SI 80-SCALE(NT) PE Y
+        //WIDTH PANA LA NEXT TIME POINT
+        //HEIGHT CONSTANT
+
+        
+        
+        mostoccupiedpertime.forEach((el,i)=>{//console.log(el[1], i, mostoccupiedpertime[i+1][0], combinedScale(mostoccupiedpertime[i+1][0]))
+            let end=0
+            if (i== mostoccupiedpertime.length-1){end=lineChartWidth-30}
+            else{end=combinedScale(mostoccupiedpertime[i+1][0])}
+            console.log(i, " ", end)
+            svg.selectAll(".rectculoare"+i)
+                 .data(el[1].colors)
+                 .enter()
+                 .append("rect")
+                 .attr(`class`,'rectculoare'+i)
+                 .attr("id", (d,j)=> "rectculoare"+el[0]+d+j)
+                 .attr("width",end-combinedScale(el[0]))
+                 .attr("height", 80/sequenceLength)
+                 .attr("transform", (d,k)=> `translate(${+combinedScale(el[0])},${nucleotideScale(k)+10})`)
+                 .attr("fill", (d) => {return `${(d)}`; })
+                 .each(function(d,i) {//console.log("ha"+d+"ind "+i)
+                })
+
+                })
+
+                
 
     //Append group and insert axes
 
     svg.append("g").attr("width", lineChartWidth)
         .attr("height", 110)
-        .attr("transform", "translate (20,10)")
+        .attr("transform", "translate (30,10)")
         .call(y_axis)    
     // svg.append("g").attr("transform", "translate (0,90)").attr("height", 110)
     //     .call(x_axis);
@@ -234,7 +317,7 @@ function ShowData(data) {
             .attr("y1", 0)
             .attr("x2", scalel(maxlintime))  
             .attr("y2", 120)
-            .style("stroke-width", 0.5)
+            .style("stroke-width", 1.5)
             .style("stroke","black")
             .style("fill", "none");
     
@@ -265,20 +348,20 @@ function ShowData(data) {
             elementIndex = 0;
     }, animationDelay);
 
-    let mousetime=20
-    svg.on("click", function (event, d) {
+    let mousetime=30
+    svg.on("click", function (event) {
         if (playAnimation) {playAnimation=!playAnimation};
         mouseactive=!mouseactive;
-     
-         
+        
+        console.log("event", d3new.pointer(event)[0]);
         //scale invert for combined scale
         (d3new.pointer(event)[0]<scalel(maxlintime))
         ?mousetime = scalel.invert(d3new.pointer(event)[0]) 
         :mousetime= logscale.invert(d3new.pointer(event)[0])
-        //console.log(mousetime-scale.invert(d3new.pointer(event)[0]) )
+       //console.log(mousetime-scale.invert(d3new.pointer(event)[0]) )
        
         
-        if (d3new.pointer(event)[0] >= 20 && d3new.pointer(event)[0] <= lineChartWidth-20) {
+        if (d3new.pointer(event)[0] >= 30 && d3new.pointer(event)[0] <= lineChartWidth-30) {
             showLine(d3new.pointer(event)[0])
         }
         for (let t in data) {
@@ -295,7 +378,8 @@ function ShowData(data) {
     svg.on("mousemove", (event) => {
         if (playAnimation) return;
         if (!mouseactive) return;
-        let x = d3new.pointer(event, event.target)[0];
+        let x = d3new.pointer(event)[0];
+        //let x = d3new.pointer(event, event.target)[0];
        
         //scale invert for combined scale
         (x <= scalel(maxlintime))
@@ -303,7 +387,7 @@ function ShowData(data) {
               : mousetime = logscale.invert(x)
        // console.log(mousetime- scale.invert(x) )
         //console.log(mousetime)
-        if (x >= 20 && x <= lineChartWidth-20) {
+        if (x >= 30 && x <= lineChartWidth-30) {
             showLine(x)
         }
 
@@ -317,9 +401,11 @@ function ShowData(data) {
             
             // timer()
             if (delayPLOT) clearTimeout(delayPLOT);
-            delayPLOT = setTimeout(PLOT, 20, realtime);
+            delayPLOT = setTimeout(PLOT, 5*maxNoStr, realtime);
+            
             // PLOT(realtime)
             // timer("mouse")
+        
         }
     })
 
@@ -359,7 +445,7 @@ function ShowData(data) {
             })
         
         if (strtoPlotprev!=strToPlot) {
-           console.log(strToPlot)
+          // console.log(strToPlot)
        
            //generate treemap data
         const treemapData = makeTreemapData(strToPlot);
@@ -409,6 +495,7 @@ function ShowData(data) {
             //.style('position', 'relative')
             .style("stroke", "black")
             .style("fill", "#62b6a2")
+            .style("border", "thin solid black")
             .each(function (d) {
                // console.log("d",d)
                 let str=''
@@ -431,51 +518,51 @@ function ShowData(data) {
                 containers[rectname].addCustomColorsText(colorString);              
                 
             }
-                });
+                })
+        //         ;
         
-        viscontainer.selectAll("#treemapdiv").selectAll("text")
-            .data(root.leaves())
-            .enter()
+        // viscontainer.select("#treemapdiv").selectAll(".svg")
+        //       .data(root.leaves())
+        //       .enter()
             .append("text")
-            .attr("x", function (d) { return d.x0 + 1 })    //  to adjust position (to the right)
-            .attr("y", function (d) { return d.y0 + 8 })    //  to adjust position (lower)
+            .style('position', 'relative')
+            .attr("x", function (d) { return 1 })    //  to adjust position (to the right)
+            .attr("y", function (d) { return  10 })    //  to adjust position (lower)
             .text(function (d) {
-                    let str=""; 
-                    strToPlot.forEach(el=>{
-                        if (el.id==d.data.name){
-                            str=el.structure    
-                        }
-                    })
-                    return d.data.name+"  "+str
+                    return d.data.name
                     })
             .attr("font-size", "10px")
             .attr("font-family", "DejaVu Sans Mono")
-            .attr("fill", "white")
+            .attr("fill", "white");
               
         d3new.select("#tableContainer")
             .selectAll("table").remove()
         let structures = d3new.select("#tableContainer").append("table")
             .style("font-family", "DejaVu Sans Mono")
+        //let colnames = ['ID',"Time" , 'Occupancy','Structure', 'Energy']
+        //let columns = ['id', 'time', 'occupancy', 'structure', 'energy'];
         let th = structures.append("tr")
-        th.append("td").text("ID")
-        th.append("td").text("Time")
-        th.append("td").text("Ocupancy")
-        th.append("td").text("Structure")
-        th.append("td").text("Energy")
-
+                th.append("td").text("ID")
+                th.append("td").text("Time")
+                th.append("td").text("Ocupancy")
+                th.append("td").text("Structure")
+                th.append("td").text("Energy")
+        
         structures.selectAll(".tableData").data(strToPlot).enter()
             .append("tr").attr("class", "tableData")
             .selectAll("td").data(d => [d.id, d.time, Math.round(d.occupancy*1000)/1000, d.structure, d.energy]).enter()
-            .append("td").text(dd => dd);
+            .append("td").text(dd =>dd)
+            .style("background-color", "white")
+          
     } 
     else {strtoPlotprev=strToPlot}     
     return realtime
     }
-    function calculateColorPerTimePoint(nestedData) {
-        nestedData.forEach((d) => {
-            d.values.sort((a,b) => { return (+b.occupancy) - (+a.occupancy); });
-        });
-    }
+    // function calculateColorPerTimePoint(nestedData) {
+    //     nestedData.forEach((d) => {
+    //         d.values.sort((a,b) => { return (+b.occupancy) - (+a.occupancy); });
+    //     });
+    // }
 
     function calculateNucleotideColors(data) {
         data.forEach(function(d, i) {
@@ -527,7 +614,7 @@ function ShowData(data) {
 
 
 function timer(lap){ 
-    if(lap) console.log(`${lap} in: ${(performance.now()-timer.prev).toFixed(3)}ms`); 
+    if(lap) //console.log(`${lap} in: ${(performance.now()-timer.prev).toFixed(3)}ms`); 
     timer.prev = performance.now();
 }
 
