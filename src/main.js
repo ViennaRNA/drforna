@@ -47,7 +47,7 @@ function start() {
        
            let files = event.target.files
            filename=files[0].name
-           console.log(files)
+           //console.log(files)
            
             for (let i = 0, f; f = files[i]; i++) {
                 let reader = new FileReader()
@@ -224,48 +224,56 @@ function ShowData(data) {
 
         calculateNucleotideColors(filteredData) 
 
-        
-        let mostoccupiedpertime=[]
-            nestedData.forEach(el=>{  
-                //console.log(Array.from(el))
-                let best=el[1][0]
-                //console.log(best)
-                let all=el[1]
-                all.forEach(e=>{ //console.log(best.occupancy, "   " ,e.occupancy)
-                    if (e.occupancy>=best.occupancy){best=e}})
-                mostoccupiedpertime.push([el[0], best])
-                })
+        timer(2)
+    let mostoccupiedpertime=[]
+    nestedData.forEach(el=>{  
+        console.log("here")
+        let best=el[1][0]
+        //console.log(best)
+        let all=el[1]
+        all.forEach(e=>{ //console.log(best.occupancy, "   " ,e.occupancy)
+            if (e.occupancy>=best.occupancy){best=e}})
+        mostoccupiedpertime.push([el[0], best])
+        })
 
-        
-               // mostoccupiedpertime=Array.from(mostoccupiedpertime)
-        //SELECT NESTED DATA CU MOST OCCUPIED STRUCTURE
-        //TRANSLATE PANA LA TIME PE X-SCALE
-        //SI 80-SCALE(NT) PE Y
-        //WIDTH PANA LA NEXT TIME POINT
-        //HEIGHT CONSTANT
 
-        
-        
-        mostoccupiedpertime.forEach((el,i)=>{//console.log(el[1], i, mostoccupiedpertime[i+1][0], combinedScale(mostoccupiedpertime[i+1][0]))
-            let end=0
-            if (i== mostoccupiedpertime.length-1){end=lineChartWidth-30}
-            else{end=combinedScale(mostoccupiedpertime[i+1][0])}
-            console.log(i, " ", end)
-            svg.selectAll(".rectculoare"+i)
-                 .data(el[1].colors)
-                 .enter()
-                 .append("rect")
-                 .attr(`class`,'rectculoare'+i)
-                 .attr("id", (d,j)=> "rectculoare"+el[0]+d+j)
-                 .attr("width",end-combinedScale(el[0]))
-                 .attr("height", 80/sequenceLength)
-                 .attr("transform", (d,k)=> `translate(${+combinedScale(el[0])},${nucleotideScale(k)+10})`)
-                 .attr("fill", (d) => {return `${(d)}`; })
-                 .each(function(d,i) {//console.log("ha"+d+"ind "+i)
-                })
+       // mostoccupiedpertime=Array.from(mostoccupiedpertime)
+//SELECT NESTED DATA CU MOST OCCUPIED STRUCTURE
+//TRANSLATE PANA LA TIME PE X-SCALE
+//SI 80-SCALE(NT) PE Y
+//WIDTH PANA LA NEXT TIME POINT
+//HEIGHT CONSTANT
+let mostocc=[mostoccupiedpertime[0]]
+mostoccupiedpertime.forEach((el,i)=>{
+    //console.log(mostocc[mostocc.length-1][1].id,"  ", el[1].id)
 
-                })
+    if (el[1].id!=mostocc[mostocc.length-1][1].id){
+        mostocc.push([el[0], el[1]])
+    }
+})
+//console.log(mostocc)
 
+mostocc.forEach((el,i)=>{//console.log(el[1], i, mostoccupiedpertime[i+1][0], combinedScale(mostoccupiedpertime[i+1][0]))
+    let end=0
+    if (i== mostocc.length-1){end=lineChartWidth-30}
+    else{end=combinedScale(mostocc[i+1][0])}
+    //console.log(i, " ", end)
+    svg.selectAll(".rectculoare"+i)
+         .data(el[1].colors)
+         .enter()
+         .append("rect")
+         .attr(`class`,'rectculoare'+i)
+         .attr("id", (d,j)=> "rectculoare"+el[0]+d+j)
+         .attr("width",end-combinedScale(el[0]))
+         .attr("height", 80/sequenceLength)
+         .attr("transform", (d,k)=> `translate(${+combinedScale(el[0])},${nucleotideScale(k)+10})`)
+         .attr("fill", (d) => {return `${(d)}`; })
+         .each(function(d,i) {//console.log("ha"+d+"ind "+i)
+        })
+
+        })
+        timer(3)    
+       
                 
 
     //Append group and insert axes
@@ -353,7 +361,7 @@ function ShowData(data) {
         if (playAnimation) {playAnimation=!playAnimation};
         mouseactive=!mouseactive;
         
-        console.log("event", d3new.pointer(event)[0]);
+       // console.log("event", d3new.pointer(event)[0]);
         //scale invert for combined scale
         (d3new.pointer(event)[0]<scalel(maxlintime))
         ?mousetime = scalel.invert(d3new.pointer(event)[0]) 
@@ -374,8 +382,9 @@ function ShowData(data) {
             PLOT(realtime)
         }
     })
-    
+    timer(0)
     svg.on("mousemove", (event) => {
+        
         if (playAnimation) return;
         if (!mouseactive) return;
         let x = d3new.pointer(event)[0];
@@ -401,11 +410,11 @@ function ShowData(data) {
             
             // timer()
             if (delayPLOT) clearTimeout(delayPLOT);
-            delayPLOT = setTimeout(PLOT, 5*maxNoStr, realtime);
+            delayPLOT = setTimeout(PLOT, 10*maxNoStr, realtime);
             
             // PLOT(realtime)
             // timer("mouse")
-        
+           // timer(1)
         }
     })
 
@@ -437,7 +446,7 @@ function ShowData(data) {
     }
 
     function PLOT(realtime) {       
-         
+         timer(1)
         nestedData.forEach(element => { 
             if (element[0] == realtime) {
                  strToPlot = element[1] 
@@ -533,7 +542,7 @@ function ShowData(data) {
                     })
             .attr("font-size", "10px")
             .attr("font-family", "DejaVu Sans Mono")
-            .attr("fill", "white");
+            //.attr("fill", "white");
               
         d3new.select("#tableContainer")
             .selectAll("table").remove()
@@ -606,6 +615,9 @@ function ShowData(data) {
             //console.log(d)
         });
     }
+
+
+
 } 
 
 
@@ -614,7 +626,7 @@ function ShowData(data) {
 
 
 function timer(lap){ 
-    if(lap) //console.log(`${lap} in: ${(performance.now()-timer.prev).toFixed(3)}ms`); 
+    if(lap) console.log(`${lap} in: ${(performance.now()-timer.prev).toFixed(3)}ms`); 
     timer.prev = performance.now();
 }
 
