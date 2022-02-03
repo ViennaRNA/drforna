@@ -5,15 +5,45 @@
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Document</title>
+    <style>
+    body {
+        background: white;
+      }
+      .forminput {
+        float: left;
+        margin-left: 5px;
+        margin: 5px;
+      }
+      .form {
+        display: table;
+        padding: 5px;
+        clear: both;
+      }
+      
+     
+      .active, .collapsible:hover {
+        background-color: #ccc;
+      }
+      .fullScreenContainer, .drTrafoContainer {
+          background: #fff;
+          height: 100%;
+          width: 100%;
+      }
+      #visContainer, #tableContainer, #controlContainer {
+          padding: 5px;
+          background: #fff;
+      }
+      
+    </style>
 </head>
-<body style="background-color: rgb(251, 253, 243)">
+<body style="background-color: rgb(248, 248, 247)">
     <!-- <a href="about.html">about</a> -->
-    <h1 id="title" style="background-color: rgb(231, 248, 165)">DrForna</h1>
-    <h2 id="title"> Cotranscriptional folding visualisation</h2>
+    <h1 id="title" style="background-color: rgb(78, 160, 253)">DrForna</h1>
+    <h2 id="title" style=> Cotranscriptional folding visualisation</h2>
     <ul id='result'>
       
         <div style="max-width: 1500px; margin: auto;">
-            <div class="form">
+            <div class="form ;text-align: right">
               Select example:</br>
               <div class="forminput"><input type="radio" name="fileinput" value="short">short</div>
               <div class="forminput"><input type="radio" name="fileinput" value="SRP.drf">SRP</div>
@@ -27,12 +57,12 @@
             <!-- <button class="collapseButton" id="collapseButton">Show Input file content</button> -->
       <pre id="textContainer" class="text-container" ></pre>
       <div id="fullScreenContainer">
-          <div id="controlContainer" style="text-align: right;">
+          <div id="controlContainer" style="background-color: rgb(213, 214, 212);text-align: right;">
               <button id="toggleAnimation">Play/Pause</button>
               <button id="downloadButton" title="Download plot as PNG">Download</button>
               <button id="toggleFullScreen">Fullscreen</button>
           </div>
-          <div id="drTrafoContainer" style="background-color: rgb(220, 228, 187); max-width: 1500px; margin: auto;">
+          <div id="drTrafoContainer" style="background-color: rgb(249, 250, 248); max-width: 1500px; margin: auto;">
             <div id="visContainer" style='text-align: center;max-width: 1500px; margin: auto;'>See the results here</div></div>
       </div>
     </ul>

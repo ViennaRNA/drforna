@@ -542,7 +542,7 @@ mostocc.forEach((el,i)=>{//console.log(el[1], i, mostoccupiedpertime[i+1][0], co
                     })
             .attr("font-size", "10px")
             .attr("font-family", "DejaVu Sans Mono")
-            //.attr("fill", "white");
+            .attr("fill", "white");
               
         d3new.select("#tableContainer")
             .selectAll("table").remove()
@@ -561,7 +561,7 @@ mostocc.forEach((el,i)=>{//console.log(el[1], i, mostoccupiedpertime[i+1][0], co
             .append("tr").attr("class", "tableData")
             .selectAll("td").data(d => [d.id, d.time, Math.round(d.occupancy*1000)/1000, d.structure, d.energy]).enter()
             .append("td").text(dd =>dd)
-            .style("background-color", "white")
+           // .style("background-color", "white")
           
     } 
     else {strtoPlotprev=strToPlot}     
