@@ -544,26 +544,65 @@ mostocc.forEach((el,i)=>{//console.log(el[1], i, mostoccupiedpertime[i+1][0], co
             .attr("font-family", "DejaVu Sans Mono")
             .attr("fill", "white");
               
+
+            var columns = ['name','time', 'occupancy', 'structure', 'energy'];
+            var colnames = ['ID', 'Time', 'Occupancy', 'Structure', 'Energy'];    
         d3new.select("#tableContainer")
             .selectAll("table").remove()
         let structures = d3new.select("#tableContainer").append("table")
             .style("font-family", "DejaVu Sans Mono")
         //let colnames = ['ID',"Time" , 'Occupancy','Structure', 'Energy']
         //let columns = ['id', 'time', 'occupancy', 'structure', 'energy'];
-        let th = structures.append("tr")
-                th.append("td").text("ID")
-                th.append("td").text("Time")
-                th.append("td").text("Ocupancy")
-                th.append("td").text("Structure")
-                th.append("td").text("Energy")
-        
-        structures.selectAll(".tableData").data(strToPlot).enter()
+        let th = structures.append("thead")
+       
+        th.append('tr').selectAll('th')
+                    .data(colnames).enter()
+                    .append('th')
+                    .text(function (column) { return column; });
+                // th.append("td").text("ID")
+                // th.append("td").text("Time")
+                // th.append("td").text("Ocupancy")
+                // th.append("td").text("Structure")
+                // th.append("td").text("Energy")
+         
+                
+   let tbody = structures.append('tbody')
+ //structures.selectAll(".tableData")
+ //console.log(strToPlot)
+ let tr =tbody.selectAll("tr").data(strToPlot).enter()
             .append("tr").attr("class", "tableData")
-            .selectAll("td").data(d => [d.id, d.time, Math.round(d.occupancy*1000)/1000, d.structure, d.energy]).enter()
-            .append("td").text(dd =>dd)
-           // .style("background-color", "white")
-          
-    } 
+            .selectAll("td").data(d => {
+               return [{column:"id", value:d.id},{column:"time", value: d.time},
+                {column:"oc", value:Math.round(d.occupancy*1000)/1000}, 
+                {column:"str", value:d.structure, col:d.colors},{column:"en", value: d.energy}]//, {column:"col", value:d.colors}]
+                }).enter()
+            
+            //.text(dd => dd.value)
+            tr.each((dd,j) =>{console.log(dd.value)
+               
+                if (dd.column=="id"){tbody.append("tr")
+                 }
+                //console.log("dd", dd)
+                 if (dd.column=="str"){
+                   
+                    tbody.append("td").selectAll('span').remove()
+                    for (let i = 0; i < dd.value.length; i++) {
+                      tbody.append('span')
+                      .style('background-color',dd.col[i])
+                      .text(dd.value[i])
+                    }
+                    //text(dd.value).style("background-color", "red")
+                }
+                
+                else{tbody.append("td").text(dd.value)}
+        })
+       
+  }
+
+
+
+       
+    
     else {strtoPlotprev=strToPlot}     
     return realtime
     }
