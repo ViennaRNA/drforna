@@ -9,9 +9,12 @@ let containers = {};
 
 const occupancyTreshold = 0.01
 function preparePlotArea(elementName, notificationContent = 'Loading...') {
+   
+    
     let container = d3new.select(elementName)
     container.selectAll('div')
         .remove()
+    
     // loading indicator
     container.style('text-align', 'center')
         .append('div')
@@ -33,7 +36,7 @@ function preparePlotArea(elementName, notificationContent = 'Loading...') {
 }
 start();
 function start() {
-    let filename
+    let filename=""
        
     
             //read from file
@@ -67,7 +70,7 @@ function start() {
         item.addEventListener('change', (event) => {
             document.querySelectorAll('.fileinput').forEach((item)=>{item.lastElementChild.value=""})
             let fileName = item.lastElementChild.value
-           
+           filename=fileName
             let a = []
             d3new.text(fileName).then(d => {
                 a = d3new.csvParse(d.replace(/ +/g, ","))
@@ -571,7 +574,7 @@ mostocc.forEach((el,i)=>{//console.log(el[1], i, mostoccupiedpertime[i+1][0], co
  //console.log(strToPlot)
  let tr =tbody.selectAll("tr").data(strToPlot).enter()
             .append("tr").attr("class", "tableData")
-            .selectAll("td").data(d => {
+            .selectAll("td").data(d => {console.log()
                return [{column:"id", value:d.id},{column:"time", value: d.time},
                 {column:"oc", value:Math.round(d.occupancy*1000)/1000}, 
                 {column:"str", value:d.structure, col:d.colors},{column:"en", value: d.energy}]//, {column:"col", value:d.colors}]
@@ -585,16 +588,17 @@ mostocc.forEach((el,i)=>{//console.log(el[1], i, mostoccupiedpertime[i+1][0], co
                 //console.log("dd", dd)
                  if (dd.column=="str"){
                    
-                    tbody.append("td").selectAll('span').remove()
+                    let tb=tbody.append("td")
+                    tb.selectAll('span').remove()
                     for (let i = 0; i < dd.value.length; i++) {
-                      tbody.append('span')
+                      tb.append('span')
                       .style('background-color',dd.col[i])
                       .text(dd.value[i])
                     }
                     //text(dd.value).style("background-color", "red")
                 }
                 
-                else{tbody.append("td").text(dd.value)}
+                else  if (dd.column!="str"){tbody.append("td").text(dd.value )}
         })
        
   }
