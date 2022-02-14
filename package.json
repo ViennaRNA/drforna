@@ -4,11 +4,13 @@
   "description": "",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
-    "start": "npx webpack serve"
+    "start": "npx webpack serve",
+    "jsdoc": "jsdoc -c jsdoc.json"
   },
   "author": "Anda",
   "license": "ISC",
   "devDependencies": {
+    "jsdoc": "^3.6.10",
     "webpack": "^5.64.4",
     "webpack-cli": "^4.9.1",
     "webpack-dev-server": "^4.5.0"

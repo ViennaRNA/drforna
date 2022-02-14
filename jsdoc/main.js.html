@@ -1,4 +1,32 @@
-import * as d3new from "d3"
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <title>JSDoc: Source: main.js</title>
+
+    <script src="scripts/prettify/prettify.js"> </script>
+    <script src="scripts/prettify/lang-css.js"> </script>
+    <!--[if lt IE 9]>
+      <script src="//html5shiv.googlecode.com/svn/trunk/html5.js"></script>
+    <![endif]-->
+    <link type="text/css" rel="stylesheet" href="styles/prettify-tomorrow.css">
+    <link type="text/css" rel="stylesheet" href="styles/jsdoc-default.css">
+</head>
+
+<body>
+
+<div id="main">
+
+    <h1 class="page-title">Source: main.js</h1>
+
+    
+
+
+
+    
+    <section>
+        <article>
+            <pre class="prettyprint source linenums"><code>import * as d3new from "d3"
 import * as domtoimage from "dom-to-image"
 import {FornaContainer, RNAUtilities, rnaTreemap, rnaPlot} from 'fornac';
 //@ts-check
@@ -57,7 +85,7 @@ function preparePlotArea(elementName, notificationContent = 'Loading...') {
     container
         .append('div')
         .attr('id', 'tableContainer')
-        .html(" <p>and time table container-most populated structure</p>")
+        .html(" &lt;p>and time table container-most populated structure&lt;/p>")
 }
 start();
 /**
@@ -97,10 +125,7 @@ function start() {
                 let reader = new FileReader()
                 reader.onload = (val) => {                                   
                    let a=[]
-                  
-                   a = d3new.csvParse(val.target.result.replace(/ +/g, ",").replace(/\n,+/g, "\n"))  
-                   console.log(a)
-                   //a = d3new.csvParse(a.replace("\n,", "\n"))    
+                   a = d3new.csvParse(val.target.result.replace(/ +/g, ","))      
                     containers = {}; 
 
                    ShowData(a)
@@ -213,7 +238,7 @@ function ShowData(data) {
         if (el[1].length>maxNoStr){
         maxNoStr=el[1].length //detect how many alternatives apear maximally 
         }
-        if (el[1][0].structure.length<sequenceLength){ //if the structure is not at full length
+        if (el[1][0].structure.length&lt;sequenceLength){ //if the structure is not at full length
                 trascriptionSteps.push(el) //retain time as transcription step 
         }
         else{
@@ -247,7 +272,7 @@ function ShowData(data) {
           .range([(lineChartWidth-30)*.75, lineChartWidth-30]) //the last 25% will be occupied by the log scale
 
 
-    const combinedScale = time => time < maxlintime  //define the combined scale that identifies on which scale we are
+    const combinedScale = time => time &lt; maxlintime  //define the combined scale that identifies on which scale we are
         ? scalel(time)  //if time is lower that the maximal linear time  we are on the linear scale
         : logscale(time); //else on the log scale
 
@@ -414,17 +439,17 @@ drawCirclesForTimepoints()
         
        // console.log("event", d3new.pointer(event)[0]);
         //scale invert for combined scale
-        (d3new.pointer(event)[0]<scalel(maxlintime))
+        (d3new.pointer(event)[0]&lt;scalel(maxlintime))
         ?mousetime = scalel.invert(d3new.pointer(event)[0]) 
         :mousetime= logscale.invert(d3new.pointer(event)[0])
        //console.log(mousetime-scale.invert(d3new.pointer(event)[0]) )
        
         
-        if (d3new.pointer(event)[0] >= 30 && d3new.pointer(event)[0] <= lineChartWidth-30) {
+        if (d3new.pointer(event)[0] >= 30 &amp;&amp; d3new.pointer(event)[0] &lt;= lineChartWidth-30) {
             showLine(d3new.pointer(event)[0])
         }
         for (let t in data) {
-            if (data[t].time <= mousetime) { 
+            if (data[t].time &lt;= mousetime) { 
                 realtime = data[t].time 
             }
         }
@@ -442,17 +467,17 @@ drawCirclesForTimepoints()
         //let x = d3new.pointer(event, event.target)[0];
        
         //scale invert for combined scale
-        (x <= scalel(maxlintime))
+        (x &lt;= scalel(maxlintime))
               ? mousetime = scalel.invert(x) 
               : mousetime = logscale.invert(x)
        // console.log(mousetime- scale.invert(x) )
         //console.log(mousetime)
-        if (x >= 30 && x <= lineChartWidth-30) {
+        if (x >= 30 &amp;&amp; x &lt;= lineChartWidth-30) {
             showLine(x)
         }
 
         for (let t in data) {
-            if (data[t].time <= mousetime) { 
+            if (data[t].time &lt;= mousetime) { 
                 realtime = data[t].time 
             }
         }
@@ -638,7 +663,7 @@ drawCirclesForTimepoints()
                    
                     let tb=tbody.append("td")
                     tb.selectAll('span').remove()
-                    for (let i = 0; i < dd.value.length; i++) {
+                    for (let i = 0; i &lt; dd.value.length; i++) {
                       tb.append('span')
                       .style('background-color',dd.col[i])
                       .text(dd.value[i])
@@ -682,7 +707,7 @@ drawCirclesForTimepoints()
             //console.log(elements)
         
 
-            for (let i = 0; i < elements.length; i++) {
+            for (let i = 0; i &lt; elements.length; i++) {
                 if (elements[i][0] != 's')
                     continue;     //we're not interested in anything but stems
 
@@ -729,3 +754,26 @@ function debounce(func, time){
         _timer = setTimeout(func, time, event);
     };
 }
+</code></pre>
+        </article>
+    </section>
+
+
+
+
+</div>
+
+<nav>
+    <h2><a href="index.html">Home</a></h2><h3>Global</h3><ul><li><a href="global.html#occupancyTreshold">occupancyTreshold</a></li><li><a href="global.html#preparePlotArea">preparePlotArea</a></li><li><a href="global.html#start">start</a></li></ul>
+</nav>
+
+<br class="clear">
+
+<footer>
+    Documentation generated by <a href="https://github.com/jsdoc/jsdoc">JSDoc 3.6.10</a> on Fri Feb 11 2022 15:39:53 GMT+0100 (Central European Standard Time)
+</footer>
+
+<script> prettyPrint(); </script>
+<script src="scripts/linenumber.js"> </script>
+</body>
+</html>
