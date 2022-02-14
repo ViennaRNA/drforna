@@ -87,109 +87,134 @@ function preparePlotArea(elementName, notificationContent = 'Loading...') {
         .attr('id', 'tableContainer')
         .html(" &lt;p>and time table container-most populated structure&lt;/p>")
 }
+/**
+ * Current file name
+ * @type {string}
+ */
+let filename=""
 start();
 /**
  * Starts the visualization: 
  *
  */
 function start() {
-    /**
-     * 
-     * the name of the file, needed for the download button to generate the name of the downloaded file
-     * @type {string}
-     * 
-     */
-    let filename=""
     readFromFileRadio();
-      //read from file
-    
-    /**
-     * 
-    * method for reading the in put from a selected file
-    * @returns {string} file name 
-    */  
-    function readFromFileRadio(){
-        document.querySelectorAll('.fileinput').forEach((item) => {
-        item.addEventListener('change', (event) => {
-            let rb=document.querySelectorAll('input[type=radio][name=fileinput]:checked')
-            //console.log(rb)
-            if (rb.length!=0)
-                {rb[0].checked=false}
-        
-       
-           let files = event.target.files
-           filename=files[0].name
-           //console.log(files)
-           
-            for (let i = 0, f; f = files[i]; i++) {
-                let reader = new FileReader()
-                reader.onload = (val) => {                                   
-                   let a=[]
-                   a = d3new.csvParse(val.target.result.replace(/ +/g, ","))      
-                    containers = {}; 
-
-                   ShowData(a)
-                }            
-                reader.readAsText(f);
-            }
-        });
-     })
-    }
     readFromFileUpload();
-      //read from file
-    function readFromFileUpload(){
-        //read selected example 
-        document.querySelectorAll('.forminput').forEach((item) => {
-            item.addEventListener('change', (event) => {
-                document.querySelectorAll('.fileinput').forEach((item)=>{item.lastElementChild.value=""})
-                let fileName = item.lastElementChild.value
-            filename=fileName
-                let a = []
-                d3new.text(fileName).then(d => {
-                    a = d3new.csvParse(d.replace(/ +/g, ","))
-                    containers = {};
-                    let container = d3new.select("#visContainer")
-                    container.remove()
-                    
-                    ShowData(Array.from(a))
-                })
+    d3new.select("#downloadButton").on('click', function() {
+        //console.log("here")
+        downloadPng(document.getElementById('drTrafoContainer'));
+})
+} 
+ /**
+     * 
+    * method for reading the input from a selected file
+    * 
+    */  
+function readFromFileRadio(){
+   
+    //read selected example 
+    document.querySelectorAll('.forminput').forEach((item) => {
+        item.addEventListener('change', (event) => {
+            document.querySelectorAll('.fileinput').forEach((item)=>{item.lastElementChild.value=""})
+             filename = item.lastElementChild.value
+             
+       // filename=fileName
+            let a = []
+            d3new.text(filename).then(d => {
+                a = d3new.csvParse(d.replace(/ +/g, ","))
+                containers = {};
+                let container = d3new.select("#visContainer")
+                container.remove()
+                
+                ShowData(Array.from(a))
             })
         })
-    }
-
-    d3new.select("#downloadButton").on('click', function() {
-            //console.log("here")
-            downloadPng(document.getElementById('drTrafoContainer'));
     })
-        
-    function downloadPng(elem) {
-            //console.log('Downloading... ', elem)
-            domtoimage.toPng(elem)
-            .then(function (dataUrl) {
-                let link = document.createElement('a');
-                let today=new Date()
-                let date = today.getFullYear()+'_'+(today.getMonth()+1)+'_'+today.getDate();
-                let time = today.getHours() + "_" + today.getMinutes() + "_" + today.getSeconds();
-                
-                link.download = filename+"_"+date+"_"+time+'.png';
-                alert("File "+link.download+" was downloaded")
-                link.href = dataUrl;
-                link.click();
-            });
-    }
+
+    
+}
+ /**
+     * 
+    * method for reading the input from an uploaded file
+    *  
+    */  
+function readFromFileUpload(){
+   
+    document.querySelectorAll('.fileinput').forEach((item) => {
+    item.addEventListener('change', (event) => {
+        let rb=document.querySelectorAll('input[type=radio][name=fileinput]:checked')
+        //console.log(rb)
+        if (rb.length!=0)
+            {rb[0].checked=false}
+    
+   
+       let files = event.target.files
+        filename=files[0].name
+        console.log(filename)
+       //console.log(files)
+       
+        for (let i = 0, f; f = files[i]; i++) {
+            let reader = new FileReader()
+            reader.onload = (val) => {                                   
+               let a=[]
+              
+               a = d3new.csvParse(val.target.result.replace(/ +/g, ",").replace(/\n,+/g, "\n"))  
+               console.log(a)
+               //a = d3new.csvParse(a.replace("\n,", "\n"))    
+                containers = {}; 
+
+               ShowData(a)
+            }            
+            reader.readAsText(f);
+        }
+    });
+ })
 }
 
-let scale;
+/**
+ * Function for downloading the content of the container,
+ ** the name of the downloaded file is generated using the name of the current selected file, the current time and the current date. 
+ ** also dispays a notification when the file was downloaded
+ * @param {string} elem name of the container
+ 
+ */
+function downloadPng(elem) {
+    //console.log('Downloading... ', elem)
+    domtoimage.toPng(elem)
+    .then(function (dataUrl) {
+        let link = document.createElement('a');
+        let today=new Date()
+        let date = today.getFullYear()+'_'+(today.getMonth()+1)+'_'+today.getDate();
+        let time = today.getHours() + "_" + today.getMinutes() + "_" + today.getSeconds();
+       
+        link.download = filename+"_"+date+"_"+time+'.png';
+        alert("File "+link.download+" was downloaded")
+        link.href = dataUrl;
+        link.click();
+    });
+}
+
 let logscale;
 let scalel;
 let svg;
 let realtime;
 let prevtime=null
 let strtoPlotprev=null;
+/**
+ * Current file name
+ * @type {integer}
+ */
 let sequenceLength = null;
+/**
+ * Current file name
+ * @type {boolean}
+ */
 let mouseactive=false;
 
-
+/**
+ * Method for dispaying the input data
+ * @param {Array} data The input data read form the file
+ */
 function ShowData(data) {
     containers = {};
     preparePlotArea(drTrafoContainer); 
@@ -427,6 +452,7 @@ drawCirclesForTimepoints()
         const element = nestedData[elementIndex];
         PLOT(element[0])
         showLine(combinedScale(element[0]))
+        prevtime=element[0]
         elementIndex += 1;
         if (elementIndex >= nestedData.length)
             elementIndex = 0;
@@ -622,15 +648,24 @@ drawCirclesForTimepoints()
               
 
             var columns = ['name','time', 'occupancy', 'structure', 'energy'];
-            var colnames = ['ID', 'Time', 'Occupancy', 'Structure', 'Energy'];    
+            var colnames = ['ID',// 'Time', 
+            'Occupancy', 'Structure', 'Energy'];    
+
         d3new.select("#tableContainer")
             .selectAll("table").remove()
+        d3new.select("#tableContainer")
+            .selectAll("time").remove()
+        let time=d3new.select("#tableContainer").append("time")
+        .style("font-family", "DejaVu Sans Mono")
         let structures = d3new.select("#tableContainer").append("table")
             .style("font-family", "DejaVu Sans Mono")
         //let colnames = ['ID',"Time" , 'Occupancy','Structure', 'Energy']
         //let columns = ['id', 'time', 'occupancy', 'structure', 'energy'];
+        let ttime = time.append("thead").append('tr')
+        ttime.append("td").text("Selected time point: "+strToPlot[0].time)
+        
         let th = structures.append("thead")
-       
+        //th.append('tr').append("td").text(d.time)
         th.append('tr').selectAll('th')
                     .data(colnames).enter()
                     .append('th')
@@ -648,7 +683,7 @@ drawCirclesForTimepoints()
  let tr =tbody.selectAll("tr").data(strToPlot).enter()
             .append("tr").attr("class", "tableData")
             .selectAll("td").data(d => {console.log()
-               return [{column:"id", value:d.id},{column:"time", value: d.time},
+               return [{column:"id", value:d.id},//{column:"time", value: d.time},
                 {column:"oc", value:Math.round(d.occupancy*1000)/1000}, 
                 {column:"str", value:d.structure, col:d.colors},{column:"en", value: d.energy}]//, {column:"col", value:d.colors}]
                 }).enter()
@@ -764,13 +799,13 @@ function debounce(func, time){
 </div>
 
 <nav>
-    <h2><a href="index.html">Home</a></h2><h3>Global</h3><ul><li><a href="global.html#occupancyTreshold">occupancyTreshold</a></li><li><a href="global.html#preparePlotArea">preparePlotArea</a></li><li><a href="global.html#start">start</a></li></ul>
+    <h2><a href="index.html">Home</a></h2><h3>Global</h3><ul><li><a href="global.html#downloadPng">downloadPng</a></li><li><a href="global.html#filename">filename</a></li><li><a href="global.html#mouseactive">mouseactive</a></li><li><a href="global.html#occupancyTreshold">occupancyTreshold</a></li><li><a href="global.html#preparePlotArea">preparePlotArea</a></li><li><a href="global.html#readFromFileRadio">readFromFileRadio</a></li><li><a href="global.html#readFromFileUpload">readFromFileUpload</a></li><li><a href="global.html#sequenceLength">sequenceLength</a></li><li><a href="global.html#ShowData">ShowData</a></li><li><a href="global.html#start">start</a></li></ul>
 </nav>
 
 <br class="clear">
 
 <footer>
-    Documentation generated by <a href="https://github.com/jsdoc/jsdoc">JSDoc 3.6.10</a> on Fri Feb 11 2022 15:39:53 GMT+0100 (Central European Standard Time)
+    Documentation generated by <a href="https://github.com/jsdoc/jsdoc">JSDoc 3.6.10</a> on Mon Feb 14 2022 18:54:04 GMT+0100 (Central European Standard Time)
 </footer>
 
 <script> prettyPrint(); </script>

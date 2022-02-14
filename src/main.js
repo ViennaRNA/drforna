@@ -59,112 +59,134 @@ function preparePlotArea(elementName, notificationContent = 'Loading...') {
         .attr('id', 'tableContainer')
         .html(" <p>and time table container-most populated structure</p>")
 }
+/**
+ * Current file name
+ * @type {string}
+ */
+let filename=""
 start();
 /**
  * Starts the visualization: 
  *
  */
 function start() {
-    /**
-     * 
-     * the name of the file, needed for the download button to generate the name of the downloaded file
-     * @type {string}
-     * 
-     */
-    let filename=""
     readFromFileRadio();
-      //read from file
-    
-    /**
-     * 
-    * method for reading the in put from a selected file
-    * @returns {string} file name 
-    */  
-    function readFromFileRadio(){
-        document.querySelectorAll('.fileinput').forEach((item) => {
-        item.addEventListener('change', (event) => {
-            let rb=document.querySelectorAll('input[type=radio][name=fileinput]:checked')
-            //console.log(rb)
-            if (rb.length!=0)
-                {rb[0].checked=false}
-        
-       
-           let files = event.target.files
-           filename=files[0].name
-           //console.log(files)
-           
-            for (let i = 0, f; f = files[i]; i++) {
-                let reader = new FileReader()
-                reader.onload = (val) => {                                   
-                   let a=[]
-                  
-                   a = d3new.csvParse(val.target.result.replace(/ +/g, ",").replace(/\n,+/g, "\n"))  
-                   console.log(a)
-                   //a = d3new.csvParse(a.replace("\n,", "\n"))    
-                    containers = {}; 
-
-                   ShowData(a)
-                }            
-                reader.readAsText(f);
-            }
-        });
-     })
-    }
     readFromFileUpload();
-      //read from file
-    function readFromFileUpload(){
-        //read selected example 
-        document.querySelectorAll('.forminput').forEach((item) => {
-            item.addEventListener('change', (event) => {
-                document.querySelectorAll('.fileinput').forEach((item)=>{item.lastElementChild.value=""})
-                let fileName = item.lastElementChild.value
-            filename=fileName
-                let a = []
-                d3new.text(fileName).then(d => {
-                    a = d3new.csvParse(d.replace(/ +/g, ","))
-                    containers = {};
-                    let container = d3new.select("#visContainer")
-                    container.remove()
-                    
-                    ShowData(Array.from(a))
-                })
+    d3new.select("#downloadButton").on('click', function() {
+        //console.log("here")
+        downloadPng(document.getElementById('drTrafoContainer'));
+})
+} 
+ /**
+     * 
+    * method for reading the input from a selected file
+    * 
+    */  
+function readFromFileRadio(){
+   
+    //read selected example 
+    document.querySelectorAll('.forminput').forEach((item) => {
+        item.addEventListener('change', (event) => {
+            document.querySelectorAll('.fileinput').forEach((item)=>{item.lastElementChild.value=""})
+             filename = item.lastElementChild.value
+             
+       // filename=fileName
+            let a = []
+            d3new.text(filename).then(d => {
+                a = d3new.csvParse(d.replace(/ +/g, ","))
+                containers = {};
+                let container = d3new.select("#visContainer")
+                container.remove()
+                
+                ShowData(Array.from(a))
             })
         })
-    }
-
-    d3new.select("#downloadButton").on('click', function() {
-            //console.log("here")
-            downloadPng(document.getElementById('drTrafoContainer'));
     })
-        
-    function downloadPng(elem) {
-            //console.log('Downloading... ', elem)
-            domtoimage.toPng(elem)
-            .then(function (dataUrl) {
-                let link = document.createElement('a');
-                let today=new Date()
-                let date = today.getFullYear()+'_'+(today.getMonth()+1)+'_'+today.getDate();
-                let time = today.getHours() + "_" + today.getMinutes() + "_" + today.getSeconds();
-                
-                link.download = filename+"_"+date+"_"+time+'.png';
-                alert("File "+link.download+" was downloaded")
-                link.href = dataUrl;
-                link.click();
-            });
-    }
+
+    
+}
+ /**
+     * 
+    * method for reading the input from an uploaded file
+    *  
+    */  
+function readFromFileUpload(){
+   
+    document.querySelectorAll('.fileinput').forEach((item) => {
+    item.addEventListener('change', (event) => {
+        let rb=document.querySelectorAll('input[type=radio][name=fileinput]:checked')
+        //console.log(rb)
+        if (rb.length!=0)
+            {rb[0].checked=false}
+    
+   
+       let files = event.target.files
+        filename=files[0].name
+        console.log(filename)
+       //console.log(files)
+       
+        for (let i = 0, f; f = files[i]; i++) {
+            let reader = new FileReader()
+            reader.onload = (val) => {                                   
+               let a=[]
+              
+               a = d3new.csvParse(val.target.result.replace(/ +/g, ",").replace(/\n,+/g, "\n"))  
+               console.log(a)
+               //a = d3new.csvParse(a.replace("\n,", "\n"))    
+                containers = {}; 
+
+               ShowData(a)
+            }            
+            reader.readAsText(f);
+        }
+    });
+ })
 }
 
-let scale;
+/**
+ * Function for downloading the content of the container,
+ ** the name of the downloaded file is generated using the name of the current selected file, the current time and the current date. 
+ ** also dispays a notification when the file was downloaded
+ * @param {string} elem name of the container
+ 
+ */
+function downloadPng(elem) {
+    //console.log('Downloading... ', elem)
+    domtoimage.toPng(elem)
+    .then(function (dataUrl) {
+        let link = document.createElement('a');
+        let today=new Date()
+        let date = today.getFullYear()+'_'+(today.getMonth()+1)+'_'+today.getDate();
+        let time = today.getHours() + "_" + today.getMinutes() + "_" + today.getSeconds();
+       
+        link.download = filename+"_"+date+"_"+time+'.png';
+        alert("File "+link.download+" was downloaded")
+        link.href = dataUrl;
+        link.click();
+    });
+}
+
 let logscale;
 let scalel;
 let svg;
 let realtime;
 let prevtime=null
 let strtoPlotprev=null;
+/**
+ * Current file name
+ * @type {integer}
+ */
 let sequenceLength = null;
+/**
+ * Current file name
+ * @type {boolean}
+ */
 let mouseactive=false;
 
-
+/**
+ * Method for dispaying the input data
+ * @param {Array} data The input data read form the file
+ */
 function ShowData(data) {
     containers = {};
     preparePlotArea(drTrafoContainer); 
