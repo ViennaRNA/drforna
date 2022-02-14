@@ -402,6 +402,7 @@ drawCirclesForTimepoints()
         const element = nestedData[elementIndex];
         PLOT(element[0])
         showLine(combinedScale(element[0]))
+        prevtime=element[0]
         elementIndex += 1;
         if (elementIndex >= nestedData.length)
             elementIndex = 0;
@@ -597,15 +598,24 @@ drawCirclesForTimepoints()
               
 
             var columns = ['name','time', 'occupancy', 'structure', 'energy'];
-            var colnames = ['ID', 'Time', 'Occupancy', 'Structure', 'Energy'];    
+            var colnames = ['ID',// 'Time', 
+            'Occupancy', 'Structure', 'Energy'];    
+
         d3new.select("#tableContainer")
             .selectAll("table").remove()
+        d3new.select("#tableContainer")
+            .selectAll("time").remove()
+        let time=d3new.select("#tableContainer").append("time")
+        .style("font-family", "DejaVu Sans Mono")
         let structures = d3new.select("#tableContainer").append("table")
             .style("font-family", "DejaVu Sans Mono")
         //let colnames = ['ID',"Time" , 'Occupancy','Structure', 'Energy']
         //let columns = ['id', 'time', 'occupancy', 'structure', 'energy'];
+        let ttime = time.append("thead").append('tr')
+        ttime.append("td").text("Selected time point: "+strToPlot[0].time)
+        
         let th = structures.append("thead")
-       
+        //th.append('tr').append("td").text(d.time)
         th.append('tr').selectAll('th')
                     .data(colnames).enter()
                     .append('th')
@@ -623,7 +633,7 @@ drawCirclesForTimepoints()
  let tr =tbody.selectAll("tr").data(strToPlot).enter()
             .append("tr").attr("class", "tableData")
             .selectAll("td").data(d => {console.log()
-               return [{column:"id", value:d.id},{column:"time", value: d.time},
+               return [{column:"id", value:d.id},//{column:"time", value: d.time},
                 {column:"oc", value:Math.round(d.occupancy*1000)/1000}, 
                 {column:"str", value:d.structure, col:d.colors},{column:"en", value: d.energy}]//, {column:"col", value:d.colors}]
                 }).enter()
