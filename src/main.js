@@ -173,12 +173,12 @@ let realtime;
 let prevtime=null
 let strtoPlotprev=null;
 /**
- * Current file name
+ * Length of the sequence considered
  * @type {integer}
  */
 let sequenceLength = null;
 /**
- * Current file name
+ * Boolean variable to show if the mouse is active
  * @type {boolean}
  */
 let mouseactive=false;
@@ -456,7 +456,7 @@ drawCirclesForTimepoints()
             PLOT(realtime)
         }
     })
-    timer(0)
+    //timer(0)
     svg.on("mousemove", (event) => {
         
         if (playAnimation) return;
@@ -520,7 +520,7 @@ drawCirclesForTimepoints()
     }
 
     function PLOT(realtime) {       
-         timer(1)
+         //timer(1)
         nestedData.forEach(element => { 
             if (element[0] == realtime) {
                  strToPlot = element[1] 
@@ -748,11 +748,16 @@ drawCirclesForTimepoints()
 
 
 
-function timer(lap){ 
-    if(lap) console.log(`${lap} in: ${(performance.now()-timer.prev).toFixed(3)}ms`); 
-    timer.prev = performance.now();
-}
-
+// function timer(lap){ 
+//     if(lap) console.log(`${lap} in: ${(performance.now()-timer.prev).toFixed(3)}ms`); 
+//     timer.prev = performance.now();
+// }
+/**
+ *  Debounce function that, as long as it continues to be invoked, will not be triggered.
+ * @param {Function}  func Name of the function 
+ * @param {integer} time Time in milliseconds to wait before the function gets called.
+ * @returns {Function} 
+ */
 function debounce(func, time){
     var time = time || 100; // 100 by default if no param
     var _timer;
