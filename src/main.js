@@ -153,7 +153,7 @@ function downloadPng(elem) {
     });
 }
 /**
- * Logarithmic scale- for steps after transcription end
+ * Logarithmic scale- for steps after transcription ends
  *  
  */
 let logscale;
@@ -178,12 +178,12 @@ let realtime;
  */
 let prevtime=null
 /**
- * the list of structures to plot for the previous selected time point
+ * the list of structures for the previous selected time point, to verify if anything changed
  * @type {float}
  */
 let strtoPlotprev=null;
 /**
- * Length of the sequence considered
+ * full length of the sequence considered
  * @type {integer}
  */
 let sequenceLength = null;
@@ -193,23 +193,23 @@ let sequenceLength = null;
  */
 let mouseactive=false;
 /**
- * width of the visual container, used for window resizing
+ * width of the visual container, changed when window is resized
  * @type {integer}
  */
 let visContainerWidth=500
 
 /**
- * width of the scale
+ * width of the scale, 98% of the container width
  * @type {integer}
  */
 let lineChartWidth = visContainerWidth * .98; 
 /**
- * table container
+ * table container, for the table containing the summary of the file for the selected time point
  * @type {object}
  */
 let tableContainer=null
 /**
- * visual  container
+ * visual  container, containing the plots and the scales
  * @type {object}
  */
 let viscontainer=null 
@@ -244,17 +244,17 @@ function initialize(data){
     
 }
 /**
- * filtered data, those with occupancy greater than the treshhold
+ * filtered data, only those structured with occupancy greater than the treshhold
  * @type {Array}
  */
 let filteredData=null
 /**
- * nested data, data grouped by timepoint
+ * nested data, filtered data grouped by timepoint
  * @type {Array}
  */
 let nestedData=[]
 /**
- * transcription steps
+ * transcription steps, identified as the steps until the structure has full length
  * @type {Array}
  */
  let trascriptionSteps=[] 
@@ -268,9 +268,14 @@ let nestedData=[]
  * @type {integer}
  */
  let maxNoStr=0
+
 /**
- * Method for splitting the data into transcription steps and steps after transcription
+ * Method for splitting the data into transcription steps and steps after transcription, 
+ *  and identifying the maximal number of  structural alternatives that appear  
  * @param {Array} nestedData The input data read form the file, grouped by time
+ * @returns {Array} trascription steps
+ * @returns {Array} Steps after trascription
+ * @returns {integer}  maximal number of structural alternatives
  */
  function SplitTranscription(nestedData){
     // having the sequence length at the end, the end of transciption is identified as the first time step where the structures of that length occur
@@ -291,17 +296,46 @@ let nestedData=[]
     trascriptionSteps.push(AfterTrascription[0]) //the end of transcription is added in both lists
     return   trascriptionSteps,  AfterTrascription, maxNoStr
     }
+ /**
+  * the logarithmic x-axis   
+  */
 let x_axislog 
+ /**
+  * the linear x-axis   
+  */
 let x_axislin 
+ /**
+  * the nucleotide scale   
+  */
 let nucleotideScale 
+ /**
+  * the combined scale: linear untill end of transcription and logarithmic after   
+  */
 let combinedScale
+ /**
+  * the nucleotide position y-axis   
+  */
 let y_axis
+ /**
+  * the rainbow color scale  
+  */
 let rainbowScale 
+ /**
+  * the first time point in the current file   
+  */
 let mintime
+/**
+  * the list containing the most occupied structure for each time point
+  */
 let mostocc
+/**
+  * the time at which the transcription ends   
+  */
 let maxlintime
-
-//console.log("time", minlintime, maxlintime)
+/**
+  *Function determining  the most occupied structure for each time point
+  * @returns {Array}  the list containing the most occupied structure for each time point
+  */
  function mostOccupiedperTime()   {
             let mostoccupiedpertime=[]
             nestedData.forEach(el=>{  
@@ -323,7 +357,11 @@ let maxlintime
     }
 
 /**
- * Method for creating the scales
+ * function  for creating the scales
+ * @returns {Object} the combined Scale  
+ * @returns {Object} rainbow Scale
+ * @returns {float} first time point in the file
+ * @returns {float} time of the end of transcription 
  */
 function CreateScales(){
         //I use filtered data to ignore time steps in which all stuctures are with ocuppancy smaller than threshhold
@@ -380,11 +418,11 @@ function CreateScales(){
         };
         return combinedScale, rainbowScale, mintime, maxlintime
 }
-    /**
-     * Most occupied per time
-     * @returns {Array} mostoccupied list
-     */
-   
+
+/**
+ * Mathod  for drawing the scales
+ * 
+ */   
 function drawScales(){
     svg.append("g").attr("width", lineChartWidth)
             .attr("height", 110)
@@ -393,6 +431,11 @@ function drawScales(){
         svg.append("g").attr("transform", "translate (0,90)").attr("height", 110).call(x_axislin);
         svg.append("g").attr("transform", "translate (0,90)").attr("height", 110).call(x_axislog).attr("color", "blue");    
 }
+/**
+ * function for drawing the colors of the nucleotides above the time scale
+ ** every vertical section is colored bottom to top corresponding to the color of the nucleotide sequence in the most occupied structure for that specific time point 
+ * 
+ */
 function createScaleColors(){  
         mostocc.forEach((el,i)=>{
                 let end=0
@@ -417,7 +460,10 @@ function createScaleColors(){
                     })
     
         })
-}      
+}   
+/**
+ * Method for drawing a circle on the combined scale for every time point present in the file 
+ */   
 function drawCirclesForTimepoints(){
     const timePoints = nestedData.map(d => +d[0]);
     
@@ -433,6 +479,9 @@ function drawCirclesForTimepoints(){
                 .attr('stroke', 'black')
                 .attr('strokeWidth', 1);
 }
+/**
+ * Method for drawing a black line to mark the end of transcription  
+ */  
 function ShowEndOfTranscriptionLine(){
     svg.append("line") //append black line to mark end of transcription
         .attr("class", "transcriplengthLine")
@@ -466,9 +515,15 @@ function ShowEndOfTranscriptionLine(){
     };
 }
 
-
+/**
+ * List of structures to plot for the selected time point
+ */  
 let strToPlot;
-
+/**
+ * Function for extracting the list of structures to plot for the selected time point
+ * @param {float} time selected time point
+ * @returns {Array} List of structures to plot for the selected time point
+ */  
 function StructuresToPlot(time){
     strToPlot=[]
     nestedData.forEach(element => {
@@ -478,10 +533,28 @@ function StructuresToPlot(time){
         })
     return strToPlot
 }
+/**
+ * Animation delay for the play button
+ * @type {integer}
+ */  
 const animationDelay = 400;
-let delayPLOT = undefined;
-let playAnimation = false;
 
+/**
+ * delay for the plot, to avoid plotting all intermediate stages if the mouse already moved further
+ *  ADD
+ */  
+let delayPLOT = undefined;
+/**
+ * Boolean for determining if the play button is active 
+ * @type {boolean} 
+ */  
+let playAnimation = false;
+/**
+ * Mathod for animation upon clicking the play button
+ ** starts at the current time point (the first time point in the file to the left of the current selected one)
+ ** goes through every time point present in the file and plots the structures
+ *
+ */  
 function ToogleAnimation(){  
     let play = d3new.select("#toggleAnimation");
     let elementIndex = 0;
@@ -505,8 +578,12 @@ function ToogleAnimation(){
             elementIndex = 0;
     }, animationDelay);
 }
-
+/**
+ * Mathod for showing a red line at the current selected coordinates
+ * @param {integer} coord the x-coordinate on the visual container of the selected time point 
+ */  
 function showLine(coord, color="red") {
+    
     svg.selectAll(".currenttimeLine").remove()
     svg.append("line")
         .attr("class", "currenttimeLine")
@@ -518,9 +595,14 @@ function showLine(coord, color="red") {
         .style("stroke",color)
         .style("fill", "none");
 }
-function formatColors (colors) {
-            return colors.map(function(c) {
-              return c.rgb().toString();
+/**
+ * Generate a rgb color string from hcl
+ * @param {Array} colors hcl color for each nucleotide
+ * @returns {Array} a lost of rgb colors, one for each nucleotide
+ */ 
+function formatColors (colors) {   
+                return colors.map(function(c) {               
+                return c.rgb().toString();
             })
           }
           
