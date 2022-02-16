@@ -31,6 +31,11 @@ import * as domtoimage from "dom-to-image"
 import {FornaContainer, RNAUtilities, rnaTreemap, rnaPlot} from 'fornac';
 //@ts-check
 var rnaUtilities = new RNAUtilities();
+/**
+ * containers
+ * @type {dictionary}
+ */
+
 let containers = {};
 /**
  * Occupancy Treshhold
@@ -49,61 +54,42 @@ const occupancyTreshold = 0.01
  
  */
 function preparePlotArea(elementName, notificationContent = 'Loading...') {  
-
-    /**
-     * remove the previous content
-     *  
-    */
+        //remove the previous content
     let container = d3new.select(elementName)
     container.selectAll('div')
         .remove()
-    
-    
-    /**
-     * display loading indicator
-     *  
-    */
+    //display loading indicator
     container.style('text-align', 'center')
         .append('div')
         .attr('id', 'loadingNotification')
         .style('display', 'inline')
         .html(notificationContent)
-
-    /**
-     * create the visual container containing the treemap
-     *  
-    */
+    // create the visual container containing the treemap
     container
         .append('div')
         .attr('id', 'visContainer')
         .attr("height", 500)
-        
-    /**
-     * create the table container containing the structures for the selected time point
-     *  
-    */
+    // create the table container containing the structures for the selected time point
     container
         .append('div')
         .attr('id', 'tableContainer')
         .html(" &lt;p>and time table container-most populated structure&lt;/p>")
 }
 /**
- * Current file name
+ * Current file name (selected or uploaded)
+ ** will be used for generating the name of the downloaded image
  * @type {string}
  */
 let filename=""
+
 start();
 /**
- * Starts the visualization: 
- *
+ * Method that starts the visualization: 
+ ** reads data from selected or uploaded file
  */
 function start() {
     readFromFileRadio();
     readFromFileUpload();
-    d3new.select("#downloadButton").on('click', function() {
-        //console.log("here")
-        downloadPng(document.getElementById('drTrafoContainer'));
-})
 } 
  /**
      * 
@@ -193,12 +179,35 @@ function downloadPng(elem) {
         link.click();
     });
 }
-
+/**
+ * Logarithmic scale- for steps after transcription end
+ *  
+ */
 let logscale;
+/**
+ * Linear scale- for cotranscritional steps
+ *  
+ */
 let scalel;
+/**
+ * the svg containing the scales
+ * 
+ */
 let svg;
+/**
+ * the selected time point
+ * @type {float}
+ */
 let realtime;
+/**
+ * the previous time point, to check if anything changed before unnecessarly reploting
+ * @type {float}
+ */
 let prevtime=null
+/**
+ * the list of structures to plot for the previous selected time point
+ * @type {float}
+ */
 let strtoPlotprev=null;
 /**
  * Length of the sequence considered
@@ -210,55 +219,79 @@ let sequenceLength = null;
  * @type {boolean}
  */
 let mouseactive=false;
+/**
+ * width of the visual container, used for window resizing
+ * @type {integer}
+ */
+let visContainerWidth=500
 
+/**
+ * width of the scale
+ * @type {integer}
+ */
+let lineChartWidth = visContainerWidth * .98; 
+/**
+ * table container
+ * @type {object}
+ */
+let tableContainer=null
+/**
+ * visual  container
+ * @type {object}
+ */
+let viscontainer=null 
+
+
+/**
+ * Method for initialization based on the data
+ ** sequence length
+ ** initialize containers 
+ * 
+ * @param {Array} data The input data read form the file
+ */
+
+function initialize(data){
+    containers = {};
+    //start at the beginning, initialize  
+    prevtime = null
+    strtoPlotprev = null
+    sequenceLength = data[data.length - 1].structure.length; //length of the transcribed sequence, used for seeing when the transcription ends
+    
+    //for resizing with window resize
+    visContainerWidth = d3new.select('#visContainer').node().getBoundingClientRect().width; 
+    
+    lineChartWidth = visContainerWidth * .98; 
+    tableContainer = d3new.select(`#tableContainer`);
+    tableContainer.selectAll("svg").remove()
+    mouseactive=false
+    
+    viscontainer = d3new.select('#visContainer')
+    viscontainer.append('div').attr('id','treemapdiv').style('height', '500px')
+    
+}
+/**
+ * filtered data, those with occupancy greater than the treshhold
+ * @type {Array}
+ */
+let filteredData=null
+/**
+ * nested data, data grouped by timepoint
+ * @type {Array}
+ */
+let nestedData=[]
 /**
  * Method for dispaying the input data
  * @param {Array} data The input data read form the file
  */
-function ShowData(data) {
-    containers = {};
-    preparePlotArea(drTrafoContainer); 
-    let container = d3new.select("#drTrafoContainer");
-    container.select('#loadingNotification').remove(); //remove the loading notification 
-    
-    prevtime=null
-    strtoPlotprev=null
-    sequenceLength=data[data.length - 1].structure.length; //length of the transcribed sequence, used for seeing when the transcription ends
-    
-    let visContainerWidth = d3new.select('#visContainer').node().getBoundingClientRect().width; //for resizing with window resize
-    let lineChartWidth = visContainerWidth * .98; 
-    let tableContainer = d3new.select(`#tableContainer`);
-    tableContainer.selectAll("svg").remove()
-    mouseactive=false
-    const onResize = () => {
-        //retain position we are at and if animation was on an remake plots accordingly!?? TODO?
-        //maybe not delete everything but just resize
-        playAnimation = false        
-        tableContainer.selectAll("#timesvg").remove() //remove time scale
-        //viscontainer.selectAll(".div").selectAll(".svg").remove() 
-        viscontainer.selectAll("#treemapdiv").remove()//remove plots
-        ShowData(data);// redraw plots
-    }
+ let trascriptionSteps=[] 
+ let AfterTrascription=[]
+ let maxNoStr=0
 
-    window.addEventListener("resize", debounce(onResize, 1000)); //when the window was resize, call the onResize function after 1000 ms
-
-    let viscontainer = d3new.select('#visContainer')
-    viscontainer.append('div').attr('id','treemapdiv').style('height', '500px')
-    
-    
-
-    let filteredData = data.filter((d) => { return d.occupancy > occupancyTreshold })//select structures with high enough occupancy
-   // let nestedID=Array.from(d3new.group(filteredData, d => d.id)) //extract all the id's that occur, I actually only need id and structure in dot bracket 
-                    // assign equal ocupancies to all the structures and create treemaps with the plots 
-                    //such that later I only resize the plots, not regenerate them for every time step
-                    //to have less lag
-    //console.log(nestedID)
-    let nestedData = Array.from(d3new.group(filteredData, d => d.time))//nest data by  time points to extract the structures to plot for every time step
-    
+ function SplitTranscription(nestedData){
     // having the sequence length at the end, the end of transciption is identified as the first time step where the structures of that length occur
-    let trascriptionSteps=[] 
-    let AfterTrascription=[]
-    let maxNoStr=0
+     trascriptionSteps=[] 
+     AfterTrascription=[]
+     maxNoStr=0
     nestedData.forEach(el=>{
         if (el[1].length>maxNoStr){
         maxNoStr=el[1].length //detect how many alternatives apear maximally 
@@ -271,13 +304,50 @@ function ShowData(data) {
             }
     })
     trascriptionSteps.push(AfterTrascription[0]) //the end of transcription is added in both lists
+    return   trascriptionSteps,  AfterTrascription 
+    }
+
+/**
+ * show data
+ * @param {Array} data 
+ */
+function ShowData(data) {    
+    preparePlotArea(drTrafoContainer); 
+    initialize(data)
+    /**
+     * gfad
+     */
+    let container = d3new.select("#drTrafoContainer");
+    container.select('#loadingNotification').remove(); //remove the loading notification 
+    
+    const onResize = () => {
+        //retain position we are at and if animation was on an remake plots accordingly!?? TODO?
+        //maybe not delete everything but just resize
+        playAnimation = false        
+        tableContainer.selectAll("#timesvg").remove() //remove time scale
+        //viscontainer.selectAll(".div").selectAll(".svg").remove() 
+        viscontainer.selectAll("#treemapdiv").remove()//remove plots
+        ShowData(data); // redraw plots
+    }
+
+    window.addEventListener("resize", debounce(onResize, 1000)); //when the window was resize, call the onResize function after 1000 ms
+
+    filteredData = data.filter((d) => { return d.occupancy > occupancyTreshold })//select structures with high enough occupancy
+   // let nestedID=Array.from(d3new.group(filteredData, d => d.id)) //extract all the id's that occur, I actually only need id and structure in dot bracket 
+                    // assign equal ocupancies to all the structures and create treemaps with the plots 
+                    //such that later I only resize the plots, not regenerate them for every time step
+                    //to have less lag
+    //console.log(nestedID)
+    nestedData = Array.from(d3new.group(filteredData, d => d.time))//nest data by  time points to extract the structures to plot for every time step
+    trascriptionSteps,  AfterTrascription=SplitTranscription(nestedData)
+    
     
     //We want to make linear scale till transcription end 
     //and log scale after transcription ends
 
-    let maxtime = d3new.max(filteredData, d =>+d.time)
+    //let maxtime = d3new.max(filteredData, d =>+d.time)
     //I use filtered data to ignore time steps in which all stuctures are with ocuppancy smaller than threshhold
-    let mintime = d3new.min(filteredData, d => +d.time) //I use the +(0) to automatically convert to Number, otherwise it would be string
+    let mintime = d3new.min(filteredData, d => +d.time) // I use the +(0) to automatically convert to Number, otherwise it would be string
     let minlintime=d3new.min(trascriptionSteps, d=>+d[0])
     let maxlintime=d3new.max(trascriptionSteps, d=>+d[0])
     //console.log("time", minlintime, maxlintime)
@@ -289,13 +359,13 @@ function ShowData(data) {
     tableContainer.selectAll("#timesvg").remove()
   
     scalel = d3new.scaleLinear() //the linear scale
-         .domain([minlintime, maxlintime]) 
-         .range([30, (lineChartWidth-30)*.75]) //will always occupy 75% of the scale
+                  .domain([minlintime, maxlintime]) 
+                  .range([30, (lineChartWidth-30)*.75]) //will always occupy 75% of the scale
 
     logscale = d3new.scaleLog() //    LOG SCALE, treat 0 as exception still TO DO!!!!!
-          .domain([minlogtime, maxlogtime])
-          .range([(lineChartWidth-30)*.75, lineChartWidth-30]) //the last 25% will be occupied by the log scale
-
+                    .domain([minlogtime, maxlogtime])
+                    .range([(lineChartWidth - 30) * .75, lineChartWidth - 30]) //the last 25% will be occupied by the log scale
+    // console.log(logscale)
 
     const combinedScale = time => time &lt; maxlintime  //define the combined scale that identifies on which scale we are
         ? scalel(time)  //if time is lower that the maximal linear time  we are on the linear scale
@@ -328,56 +398,61 @@ function ShowData(data) {
         //return d3.hcl(360* t/(sequenceLength), 100* t/(sequenceLength), 55); 
        // return d3.hcl(360* t, 100, 55); 
     };
+
     calculateNucleotideColors(filteredData) 
-
- function createScaleColors(){
+    /**
+     * Most occupied per time
+     * @returns {Array} mostoccupied list
+     */
     function mostOccupiedperTime()   {
-        let mostoccupiedpertime=[]
-        nestedData.forEach(el=>{  
-            let best=el[1][0]
-            let all=el[1]
-            all.forEach(e=>{ //console.log(best.occupancy, "   " ,e.occupancy)
-                if (e.occupancy>=best.occupancy){best=e}})
-            mostoccupiedpertime.push([el[0], best])
-            })    
-        let mostocc=[mostoccupiedpertime[0]]
-        mostoccupiedpertime.forEach((el,i)=>{
-            //console.log(mostocc[mostocc.length-1][1].id,"  ", el[1].id)
+            let mostoccupiedpertime=[]
+            nestedData.forEach(el=>{  
+                let best=el[1][0]
+                let all=el[1]
+                all.forEach(e=>{ //console.log(best.occupancy, "   " ,e.occupancy)
+                    if (e.occupancy>=best.occupancy){best=e}})
+                mostoccupiedpertime.push([el[0], best])
+                })    
+            let mostocc=[mostoccupiedpertime[0]]
+            mostoccupiedpertime.forEach((el,i)=>{
+                //console.log(mostocc[mostocc.length-1][1].id,"  ", el[1].id)
 
-            if (el[1].id!=mostocc[mostocc.length-1][1].id){
-                mostocc.push([el[0], el[1]])
-            }
-        })
-        return mostocc
+                if (el[1].id!=mostocc[mostocc.length-1][1].id){
+                    mostocc.push([el[0], el[1]])
+                }
+            })
+            return mostocc
     }
+    function createScaleColors(){   
 
-    let mostocc=mostOccupiedperTime()
+        let mostocc=mostOccupiedperTime()
 
-    mostocc.forEach((el,i)=>{
-        let end=0
-        if (i== mostocc.length-1){
-            end=lineChartWidth-30
-        }
-        else{
-            end=combinedScale(mostocc[i+1][0])
-        }
-        
-        svg.selectAll(".rectculoare"+i)
-            .data(el[1].colors)
-            .enter()
-            .append("rect")
-            .attr(`class`,'rectculoare'+i)
-            .attr("id", (d,j)=> "rectculoare"+el[0]+d+j)
-            .attr("width",end-combinedScale(el[0]))
-            .attr("height", 80/sequenceLength)
-            .attr("transform", (d,k)=> `translate(${+combinedScale(el[0])},${nucleotideScale(k)+10})`)
-            .attr("fill", (d) => {return `${(d)}`; })
-            .each(function(d,i) {//console.log("ha"+d+"ind "+i)
-            })
+        mostocc.forEach((el,i)=>{
+            let end=0
+            if (i== mostocc.length-1){
+                end=lineChartWidth-30
+            }
+            else{
+                end=combinedScale(mostocc[i+1][0])
+            }
+            
+            svg.selectAll(".rectculoare"+i)
+                .data(el[1].colors)
+                .enter()
+                .append("rect")
+                .attr(`class`,'rectculoare'+i)
+                .attr("id", (d,j)=> "rectculoare"+el[0]+d+j)
+                .attr("width",end-combinedScale(el[0]))
+                .attr("height", 80/sequenceLength)
+                .attr("transform", (d,k)=> `translate(${+combinedScale(el[0])},${nucleotideScale(k)+10})`)
+                .attr("fill", (d) => {return `${(d)}`; })
+                .each(function(d,i) {//console.log("ha"+d+"ind "+i)
+                })
 
-            })
-}      
-createScaleColors()   
+                })
+    }      
+createScaleColors()  
+
 function drawScales(){
 svg.append("g").attr("width", lineChartWidth)
         .attr("height", 110)
@@ -386,6 +461,7 @@ svg.append("g").attr("width", lineChartWidth)
     svg.append("g").attr("transform", "translate (0,90)").attr("height", 110).call(x_axislin);
     svg.append("g").attr("transform", "translate (0,90)").attr("height", 110).call(x_axislog).attr("color", "blue");    
 }
+
 drawScales()
 function drawCirclesForTimepoints(){
     const timePoints = nestedData.map(d => +d[0]);
@@ -680,21 +756,27 @@ drawCirclesForTimepoints()
    let tbody = structures.append('tbody')
  //structures.selectAll(".tableData")
  //console.log(strToPlot)
- let tr =tbody.selectAll("tr").data(strToPlot).enter()
-            .append("tr").attr("class", "tableData")
-            .selectAll("td").data(d => {console.log()
-               return [{column:"id", value:d.id},//{column:"time", value: d.time},
-                {column:"oc", value:Math.round(d.occupancy*1000)/1000}, 
-                {column:"str", value:d.structure, col:d.colors},{column:"en", value: d.energy}]//, {column:"col", value:d.colors}]
-                }).enter()
+    let tr = tbody.selectAll("tr")
+                  .data(strToPlot)
+                  .enter()
+                  .append("tr").attr("class", "tableData")
+                  .selectAll("td")
+                  .data(d => {
+                      console.log()
+                      return [{column:"id", value:d.id},//{column:"time", value: d.time},
+                              {column:"oc", value:Math.round(d.occupancy*1000)/1000}, 
+                              {column:"str", value:d.structure, col:d.colors},{column:"en", value: d.energy}]//, {column:"col", value:d.colors}]
+                  })
+                  .enter()
             
             //.text(dd => dd.value)
             tr.each((dd,j) =>{console.log(dd.value)
                
-                if (dd.column=="id"){tbody.append("tr")
-                 }
+                if (dd.column == "id") {
+                    tbody.append("tr")
+                }
                 //console.log("dd", dd)
-                 if (dd.column=="str"){
+                if (dd.column=="str") {
                    
                     let tb=tbody.append("td")
                     tb.selectAll('span').remove()
@@ -804,13 +886,13 @@ function debounce(func, time){
 </div>
 
 <nav>
-    <h2><a href="index.html">Home</a></h2><h3>Global</h3><ul><li><a href="global.html#debounce">debounce</a></li><li><a href="global.html#downloadPng">downloadPng</a></li><li><a href="global.html#filename">filename</a></li><li><a href="global.html#mouseactive">mouseactive</a></li><li><a href="global.html#occupancyTreshold">occupancyTreshold</a></li><li><a href="global.html#preparePlotArea">preparePlotArea</a></li><li><a href="global.html#readFromFileRadio">readFromFileRadio</a></li><li><a href="global.html#readFromFileUpload">readFromFileUpload</a></li><li><a href="global.html#sequenceLength">sequenceLength</a></li><li><a href="global.html#ShowData">ShowData</a></li><li><a href="global.html#start">start</a></li></ul>
+    <h2><a href="index.html">Home</a></h2><h3>Global</h3><ul><li><a href="global.html#containers">containers</a></li><li><a href="global.html#debounce">debounce</a></li><li><a href="global.html#downloadPng">downloadPng</a></li><li><a href="global.html#filename">filename</a></li><li><a href="global.html#filteredData">filteredData</a></li><li><a href="global.html#initialize">initialize</a></li><li><a href="global.html#lineChartWidth">lineChartWidth</a></li><li><a href="global.html#logscale">logscale</a></li><li><a href="global.html#mouseactive">mouseactive</a></li><li><a href="global.html#nestedData">nestedData</a></li><li><a href="global.html#occupancyTreshold">occupancyTreshold</a></li><li><a href="global.html#preparePlotArea">preparePlotArea</a></li><li><a href="global.html#prevtime">prevtime</a></li><li><a href="global.html#readFromFileRadio">readFromFileRadio</a></li><li><a href="global.html#readFromFileUpload">readFromFileUpload</a></li><li><a href="global.html#realtime">realtime</a></li><li><a href="global.html#scalel">scalel</a></li><li><a href="global.html#sequenceLength">sequenceLength</a></li><li><a href="global.html#ShowData">ShowData</a></li><li><a href="global.html#start">start</a></li><li><a href="global.html#strtoPlotprev">strtoPlotprev</a></li><li><a href="global.html#svg">svg</a></li><li><a href="global.html#tableContainer">tableContainer</a></li><li><a href="global.html#trascriptionSteps">trascriptionSteps</a></li><li><a href="global.html#viscontainer">viscontainer</a></li><li><a href="global.html#visContainerWidth">visContainerWidth</a></li></ul>
 </nav>
 
 <br class="clear">
 
 <footer>
-    Documentation generated by <a href="https://github.com/jsdoc/jsdoc">JSDoc 3.6.10</a> on Mon Feb 14 2022 19:22:51 GMT+0100 (Central European Standard Time)
+    Documentation generated by <a href="https://github.com/jsdoc/jsdoc">JSDoc 3.6.10</a> on Wed Feb 16 2022 08:11:02 GMT+0100 (Central European Standard Time)
 </footer>
 
 <script> prettyPrint(); </script>
