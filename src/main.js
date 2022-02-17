@@ -80,7 +80,7 @@ function readFromFileRadio(){
        // filename=fileName
             let a = []
             d3new.text(filename).then(d => {
-                a = d3new.csvParse(d.replace(/ +/g, ","))
+                a = d3new.csvParse(d.replace(/ +/g, ",").replace(/\n,+/g, "\n"))
                 containers = {};
                 let container = d3new.select("#visContainer")
                 container.remove()
@@ -137,9 +137,9 @@ function readFromFileUpload(){
  * @param {string} elem name of the container
  
  */
-function downloadPng(elem) {
-    //console.log('Downloading... ', elem)
-    domtoimage.toPng(elem)
+function downloadPng() {
+    console.log('Downloading... ')
+    domtoimage.toPng(document.getElementById("visContainer"))
     .then(function (dataUrl) {
         let link = document.createElement('a');
         let today=new Date()
@@ -294,6 +294,9 @@ let nestedData=[]
             }
     })
     trascriptionSteps.push(AfterTrascription[0]) //the end of transcription is added in both lists
+    //AfterTrascription.push(trascriptionSteps[trascriptionSteps.length-1])
+    console.log(trascriptionSteps)
+    console.log(AfterTrascription)
     return   trascriptionSteps,  AfterTrascription, maxNoStr
     }
  /**
@@ -357,7 +360,7 @@ let maxlintime
     }
 
 /**
- * function  for creating the scales
+ * function  for creating the scales, and determinining the start and end of transcription
  * @returns {Object} the combined Scale  
  * @returns {Object} rainbow Scale
  * @returns {float} first time point in the file
@@ -381,7 +384,7 @@ function CreateScales(){
                     .range([30, (lineChartWidth-30)*.75]) //will always occupy 75% of the scale
 
         logscale = d3new.scaleLog() //    LOG SCALE, treat 0 as exception still TO DO!!!!!
-                        .domain([minlogtime, maxlogtime])
+                        .domain([maxlintime, maxlogtime+0.001])
                         .range([(lineChartWidth - 30) * .75, lineChartWidth - 30]) //the last 25% will be occupied by the log scale
         // console.log(logscale)
 
@@ -502,7 +505,7 @@ function ShowEndOfTranscriptionLine(){
 /**
  *  Debounce function that, as long as it continues to be invoked, will not be triggered.
  * @param {Function}  func Name of the function 
- * @param {integer} time Time in milliseconds to wait before the function gets called.
+ * @param {integer} time Time in milliseconds to wait before the function gets called, 100 by default
  * @returns {Function} 
  */
 
@@ -534,7 +537,7 @@ function StructuresToPlot(time){
     return strToPlot
 }
 /**
- * Animation delay for the play button
+ * Animation delay for the play button, time in miliseconds between consecutive plots
  * @type {integer}
  */  
 const animationDelay = 400;
@@ -549,10 +552,11 @@ let delayPLOT = undefined;
  * @type {boolean} 
  */  
 let playAnimation = false;
+
 /**
  * Mathod for animation upon clicking the play button
- ** starts at the current time point (the first time point in the file to the left of the current selected one)
- ** goes through every time point present in the file and plots the structures
+ ** starts at the current time point (the first time point in the file OR the first to the left of the current selected one)
+ ** goes through every time point present in the file and plots the structures (circles were drawn for these time points)
  *
  */  
 function ToogleAnimation(){  
@@ -577,10 +581,12 @@ function ToogleAnimation(){
         if (elementIndex >= nestedData.length)
             elementIndex = 0;
     }, animationDelay);
+    return prevtime
 }
 /**
- * Mathod for showing a red line at the current selected coordinates
+ * Mathod for showing a line at the current selected coordinates
  * @param {integer} coord the x-coordinate on the visual container of the selected time point 
+ * @param {string} color the color of the line, red by default
  */  
 function showLine(coord, color="red") {
     
@@ -598,83 +604,15 @@ function showLine(coord, color="red") {
 /**
  * Generate a rgb color string from hcl
  * @param {Array} colors hcl color for each nucleotide
- * @returns {Array} a lost of rgb colors, one for each nucleotide
+ * @returns {Array} a list of rgb colors, one for each nucleotide
  */ 
 function formatColors (colors) {   
                 return colors.map(function(c) {               
                 return c.rgb().toString();
             })
           }
-          
-  
-function PLOT(realtime) {   
-            nestedData.forEach(element => { 
-                if (element[0] == realtime) {
-                     strToPlot = element[1] 
-                    } 
-                })
-            
-            if (strtoPlotprev != strToPlot) {
-                const treemapData = makeTreemapData(strToPlot);
-                const svgWidth = lineChartWidth
-                const svgHeight = 500
-                var root = d3new.stratify()
-                    .id(function (d) { return d.name; })   // Name of the entity (column name is name in csv)
-                    .parentId(function (d) { return d.parent; })   // Name of the parent (column name is parent in csv)
-                    (treemapData);
-                root.sum(d => +d.value)   // Compute the numeric value for each entity
-                d3new.treemap()
-                    .size([svgWidth, svgHeight])
-                    .padding(4)
-                    (root)
-                viscontainer.select("#treemapdiv").remove()
-                viscontainer.append("div").attr("id", "treemapdiv") 
-                            .style('position', 'relative')
-                            .style("width", `${svgWidth}px`)
-                            .style("height", `${svgHeight}px`)
-                            .selectAll(".svg").remove() // leave out
-                            .data(root.leaves())
-                            .enter()
-                            .append("svg").attr("id",  function (d) { return "svg"+d.data.name})                        
-                            .style('position', 'absolute')
-                            .style('left',  d =>{ return d.x0; })
-                            .style('top', function (d) { return d.y0; })
-                            .style('width', function (d) { return (d.x1 - d.x0); })
-                            .style('height', function (d) { return (d.y1 - d.y0); })
-                            .style("stroke", "black")
-                            .style("fill", "#62b6a2")
-                            .style("border", "thin solid black")
-                            .each(function (d) {
-                                let str=''
-                                let rectname="svg"+d.data.name
-                                if ( d.data.str != '') {
-                                    containers[rectname] = new FornaContainer('#' + rectname,
-                                                {zoomable:false, editable:false,animation:false, transitionDuration:0, 
-                                                });//labelInterval:0
-                                    containers[rectname].transitionRNA(d.data.str);  
-                                    let colorStrings = d.data.colors.map(function(d, i) {
-                                        return `${i+1}:${d}`;
-                                    });
-    
-                                    let colorString = colorStrings.join(' ');
-    
-                                    containers[rectname].addCustomColorsText(colorString);              
-                                
-                                }   
-                            })
-                            .append("text")
-                            .style('position', 'relative')
-                            .attr("x", function (d) { return 1 })    //  to adjust position (to the right)
-                            .attr("y", function (d) { return  10 })    //  to adjust position (lower)
-                            .text(function (d) {
-                                    return d.data.name
-                                    })
-                            .attr("font-size", "10px")
-                            .attr("font-family", "DejaVu Sans Mono")
-                            .attr("fill", "white");
-                  
-    
-                var columns = ['name','time', 'occupancy', 'structure', 'energy'];
+
+function WriteTable(strToPlot){
                 var colnames = ['ID',// 'Time', 
                 'Occupancy', 'Structure', 'Energy'];    
     
@@ -722,13 +660,71 @@ function PLOT(realtime) {
                         tbody.append("td").text(dd.value )
                     }
                 })
-            
             }
-      
-            else {
-                strtoPlotprev=strToPlot
-            }     
-        return realtime
+          
+/**
+ * Function for plotting the treemap containing the structures structures 
+ * @param {float} realtime the selected time (as present in the file) 
+  */   
+function PLOT(realtime) {   
+            strToPlot = StructuresToPlot(realtime)
+            if (strtoPlotprev != strToPlot) {
+                const treemapData = makeTreemapData(strToPlot);
+                const svgWidth = lineChartWidth
+                const svgHeight = 500
+                var root = d3new.stratify()
+                    .id(function (d) { return d.name; })   // Name of the entity (column name is name in csv)
+                    .parentId(function (d) { return d.parent; })   // Name of the parent (column name is parent in csv)
+                    (treemapData);
+                root.sum(d => +d.value)   // Compute the numeric value for each entity
+                d3new.treemap()
+                    .size([svgWidth, svgHeight])
+                    .padding(4)
+                    (root)
+                viscontainer.select("#treemapdiv").remove()
+                viscontainer.append("div").attr("id", "treemapdiv") 
+                            .style('position', 'relative')
+                            .style("width", `${svgWidth}px`)
+                            .style("height", `${svgHeight}px`)
+                            .selectAll(".svg").remove() // leave out
+                            .data(root.leaves())
+                            .enter()
+                            .append("svg").attr("id",   d => { return "svg"+d.data.name})                        
+                            .style('position', 'absolute')
+                            .style('left',  d =>{ return d.x0; })
+                            .style('top',  d => { return d.y0; })
+                            .style('width',  d => { return (d.x1 - d.x0); })
+                            .style('height',  d => { return (d.y1 - d.y0); })
+                            .style("stroke", "black")
+                            .style("fill", "#62b6a2")
+                            .style("border", "thin solid black")
+                            .append("text")
+                            .style('position', 'relative')
+                            .attr("x", 1)    //  to adjust position (to the right)
+                            .attr("y", 10)    //  to adjust position (lower)
+                            .text( d => { return d.data.name })
+                            .attr("font-size", "12px")
+                            .attr("font-family", "DejaVu Sans Mono")
+                            .attr("fill", "white")
+                            .each( d => {
+                                let rectname="svg"+d.data.name
+                                if ( d.data.str != '') {
+                                    containers[rectname] = new FornaContainer('#' + rectname,{zoomable:false, editable:false,animation:false, 
+                                        transitionDuration:0});
+                                    containers[rectname].transitionRNA(d.data.str);  
+                                    let colorStrings = d.data.colors.map(function(d, i) {
+                                        return `${i+1}:${d}`;
+                                    });
+                                    let colorString = colorStrings.join(' ');
+                                    containers[rectname].addCustomColorsText(colorString);              
+                                }     
+                            });
+                WriteTable(strToPlot) 
+            }
+            
+            strtoPlotprev=strToPlot
+            
+            return strtoPlotprev    
 }
 
 function makeTreemapData(data) {
@@ -816,13 +812,12 @@ function ShowData(data) {
     drawCirclesForTimepoints()
     if (prevtime == null){ prevtime = mintime }
     strToPlot = StructuresToPlot(prevtime)
-    PLOT(prevtime)
+    strtoPlotprev = PLOT(prevtime)
     showLine(combinedScale(prevtime)) 
     ShowEndOfTranscriptionLine()
-    ToogleAnimation()
+   
     //toggle animation state on button click
-
-
+    
     let mousetime=30
 
     svg.on("click", (event) => {
@@ -881,6 +876,13 @@ function ShowData(data) {
            // timer(1)
         }
     })
+    
+    let bd = d3new.select("#downloadButton")
+    bd.on("click", () => {
+        if (playAnimation) {playAnimation=false};
+        console.log("down")
+        downloadPng()})
+    ToogleAnimation()
 } 
 
 
