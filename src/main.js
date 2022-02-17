@@ -544,7 +544,7 @@ const animationDelay = 400;
 
 /**
  * delay for the plot, to avoid plotting all intermediate stages if the mouse already moved further
- *  ADD
+ *  
  */  
 let delayPLOT = undefined;
 /**
@@ -612,6 +612,13 @@ function formatColors (colors) {
             })
           }
 
+/**
+ * Function for generating the table containing the summary of the file, corresponding to the selected time point
+ 
+ ** The first line contains the currently selected time point
+ ** A table containing the structures, with 'ID', 'Occupancy', 'Structure' and  'Energy', where the parantheses in dot bracket notation are collored according to the helix they are part of
+ * @param {Array} strToPlot The list of structures selected for the currently selected time point
+ */           
 function WriteTable(strToPlot){
                 var colnames = ['ID',// 'Time', 
                 'Occupancy', 'Structure', 'Energy'];    
@@ -663,8 +670,9 @@ function WriteTable(strToPlot){
             }
           
 /**
- * Function for plotting the treemap containing the structures structures 
+ * Function for plotting the treemap containing the structures, as well as writing the table
  * @param {float} realtime the selected time (as present in the file) 
+ * @returns {Array} The list of plotted structures, as the ones that were now previously plotted
   */   
 function PLOT(realtime) {   
             strToPlot = StructuresToPlot(realtime)
@@ -726,7 +734,11 @@ function PLOT(realtime) {
             
             return strtoPlotprev    
 }
-
+/**
+ * Function for making a treemap structure out of the data 
+ * @param {Array} data the data 
+ * @returns {Array} The treemap hierarchical structure, in our case with only one level of hierarchy
+  */ 
 function makeTreemapData(data) {
     return [
         { name: "parent", parent: null, value: 0, str:"", colors: "" },
@@ -735,7 +747,14 @@ function makeTreemapData(data) {
                 name: el.id, parent: "parent", value: el.occupancy, str: el.structure, colors:formatColors(el.colors) }))
     ]
 }
-
+/**
+ * Function which  determines the colors of each nucleotide according to the position of the stem that they're in
+ ** get a pairtable and a list of the secondary structure elements
+ ** store the colors of each nucleotide
+ ** for each nucleotide in the stem assign it the stem's average nucleotide number
+ ** and convert average nucleotide numbers to colors
+ * @param {Array} data 
+ */
 function calculateNucleotideColors(data) {
     data.forEach(function(d, i) {
         // determine the colors of each nucleotide according to the position
@@ -781,7 +800,7 @@ function calculateNucleotideColors(data) {
 
 
 /**
- * show data
+ * Function for showing the data, which consists mostly of calls of previously defined functions and the mouse events
  * @param {Array} data 
  */
 
@@ -806,7 +825,7 @@ function ShowData(data) {
     trascriptionSteps,  AfterTrascription, maxNoStr = SplitTranscription(nestedData)
     combinedScale, rainbowScale ,mintime, maxlintime= CreateScales();
     calculateNucleotideColors(filteredData) 
-    mostocc=mostOccupiedperTime()
+    mostocc = mostOccupiedperTime()
     createScaleColors()  
     drawScales()
     drawCirclesForTimepoints()
@@ -815,9 +834,6 @@ function ShowData(data) {
     strtoPlotprev = PLOT(prevtime)
     showLine(combinedScale(prevtime)) 
     ShowEndOfTranscriptionLine()
-   
-    //toggle animation state on button click
-    
     let mousetime=30
 
     svg.on("click", (event) => {
