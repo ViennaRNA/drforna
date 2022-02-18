@@ -2,7 +2,7 @@
 
 import * as d3new from "d3"
 import * as domtoimage from "dom-to-image"
-import {FornaContainer, RNAUtilities, rnaTreemap, rnaPlot} from 'fornac';
+import {FornaContainer, RNAUtilities} from 'fornac';
 //@ts-check
 
 var rnaUtilities = new RNAUtilities();
@@ -64,6 +64,9 @@ let filename=""
  ** reads and shows the data from selected or uploaded file
  */
 function start() {
+    prevtime = null
+    nestedData = null
+    
     readFromFileRadio();
     readFromFileUpload();
 } 
@@ -73,7 +76,8 @@ function start() {
     * 
     */  
 function readFromFileRadio(){
-   
+    filteredData=null
+    nestedData=[]
     //read selected example 
     document.querySelectorAll('.forminput').forEach((item) => {
         item.addEventListener('change', (event) => {
@@ -101,7 +105,8 @@ function readFromFileRadio(){
     *  
     */  
 function readFromFileUpload(){
-   
+    filteredData=null
+    nestedData=[]
     document.querySelectorAll('.fileinput').forEach((item) => {
     item.addEventListener('change', (event) => {
         let rb=document.querySelectorAll('input[type=radio][name=fileinput]:checked')
@@ -112,7 +117,7 @@ function readFromFileUpload(){
    
        let files = event.target.files
         filename=files[0].name
-        console.log(filename)
+        //console.log(filename)
        //console.log(files)
        
         for (let i = 0, f; f = files[i]; i++) {
@@ -121,7 +126,7 @@ function readFromFileUpload(){
                let a=[]
               
                a = d3new.csvParse(val.target.result.replace(/ +/g, ",").replace(/\n,+/g, "\n"))  
-               console.log(a)
+               //console.log(a)
                //a = d3new.csvParse(a.replace("\n,", "\n"))    
                 containers = {}; 
 
@@ -141,7 +146,7 @@ function readFromFileUpload(){
  
  */
 function downloadPng() {
-    console.log('Downloading... ')
+    //console.log('Downloading... ')
     domtoimage.toPng(document.getElementById("visContainer"))
     .then(function (dataUrl) {
         let link = document.createElement('a');
@@ -233,7 +238,8 @@ function initialize(data){
     prevtime = null
     strtoPlotprev = null
     sequenceLength = data[data.length - 1].structure.length; //length of the transcribed sequence, used for seeing when the transcription ends
-    
+    filteredData=null
+    nestedData=[]
     //for resizing with window resize
     visContainerWidth = d3new.select('#visContainer').node().getBoundingClientRect().width; 
     
@@ -298,8 +304,8 @@ let nestedData=[]
     })
     trascriptionSteps.push(AfterTrascription[0]) //the end of transcription is added in both lists
     //AfterTrascription.push(trascriptionSteps[trascriptionSteps.length-1])
-    console.log(trascriptionSteps)
-    console.log(AfterTrascription)
+    //console.log(trascriptionSteps)
+    //console.log(AfterTrascription)
     return   trascriptionSteps,  AfterTrascription, maxNoStr
     }
  /**
@@ -370,6 +376,7 @@ let maxlintime
  * @returns {float} time of the end of transcription 
  */
 function CreateScales(){
+        
         //I use filtered data to ignore time steps in which all stuctures are with ocuppancy smaller than threshhold
          mintime = d3new.min(filteredData, d => +d.time) // I use the +(0) to automatically convert to Number, otherwise it would be string
         let minlintime=d3new.min(trascriptionSteps, d=>+d[0])
@@ -378,7 +385,7 @@ function CreateScales(){
         let minlogtime=d3new.min(AfterTrascription, d=>+d[0])
         let maxlogtime=d3new.max(AfterTrascription, d=>+d[0])
         //console.log(minlogtime, maxlogtime)
-
+        prevtime = mintime
         tableContainer.selectAll("p").remove()
         tableContainer.selectAll("#timesvg").remove()
     
@@ -422,6 +429,7 @@ function CreateScales(){
             //return d3.hcl(360* t/(sequenceLength), 100* t/(sequenceLength), 55); 
         // return d3.hcl(360* t, 100, 55); 
         };
+        
         return combinedScale, rainbowScale, mintime, maxlintime
 }
 
@@ -539,11 +547,12 @@ function StructuresToPlot(time){
         })
     return strToPlot
 }
+let elementIndex = 0;
 /**
  * Animation delay for the play button, time in miliseconds between consecutive plots
  * @type {integer}
  */  
-const animationDelay = 400;
+const animationDelay = 80;
 
 /**
  * delay for the plot, to avoid plotting all intermediate stages if the mouse already moved further
@@ -555,37 +564,6 @@ let delayPLOT = undefined;
  * @type {boolean} 
  */  
 let playAnimation = false;
-
-/**
- * Mathod for animation upon clicking the play button
- ** starts at the current time point (the first time point in the file OR the first to the left of the current selected one)
- ** goes through every time point present in the file and plots the structures (circles were drawn for these time points)
- *
- */  
-function ToogleAnimation(){  
-    let play = d3new.select("#toggleAnimation");
-    let elementIndex = 0;
-    play.on("click", () => {playAnimation = !playAnimation    
-        nestedData.forEach(element => {
-            if (element[0] == +prevtime) {
-                elementIndex=nestedData.indexOf(element)
-                }
-            })
-    })
-    setInterval(() => {
-        if (!playAnimation) {//console.log("aici ");\\ ruleaza o data pe secunda, nu e foarte frumos...
-                return;
-        }
-        const element = nestedData[elementIndex];
-        PLOT(element[0])
-        showLine(combinedScale(element[0]))
-        prevtime=element[0]
-        elementIndex += 1;
-        if (elementIndex >= nestedData.length)
-            elementIndex = 0;
-    }, animationDelay);
-    return prevtime
-}
 /**
  * Mathod for showing a line at the current selected coordinates
  * @param {integer} coord the x-coordinate on the visual container of the selected time point 
@@ -807,9 +785,11 @@ function calculateNucleotideColors(data) {
  * @param {Array} data 
  */
 
-function ShowData(data) {    
+function ShowData(data) { 
+
     preparePlotArea(drTrafoContainer); 
     initialize(data)
+    prevtime = null
     let container = d3new.select("#drTrafoContainer");
     container.select('#loadingNotification').remove(); //remove the loading notification 
     const onResize = () => {
@@ -827,6 +807,7 @@ function ShowData(data) {
     nestedData = Array.from(d3new.group(filteredData, d => d.time)) // nest data by  time points to extract the structures to plot for every time step
     trascriptionSteps,  AfterTrascription, maxNoStr = SplitTranscription(nestedData)
     combinedScale, rainbowScale ,mintime, maxlintime= CreateScales();
+    
     calculateNucleotideColors(filteredData) 
     mostocc = mostOccupiedperTime()
     createScaleColors()  
@@ -899,9 +880,52 @@ function ShowData(data) {
     let bd = d3new.select("#downloadButton")
     bd.on("click", () => {
         if (playAnimation) {playAnimation=false};
-        console.log("down")
+      //console.log("down")
         downloadPng()})
-    ToogleAnimation()
+    let play = d3new.select("#toggleAnimation");
+    //
+    play.on("click", () => {playAnimation = !playAnimation    
+        
+        nestedData.forEach(element => {
+            if (+element[0] == +prevtime) {
+                elementIndex=nestedData.indexOf(element)
+                }
+            }) 
+        // ToogleAnimation( )
+
+        // /**
+        //  * Mathod for animation upon clicking the play button
+        //  ** starts at the current time point (the first time point in the file OR the first to the left of the current selected one)
+        //  ** goes through every time point present in the file and plots the structures (circles were drawn for these time points)
+        //  *
+        //  */  
+        // function ToogleAnimation(){  
+            
+            setInterval(() => {
+                if (!playAnimation) {//console.log("aici ");\\ ruleaza o data pe secunda, nu e foarte frumos...
+                     
+                    
+                    return ;
+                }
+                if (elementIndex >= nestedData.length){            
+                    elementIndex = 0;
+                }
+                const element = nestedData[elementIndex];
+                console.log(nestedData)
+                
+                prevtime = +element[0]
+                PLOT(prevtime)
+                showLine(combinedScale(prevtime))
+                
+                elementIndex += 1;
+                
+                return prevtime
+            }, animationDelay);
+           
+        //}
+            
+    })
+    
 } 
 
 
