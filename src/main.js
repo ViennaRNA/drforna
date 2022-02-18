@@ -1,17 +1,20 @@
+
+
 import * as d3new from "d3"
 import * as domtoimage from "dom-to-image"
 import {FornaContainer, RNAUtilities, rnaTreemap, rnaPlot} from 'fornac';
 //@ts-check
+
 var rnaUtilities = new RNAUtilities();
 /**
- * containers ADD
- * @type {dictionary}
+ * containers containing the secondary structure graphs 
+ * 
  */
 
-let containers = {};
+let containers;
 /**
- * Occupancy Treshhold, structures with smaller occupancy will not be shown
- * @type {float}
+ * Occupancy Treshhold, structures with smaller occupancy will not be shown, 0.01 by default
+ * @type {number}
  */
 const occupancyTreshold = 0.01
 //displays loading indicator
@@ -58,7 +61,7 @@ let filename=""
 
 /**
  * Method that starts the visualization: 
- ** reads data from selected or uploaded file
+ ** reads and shows the data from selected or uploaded file
  */
 function start() {
     readFromFileRadio();
