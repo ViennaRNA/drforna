@@ -552,7 +552,7 @@ let elementIndex = 0;
  * Animation delay for the play button, time in miliseconds between consecutive plots
  * @type {integer}
  */  
-const animationDelay = 80;
+const animationDelay = 10;
 
 /**
  * delay for the plot, to avoid plotting all intermediate stages if the mouse already moved further
@@ -746,9 +746,9 @@ function calculateNucleotideColors(data) {
 
         // get a pairtable and a list of the secondary structure elements
         let pt = rnaUtilities.dotbracketToPairtable(d.structure);
-        //console.log(pt)
+        //console.log("pt", pt)
         let elements = rnaUtilities.ptToElements(pt, 0, 1, pt[0], []);
-
+        //console.log("el",elements)
         // store the colors of each nucleotide
         let colors = Array(pt[0]).fill(d3.hsl("white"));
         //console.log(elements)
@@ -761,13 +761,13 @@ function calculateNucleotideColors(data) {
             // for each nucleotide in the stem
             // assign it the stem's average nucleotide number
             let averageBpNum = elements[i][2].reduce(
-                (a,b) => { return a+b }, 0) / elements[i][2].length;
+                (a,b) => { return a+b }, 0) / (elements[i][2].length);
                
             // convert average nucleotide numbers to colors
             elements[i][2].map((d) => {
                 let nucleotideNormPosition = nucleotideScale(+averageBpNum);
                 colors[d-1] = rainbowScale(nucleotideNormPosition);
-                //console.log(elements[i])
+                //console.log(elements[i], nucleotideNormPosition)
                 //console.log(i, averageBpNum, nucleotideNormPosition,  colors[d-1])
             });
 
@@ -775,7 +775,7 @@ function calculateNucleotideColors(data) {
             // each structure gets its own set of structures
         }
         d.colors = colors;
-        //console.log(d)
+        //console.log(colors)
     });
 }
 
@@ -869,7 +869,7 @@ function ShowData(data) {
             
             // timer()
             if (delayPLOT) clearTimeout(delayPLOT);
-            delayPLOT = setTimeout(PLOT, 10*maxNoStr, realtime);
+            delayPLOT = setTimeout(PLOT, 5*maxNoStr, realtime);
             
             // PLOT(realtime)
             // timer("mouse")
@@ -911,7 +911,7 @@ function ShowData(data) {
                     elementIndex = 0;
                 }
                 const element = nestedData[elementIndex];
-                console.log(nestedData)
+                //console.log(nestedData)
                 
                 prevtime = +element[0]
                 PLOT(prevtime)
