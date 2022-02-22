@@ -1,6 +1,9 @@
-## DrFornaA is a tool for visualizing co-transcriptional RNA folding output of DrTransformer
-As an input, the programm takes a DrTransformer (short for "DNA-to-RNA transformer") `.drf` output file, containing the details of the cotranscriptional folding simulation.
+## DrFornaA
+Dr. Forna is a web component for visualizing co-transcriptional RNA folding.
 
+As an input, the program takes a DrTransformer (short for "DNA-to-RNA transformer") `.drf` output file, containing the details of the cotranscriptional folding simulation.
+## Screennshot:
+<img src="https://raw.githubusercontent.com/pkerpedjiev/drforna/master/doc/img/drforna_screenshot.png" />
 ## To start this project in development mode, please run:
 
   `npm install`  
@@ -10,6 +13,22 @@ As an input, the programm takes a DrTransformer (short for "DNA-to-RNA transform
 You can either select one of the predefined examples or upload your own input file. 
 
 The **input file** should be a space separated values file (multiple spaces are allowed) with header "id time occupancy structure energy".
+
+`id time occupancy structure energy`\
+`5 0.5399146247695 8.470447e-01 ...........(((((.....)))))..  -5.80`\
+`4 0.5399146247695 1.164858e-01 (((((((......)))).))).......  -1.70`\
+`2 0.5399146247695 2.702974e-02 .((((((......)))).))........  -0.80`\
+`5 0.539938232645 8.471626e-01 ...........(((((.....)))))..  -5.80`\
+`4 0.539938232645 1.163944e-01 (((((((......)))).))).......  -1.70`\
+`2 0.539938232645 2.700322e-02 .((((((......)))).))........  -0.80`\
+`5 0.54011268395 8.480309e-01 ...........(((((.....)))))..  -5.80`\
+`4 0.54011268395 1.156896e-01 (((((((......)))).))).......  -1.70`\
+`2 0.54011268395 2.683970e-02 .((((((......)))).))........  -0.80`\
+`5 0.559866395 9.186655e-01 ...........(((((.....)))))..  -5.80`\
+`4 0.559866395 5.835607e-02 (((((((......)))).))).......  -1.70`\
+`2 0.559866395 1.353858e-02 .((((((......)))).))........  -0.80`
+
+Where `id` groups structures, `time` is the time point for which the structure and the occupancy are measured. `occupancy` is the occupancy of that structure at that specific time point. The secondary structure is given in dot-bracket notation in the `structure` column while the free energy (in kcal / mol) is shown in the `energy` column.
 
 The output shown contains the visual output for a **selected time point** (marked with the red line on the time scale): 
 - each structure is shown in the rectangle marked with the ID of the structure in the corner
