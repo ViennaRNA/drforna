@@ -340,6 +340,7 @@ let mintime
   * the list containing the most occupied structure for each time point
   */
 let mostocc
+let mostoccupiedpertime
 /**
   * the time at which the transcription ends   
   */
@@ -349,7 +350,7 @@ let maxlintime
   * @returns {Array}  the list containing the most occupied structure for each time point
   */
  function mostOccupiedperTime()   {
-            let mostoccupiedpertime=[]
+            mostoccupiedpertime=[]
             nestedData.forEach(el=>{  
                 let best=el[1][0]
                 let all=el[1]
@@ -358,6 +359,7 @@ let maxlintime
                 mostoccupiedpertime.push([el[0], best])
                 })    
             let mostocc=[mostoccupiedpertime[0]]
+            //console.log(mostoccupiedpertime)
             mostoccupiedpertime.forEach((el,i)=>{
                 //console.log(mostocc[mostocc.length-1][1].id,"  ", el[1].id)
 
@@ -613,7 +615,7 @@ function WriteTable(strToPlot){
                 let structures = d3new.select("#tableContainer").append("table")
                     .style("font-family", "DejaVu Sans Mono")
                 let ttime = time.append("thead").append('tr')
-                ttime.append("td").text("Selected time point: "+strToPlot[0].time)
+                ttime.append("td").text("Selected time point: "+strToPlot[0].time+" s")
                 let th = structures.append("thead")
                 th.append('tr').selectAll('th')
                             .data(colnames).enter()
@@ -633,7 +635,8 @@ function WriteTable(strToPlot){
                       .enter()
                 tr.each((dd,j) =>{
                     if (dd.column == "id") {
-                        tbody.append("tr")
+                         tbody.append("tr")
+                        
                     }                
                     if (dd.column=="str") {                   
                         let tb=tbody.append("td")
@@ -645,7 +648,25 @@ function WriteTable(strToPlot){
                         }
                     }
                     else  if (dd.column!="str") {
-                        tbody.append("td").text(dd.value )
+                         if(dd.column=="id"){
+                             //console.log(mostocc)
+                             //console.log(mostoccupiedpertime)
+                            let bestid
+                            mostocc.forEach(e=>{
+                                if (+e[0]<=+strToPlot[0].time){
+                                    bestid=e[1].id
+                                }
+                            })
+                            if( dd.value==bestid){
+                                        tbody.append("td").text(dd.value).style('background-color',"red")
+                                        console.log("colored")
+                            }
+                            else {
+                                    tbody.append("td").text(dd.value)
+                                
+                            }
+                        } else
+                        tbody.append("td").text(dd.value)
                     }
                 })
             }
@@ -810,6 +831,7 @@ function ShowData(data) {
     
     calculateNucleotideColors(filteredData) 
     mostocc = mostOccupiedperTime()
+    //console.log(mostoccupiedpertime)
     createScaleColors()  
     drawScales()
     drawCirclesForTimepoints()
