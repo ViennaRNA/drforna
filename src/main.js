@@ -659,7 +659,7 @@ function WriteTable(strToPlot){
                             })
                             if( dd.value==bestid){
                                         tbody.append("td").text(dd.value).style('background-color',"red")
-                                        console.log("colored")
+                                        //console.log("colored")
                             }
                             else {
                                     tbody.append("td").text(dd.value)
