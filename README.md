@@ -2,8 +2,10 @@
 Dr. Forna is a web component for visualizing co-transcriptional RNA folding.
 
 As an input, the program takes a DrTransformer (short for "DNA-to-RNA transformer") `.drf` output file, containing the details of the cotranscriptional folding simulation.
+
 ## Screennshot:
-<img src="https://raw.githubusercontent.com/pkerpedjiev/drforna/master/doc/img/drforna_screenshot.png" />
+<img src=public/Screenshot.jpg />
+
 ## To start this project in development mode, please run:
 
   `npm install`  
