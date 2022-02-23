@@ -87,11 +87,11 @@ function readFromFileRadio(){
        // filename=fileName
             let a = []
             d3new.text(filename).then(d => {
-                a = d3new.csvParse(d.replace(/ +/g, ",").replace(/\n,+/g, "\n"))
+                a = d3new.csvParse(d.replace(/ +/g, ",").replace(/\n,+/g, "\n").replace(/^\s*\n/gm, ""))
                 containers = {};
                 let container = d3new.select("#visContainer")
                 container.remove()
-                
+               
                 ShowData(Array.from(a))
             })
         })
@@ -124,11 +124,12 @@ function readFromFileUpload(){
             let reader = new FileReader()
             reader.onload = (val) => {                                   
                let a=[]
-              
-               a = d3new.csvParse(val.target.result.replace(/ +/g, ",").replace(/\n,+/g, "\n"))  
+              //console.log(val.target.result.replace(/ +/g, ",").replace(/\n,+/g, "\n").replace(/^\s*\n/gm, ""))
+               a = d3new.csvParse(val.target.result.replace(/ +/g, ",").replace(/\n,+/g, "\n").replace(/^\s*\n/gm, "")) 
                //console.log(a)
                //a = d3new.csvParse(a.replace("\n,", "\n"))    
                 containers = {}; 
+                
 
                ShowData(a)
             }            
@@ -146,11 +147,12 @@ function readFromFileUpload(){
  
  */
 function downloadPng() {
+   
     //console.log('Downloading... ')
-    domtoimage.toPng(document.getElementById("visContainer"))
+    domtoimage.toPng(document.getElementById("drTrafoContainer"))
     .then(function (dataUrl) {
         let link = document.createElement('a');
-        let today=new Date()
+        let today = new Date()
         let date = today.getFullYear()+'_'+(today.getMonth()+1)+'_'+today.getDate();
         let time = today.getHours() + "_" + today.getMinutes() + "_" + today.getSeconds();
        
@@ -158,6 +160,8 @@ function downloadPng() {
         alert("File "+link.download+" was downloaded")
         link.href = dataUrl;
         link.click();
+        
+
     });
 }
 /**
@@ -204,7 +208,7 @@ let mouseactive=false;
  * width of the visual container, changed when window is resized
  * @type {integer}
  */
-let visContainerWidth=500
+let visContainerWidth=800
 
 /**
  * width of the scale, 98% of the container width
@@ -427,7 +431,7 @@ function CreateScales(){
         
             
          rainbowScale = (t) => { //console.log(t/ sequenceLength)
-            return d3.hcl(360*t*t/(sequenceLength), 100, 55); 
+            return d3.hcl(360*t, 100, 55); 
             //return d3.hcl(360* t/(sequenceLength), 100* t/(sequenceLength), 55); 
         // return d3.hcl(360* t, 100, 55); 
         };
@@ -799,8 +803,45 @@ function calculateNucleotideColors(data) {
         //console.log(colors)
     });
 }
-
-
+/**
+ * Function for making an element fullscreen, used on fullScreenContainer upon Fullscreen button click 
+ * thanks to https://developer.mozilla.org/en-US/docs/Web/Guide/API/DOM/Using_full_screen_mode
+ * @param {string} elem the name of the container to be visualized in fullscreen
+ * @returns {*}
+ */
+// 
+function toggleFullScreen(elem) {
+  if (!document.fullscreenElement &&    // alternative standard method
+    !document.mozFullScreenElement && !document.webkitFullscreenElement && !document.msFullscreenElement ) {  // current working methods
+        if (elem.requestFullscreen) {
+            elem.requestFullscreen();
+        } else if (elem.msRequestFullscreen) {
+            elem.msRequestFullscreen();
+        } else if (elem.mozRequestFullScreen) {
+            elem.mozRequestFullScreen();
+        } else if (elem.webkitRequestFullscreen) {
+            elem.webkitRequestFullscreen(Element.ALLOW_KEYBOARD_INPUT);
+        } else {
+            console.log("Fullscreen not working: ", elem)
+            return
+        }
+        visContainerWidth = d3new.select('#visContainer').node().getBoundingClientRect().width; 
+    } else {
+        // exit fullScreen
+        if (document.exitFullscreen) {
+            document.exitFullscreen();
+        } else if (document.msExitFullscreen) {
+            document.msExitFullscreen();
+        } else if (document.mozCancelFullScreen) {
+            document.mozCancelFullScreen();
+        } else if (document.webkitExitFullscreen) {
+            document.webkitExitFullscreen();
+        } else {
+            console.log("Fullscreen not working: ", elem)
+            return
+        }
+    }
+}
 /**
  * Function for showing the data, which consists mostly of calls of previously defined functions and the mouse events
  * @param {Array} data 
@@ -898,7 +939,10 @@ function ShowData(data) {
            // timer(1)
         }
     })
-    
+    let bfullscr = d3new.select("#toggleFullScreen")
+    bfullscr.on('click', function() {
+        toggleFullScreen(document.getElementById('fullScreenContainer'));
+    })
     let bd = d3new.select("#downloadButton")
     bd.on("click", () => {
         if (playAnimation) {playAnimation=false};
