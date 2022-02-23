@@ -658,7 +658,7 @@ function WriteTable(strToPlot){
                                 }
                             })
                             if( dd.value==bestid){
-                                        tbody.append("td").text(dd.value).style('background-color',"red")
+                                        tbody.append("td").text(dd.value).style('background-color',"rgb(247, 200, 194)")
                                         //console.log("colored")
                             }
                             else {
