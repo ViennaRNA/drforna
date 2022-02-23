@@ -431,7 +431,7 @@ function CreateScales(){
         
             
          rainbowScale = (t) => { //console.log(t/ sequenceLength)
-            return d3.hcl(360*t, 100, 55); 
+            return d3.hcl(360*t, 100, 55 ); 
             //return d3.hcl(360* t/(sequenceLength), 100* t/(sequenceLength), 55); 
         // return d3.hcl(360* t, 100, 55); 
         };
