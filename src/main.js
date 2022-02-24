@@ -1,10 +1,18 @@
-
-
 import * as d3new from "d3"
 import * as domtoimage from "dom-to-image"
 import {FornaContainer, RNAUtilities} from 'fornac';
 //@ts-check
+/**
+ * @file main.js
+ * @author Anda Latif 
+ * @see <a href="https://github.com/AndaLatif/DrFornaA"> DrFornaA </a>
+ * @description  Update of the DrForna Prototype <a href="https://github.com/ViennaRNA/drforna.git"> DrForna </a> , authors Peter Kerpedjiev, Stefan Hammer
+ */  
 
+
+/**
+ * Instance of RnaUtilities from fornac
+ */  
 var rnaUtilities = new RNAUtilities();
 /**
  * containers containing the secondary structure graphs 
@@ -181,22 +189,22 @@ let scalel;
 let svg;
 /**
  * the selected time point
- * @type {float}
+ * @type {number}
  */
 let realtime;
 /**
  * the previous time point, to check if anything changed before unnecessarly reploting
- * @type {float}
+ * @type {number}
  */
 let prevtime=null
 /**
  * the list of structures for the previous selected time point, to verify if anything changed
- * @type {float}
+ * @type {number}
  */
 let strtoPlotprev=null;
 /**
  * full length of the sequence considered
- * @type {integer}
+ * @type {number}
  */
 let sequenceLength = null;
 /**
@@ -206,13 +214,13 @@ let sequenceLength = null;
 let mouseactive=false;
 /**
  * width of the visual container, changed when window is resized
- * @type {integer}
+ * @type {number}
  */
 let visContainerWidth=800
 
 /**
  * width of the scale, 98% of the container width
- * @type {integer}
+ * @type {number}
  */
 let lineChartWidth = visContainerWidth * .98; 
 /**
@@ -233,7 +241,7 @@ let viscontainer=null
  ** initialize containers 
  ** set mouse as not active 
  * 
- * @param {Array} data The input data read form the file
+ * @param {Array} data  the parsed content of the input file
  */
 
 function initialize(data){
@@ -278,7 +286,7 @@ let nestedData=[]
  let AfterTrascription=[]
  /**
  * maximal number of structural alternatives
- * @type {integer}
+ * @type {number}
  */
  let maxNoStr=0
 
@@ -288,7 +296,7 @@ let nestedData=[]
  * @param {Array} nestedData The input data read form the file, grouped by time
  * @returns {Array} trascription steps
  * @returns {Array} Steps after trascription
- * @returns {integer}  maximal number of structural alternatives
+ * @returns {number}  maximal number of structural alternatives
  */
  function SplitTranscription(nestedData){
     // having the sequence length at the end, the end of transciption is identified as the first time step where the structures of that length occur
@@ -378,8 +386,8 @@ let maxlintime
  * function  for creating the scales, and determinining the start and end of transcription
  * @returns {Object} the combined Scale  
  * @returns {Object} rainbow Scale
- * @returns {float} first time point in the file
- * @returns {float} time of the end of transcription 
+ * @returns {number} first time point in the file
+ * @returns {number} time of the end of transcription 
  */
 function CreateScales(){
         
@@ -431,7 +439,8 @@ function CreateScales(){
         
             
          rainbowScale = (t) => { //console.log(t/ sequenceLength)
-            return d3.hcl(360*t, 100, 55 ); 
+            //console.log(t, t/(2* sequenceLength))
+            return d3.hcl(360*t, 100, 55); 
             //return d3.hcl(360* t/(sequenceLength), 100* t/(sequenceLength), 55); 
         // return d3.hcl(360* t, 100, 55); 
         };
@@ -522,7 +531,7 @@ function ShowEndOfTranscriptionLine(){
 /**
  *  Debounce function that, as long as it continues to be invoked, will not be triggered.
  * @param {Function}  func Name of the function 
- * @param {integer} time Time in milliseconds to wait before the function gets called, 100 by default
+ * @param {number} time Time in milliseconds to wait before the function gets called, 100 by default
  * @returns {Function} 
  */
 
@@ -537,11 +546,12 @@ function ShowEndOfTranscriptionLine(){
 
 /**
  * List of structures to plot for the selected time point
+ * @type {Array}
  */  
 let strToPlot;
 /**
  * Function for extracting the list of structures to plot for the selected time point
- * @param {float} time selected time point
+ * @param {number} time selected time point
  * @returns {Array} List of structures to plot for the selected time point
  */  
 function StructuresToPlot(time){
@@ -553,10 +563,14 @@ function StructuresToPlot(time){
         })
     return strToPlot
 }
+/**
+ * the index of the element with key current time point in nested data, used for the animation, such that all time points in the data are considered
+ * @type  {number}
+ */  
 let elementIndex = 0;
 /**
  * Animation delay for the play button, time in miliseconds between consecutive plots
- * @type {integer}
+ * @type {number}
  */  
 const animationDelay = 10;
 
@@ -572,7 +586,7 @@ let delayPLOT = undefined;
 let playAnimation = false;
 /**
  * Mathod for showing a line at the current selected coordinates
- * @param {integer} coord the x-coordinate on the visual container of the selected time point 
+ * @param {number} coord the x-coordinate on the visual container of the selected time point 
  * @param {string} color the color of the line, red by default
  */  
 function showLine(coord, color="red") {
@@ -677,7 +691,7 @@ function WriteTable(strToPlot){
           
 /**
  * Function for plotting the treemap containing the structures, as well as writing the table
- * @param {float} realtime the selected time (as present in the file) 
+ * @param {number} realtime the selected time (as present in the file) 
  * @returns {Array} The list of plotted structures, as the ones that were now previously plotted
   */   
 function PLOT(realtime) {   
@@ -759,7 +773,7 @@ function makeTreemapData(data) {
  ** store the colors of each nucleotide
  ** for each nucleotide in the stem assign it the stem's average nucleotide number
  ** and convert average nucleotide numbers to colors
- * @param {Array} data 
+ * @param {Array} data the parsed content of the input file
  */
 function calculateNucleotideColors(data) {
     data.forEach(function(d, i) {
@@ -844,7 +858,7 @@ function toggleFullScreen(elem) {
 }
 /**
  * Function for showing the data, which consists mostly of calls of previously defined functions and the mouse events
- * @param {Array} data 
+ * @param {Array} data the parsed content of the input file
  */
 
 function ShowData(data) { 

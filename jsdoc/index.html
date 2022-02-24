@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
     <meta charset="utf-8">
-    <title>JSDoc: Home</title>
+    <title>JSDoc: Documentation - DrForna</title>
 
     <script src="scripts/prettify/prettify.js"> </script>
     <script src="scripts/prettify/lang-css.js"> </script>
@@ -17,7 +17,7 @@
 
 <div id="main">
 
-    <h1 class="page-title">Home</h1>
+    <h1 class="page-title">Documentation - DrForna</h1>
 
     
 
@@ -42,7 +42,154 @@
 
 
 
+    <section>
+        <article><h2>DrFornaA</h2>
+<p>Dr. FornaA is a web component for visualizing co-transcriptional RNA folding.</p>
+<p>As an input, the program takes a DrTransformer (short for &quot;DNA-to-RNA transformer&quot;) <code>.drf</code> output file, containing the details of the cotranscriptional folding simulation.</p>
+<h2>To start this project in development mode, please run:</h2>
+<p><code>npm install</code><br>
+<code>npm start</code></p>
+<h2>Using the tool:</h2>
+<p>You can either select one of the predefined examples or upload your own input file.</p>
+<p>The <strong>input file</strong> should be a space separated values file (multiple spaces are allowed) with header &quot;id time occupancy structure energy&quot;.</p>
+<p><code>id time occupancy structure energy</code><br>
+<code>5 0.5399146247695 8.470447e-01 ...........(((((.....)))))..  -5.80</code><br>
+<code>4 0.5399146247695 1.164858e-01 (((((((......)))).))).......  -1.70</code><br>
+<code>2 0.5399146247695 2.702974e-02 .((((((......)))).))........  -0.80</code><br>
+<code>5 0.539938232645 8.471626e-01 ...........(((((.....)))))..  -5.80</code><br>
+<code>4 0.539938232645 1.163944e-01 (((((((......)))).))).......  -1.70</code><br>
+<code>2 0.539938232645 2.700322e-02 .((((((......)))).))........  -0.80</code><br>
+<code>5 0.54011268395 8.480309e-01 ...........(((((.....)))))..  -5.80</code><br>
+<code>4 0.54011268395 1.156896e-01 (((((((......)))).))).......  -1.70</code><br>
+<code>2 0.54011268395 2.683970e-02 .((((((......)))).))........  -0.80</code><br>
+<code>5 0.559866395 9.186655e-01 ...........(((((.....)))))..  -5.80</code><br>
+<code>4 0.559866395 5.835607e-02 (((((((......)))).))).......  -1.70</code><br>
+<code>2 0.559866395 1.353858e-02 .((((((......)))).))........  -0.80</code></p>
+<p>Where <code>id</code> groups structures, <code>time</code> is the time point for which the structure and the occupancy are measured. <code>occupancy</code> is the occupancy of that structure at that specific time point. The secondary structure is given in dot-bracket notation in the <code>structure</code> column while the free energy (in kcal / mol) is shown in the <code>energy</code> column.</p>
+<p>The output shown contains the visual output for a <strong>selected time point</strong> (marked with the red line on the time scale):</p>
+<ul>
+<li>each structure is shown in the rectangle marked with the ID of the structure in the corner</li>
+<li>the size of each rectangle will be proportional to the occupancy of the corresponding structure at the selected time point</li>
+<li>each nucleotide will be colored according to the helix it is part of, while unpaired nucleotides remain uncolored</li>
+<li>the black line on the time scale marks the end of transciption, which splits the scale into the <strong>linear cotranscriptional time scale</strong> and the <strong>logarithmic scale for time steps after the end of transcription</strong></li>
+<li>for each time point, the <strong>vertical section of the colors</strong> shown on the scale correspond to the nucleotide colors of the most occupied structure present at the selected time point</li>
+<li>a <strong>summary</strong> of the content of the file for the selected timepoint will be shown <strong>as a table</strong>. Each nucleotide of the structure (in dot bracket notation) will be also colored according to the helix it is part of</li>
+</ul>
+<p>In the area of the time scale, you can activate or deactivate the mouse with a click. When the mouse is active, you can move the mouse left or right to <strong>select a time point interactively</strong>.</p>
+<p>The <strong>Play/Pause</strong> function goes through every time point in the input file and can be deactivated either by clicking the button again or by a mouse click on the time scale.</p>
+<p>By clicking the <strong>Download</strong> button, a file containing the visual output will be downloaded. A notification containing the name of the file will appear.</p>
+<h2>Screennshot:</h2>
+<img src="../public/Screenshot.png"></article>
+    </section>
 
+
+
+
+
+
+
+
+
+<section>
+
+<header>
+    
+        <h2>main.js</h2>
+        
+    
+</header>
+
+<article>
+    <div class="container-overview">
+    
+        
+            <div class="description"><p>Update of the DrForna Prototype <a href="https://github.com/ViennaRNA/drforna.git"> DrForna </a> , authors Peter Kerpedjiev, Stefan Hammer</p></div>
+        
+
+        
+
+
+<dl class="details">
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+    <dt class="tag-author">Author:</dt>
+    <dd class="tag-author">
+        <ul>
+            <li>Anda Latif</li>
+        </ul>
+    </dd>
+    
+
+    
+
+    
+
+    
+
+    
+    <dt class="tag-source">Source:</dt>
+    <dd class="tag-source"><ul class="dummy"><li>
+        <a href="main.js.html">main.js</a>, <a href="main.js.html#line5">line 5</a>
+    </li></ul></dd>
+    
+
+    
+
+    
+    <dt class="tag-see">See:</dt>
+    <dd class="tag-see">
+        <ul>
+            <li><a href="https://github.com/AndaLatif/DrFornaA"> DrFornaA </a></li>
+        </ul>
+    </dd>
+    
+
+    
+</dl>
+
+
+        
+    
+    </div>
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+</article>
+
+</section>
 
 
 
@@ -50,13 +197,13 @@
 </div>
 
 <nav>
-    <h2><a href="index.html">Home</a></h2><h3>Global</h3><ul><li><a href="global.html#AfterTrascription">AfterTrascription</a></li><li><a href="global.html#animationDelay">animationDelay</a></li><li><a href="global.html#calculateNucleotideColors">calculateNucleotideColors</a></li><li><a href="global.html#combinedScale">combinedScale</a></li><li><a href="global.html#containers">containers</a></li><li><a href="global.html#createScaleColors">createScaleColors</a></li><li><a href="global.html#CreateScales">CreateScales</a></li><li><a href="global.html#debounce">debounce</a></li><li><a href="global.html#delayPLOT">delayPLOT</a></li><li><a href="global.html#downloadPng">downloadPng</a></li><li><a href="global.html#drawCirclesForTimepoints">drawCirclesForTimepoints</a></li><li><a href="global.html#drawScales">drawScales</a></li><li><a href="global.html#filename">filename</a></li><li><a href="global.html#filteredData">filteredData</a></li><li><a href="global.html#formatColors">formatColors</a></li><li><a href="global.html#initialize">initialize</a></li><li><a href="global.html#lineChartWidth">lineChartWidth</a></li><li><a href="global.html#logscale">logscale</a></li><li><a href="global.html#makeTreemapData">makeTreemapData</a></li><li><a href="global.html#maxlintime">maxlintime</a></li><li><a href="global.html#maxNoStr">maxNoStr</a></li><li><a href="global.html#mintime">mintime</a></li><li><a href="global.html#mostocc">mostocc</a></li><li><a href="global.html#mostOccupiedperTime">mostOccupiedperTime</a></li><li><a href="global.html#mouseactive">mouseactive</a></li><li><a href="global.html#nestedData">nestedData</a></li><li><a href="global.html#nucleotideScale">nucleotideScale</a></li><li><a href="global.html#occupancyTreshold">occupancyTreshold</a></li><li><a href="global.html#playAnimation">playAnimation</a></li><li><a href="global.html#PLOT">PLOT</a></li><li><a href="global.html#preparePlotArea">preparePlotArea</a></li><li><a href="global.html#prevtime">prevtime</a></li><li><a href="global.html#rainbowScale">rainbowScale</a></li><li><a href="global.html#readFromFileRadio">readFromFileRadio</a></li><li><a href="global.html#readFromFileUpload">readFromFileUpload</a></li><li><a href="global.html#realtime">realtime</a></li><li><a href="global.html#scalel">scalel</a></li><li><a href="global.html#sequenceLength">sequenceLength</a></li><li><a href="global.html#ShowData">ShowData</a></li><li><a href="global.html#ShowEndOfTranscriptionLine">ShowEndOfTranscriptionLine</a></li><li><a href="global.html#showLine">showLine</a></li><li><a href="global.html#SplitTranscription">SplitTranscription</a></li><li><a href="global.html#start">start</a></li><li><a href="global.html#strToPlot">strToPlot</a></li><li><a href="global.html#strtoPlotprev">strtoPlotprev</a></li><li><a href="global.html#StructuresToPlot">StructuresToPlot</a></li><li><a href="global.html#svg">svg</a></li><li><a href="global.html#tableContainer">tableContainer</a></li><li><a href="global.html#toggleFullScreen">toggleFullScreen</a></li><li><a href="global.html#trascriptionSteps">trascriptionSteps</a></li><li><a href="global.html#viscontainer">viscontainer</a></li><li><a href="global.html#visContainerWidth">visContainerWidth</a></li><li><a href="global.html#WriteTable">WriteTable</a></li><li><a href="global.html#x_axislin">x_axislin</a></li><li><a href="global.html#x_axislog">x_axislog</a></li><li><a href="global.html#y_axis">y_axis</a></li></ul>
+    <h2><a href="index.html">Documentation - DrForna</a></h2><h3>Global</h3><ul><li><a href="global.html#AfterTrascription">AfterTrascription</a></li><li><a href="global.html#animationDelay">animationDelay</a></li><li><a href="global.html#calculateNucleotideColors">calculateNucleotideColors</a></li><li><a href="global.html#combinedScale">combinedScale</a></li><li><a href="global.html#containers">containers</a></li><li><a href="global.html#createScaleColors">createScaleColors</a></li><li><a href="global.html#CreateScales">CreateScales</a></li><li><a href="global.html#debounce">debounce</a></li><li><a href="global.html#delayPLOT">delayPLOT</a></li><li><a href="global.html#downloadPng">downloadPng</a></li><li><a href="global.html#drawCirclesForTimepoints">drawCirclesForTimepoints</a></li><li><a href="global.html#drawScales">drawScales</a></li><li><a href="global.html#elementIndex">elementIndex</a></li><li><a href="global.html#filename">filename</a></li><li><a href="global.html#filteredData">filteredData</a></li><li><a href="global.html#formatColors">formatColors</a></li><li><a href="global.html#initialize">initialize</a></li><li><a href="global.html#lineChartWidth">lineChartWidth</a></li><li><a href="global.html#logscale">logscale</a></li><li><a href="global.html#makeTreemapData">makeTreemapData</a></li><li><a href="global.html#maxlintime">maxlintime</a></li><li><a href="global.html#maxNoStr">maxNoStr</a></li><li><a href="global.html#mintime">mintime</a></li><li><a href="global.html#mostocc">mostocc</a></li><li><a href="global.html#mostOccupiedperTime">mostOccupiedperTime</a></li><li><a href="global.html#mouseactive">mouseactive</a></li><li><a href="global.html#nestedData">nestedData</a></li><li><a href="global.html#nucleotideScale">nucleotideScale</a></li><li><a href="global.html#occupancyTreshold">occupancyTreshold</a></li><li><a href="global.html#playAnimation">playAnimation</a></li><li><a href="global.html#PLOT">PLOT</a></li><li><a href="global.html#preparePlotArea">preparePlotArea</a></li><li><a href="global.html#prevtime">prevtime</a></li><li><a href="global.html#rainbowScale">rainbowScale</a></li><li><a href="global.html#readFromFileRadio">readFromFileRadio</a></li><li><a href="global.html#readFromFileUpload">readFromFileUpload</a></li><li><a href="global.html#realtime">realtime</a></li><li><a href="global.html#rnaUtilities">rnaUtilities</a></li><li><a href="global.html#scalel">scalel</a></li><li><a href="global.html#sequenceLength">sequenceLength</a></li><li><a href="global.html#ShowData">ShowData</a></li><li><a href="global.html#ShowEndOfTranscriptionLine">ShowEndOfTranscriptionLine</a></li><li><a href="global.html#showLine">showLine</a></li><li><a href="global.html#SplitTranscription">SplitTranscription</a></li><li><a href="global.html#start">start</a></li><li><a href="global.html#strToPlot">strToPlot</a></li><li><a href="global.html#strtoPlotprev">strtoPlotprev</a></li><li><a href="global.html#StructuresToPlot">StructuresToPlot</a></li><li><a href="global.html#svg">svg</a></li><li><a href="global.html#tableContainer">tableContainer</a></li><li><a href="global.html#toggleFullScreen">toggleFullScreen</a></li><li><a href="global.html#trascriptionSteps">trascriptionSteps</a></li><li><a href="global.html#viscontainer">viscontainer</a></li><li><a href="global.html#visContainerWidth">visContainerWidth</a></li><li><a href="global.html#WriteTable">WriteTable</a></li><li><a href="global.html#x_axislin">x_axislin</a></li><li><a href="global.html#x_axislog">x_axislog</a></li><li><a href="global.html#y_axis">y_axis</a></li></ul>
 </nav>
 
 <br class="clear">
 
 <footer>
-    Documentation generated by <a href="https://github.com/jsdoc/jsdoc">JSDoc 3.6.10</a> on Wed Feb 23 2022 10:39:04 GMT+0100 (Central European Standard Time)
+    Documentation generated by <a href="https://github.com/jsdoc/jsdoc">JSDoc 3.6.10</a> on Thu Feb 24 2022 11:30:03 GMT+0100 (Central European Standard Time)
 </footer>
 
 <script> prettyPrint(); </script>

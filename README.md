@@ -1,10 +1,7 @@
 ## DrFornaA
-Dr. Forna is a web component for visualizing co-transcriptional RNA folding.
+Dr. FornaA is a web component for visualizing co-transcriptional RNA folding.
 
 As an input, the program takes a DrTransformer (short for "DNA-to-RNA transformer") `.drf` output file, containing the details of the cotranscriptional folding simulation.
-
-## Screennshot:
-<img src=public/Screenshot.png />
 
 ## To start this project in development mode, please run:
 
@@ -45,3 +42,6 @@ In the area of the time scale, you can activate or deactivate the mouse with a c
 The **Play/Pause** function goes through every time point in the input file and can be deactivated either by clicking the button again or by a mouse click on the time scale.
 
 By clicking the **Download** button, a file containing the visual output will be downloaded. A notification containing the name of the file will appear.
+
+## Screennshot:
+<img src="../public/Screenshot.png"> 
