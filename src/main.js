@@ -818,10 +818,10 @@ function calculateNucleotideColors(data) {
     });
 }
 /**
- * Function for making an element fullscreen, used on fullScreenContainer upon Fullscreen button click 
- * thanks to https://developer.mozilla.org/en-US/docs/Web/Guide/API/DOM/Using_full_screen_mode
+ * Function for visulizing  a HTML element in  fullscreen mode, used on fullScreenContainer upon Fullscreen button click 
+ ** thanks to https://developer.mozilla.org/en-US/docs/Web/Guide/API/DOM/Using_full_screen_mode
  * @param {string} elem the name of the container to be visualized in fullscreen
- * @returns {*}
+ * 
  */
 // 
 function toggleFullScreen(elem) {

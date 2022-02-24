@@ -44,12 +44,12 @@
 
     <section>
         <article><h2>DrFornaA</h2>
-<p>Dr. FornaA is a web component for visualizing co-transcriptional RNA folding.</p>
+<p>DrFornaA is a web component for visualizing co-transcriptional RNA folding.</p>
 <p>As an input, the program takes a DrTransformer (short for &quot;DNA-to-RNA transformer&quot;) <code>.drf</code> output file, containing the details of the cotranscriptional folding simulation.</p>
 <h2>To start this project in development mode, please run:</h2>
 <p><code>npm install</code><br>
 <code>npm start</code></p>
-<h2>Using the tool:</h2>
+<h2>User Documentation:</h2>
 <p>You can either select one of the predefined examples or upload your own input file.</p>
 <p>The <strong>input file</strong> should be a space separated values file (multiple spaces are allowed) with header &quot;id time occupancy structure energy&quot;.</p>
 <p><code>id time occupancy structure energy</code><br>
@@ -66,18 +66,21 @@
 <code>4 0.559866395 5.835607e-02 (((((((......)))).))).......  -1.70</code><br>
 <code>2 0.559866395 1.353858e-02 .((((((......)))).))........  -0.80</code></p>
 <p>Where <code>id</code> groups structures, <code>time</code> is the time point for which the structure and the occupancy are measured. <code>occupancy</code> is the occupancy of that structure at that specific time point. The secondary structure is given in dot-bracket notation in the <code>structure</code> column while the free energy (in kcal / mol) is shown in the <code>energy</code> column.</p>
-<p>The output shown contains the visual output for a <strong>selected time point</strong> (marked with the red line on the time scale):</p>
+<p>The <code>id</code> is used in this tool as a unique identifier for the structures to generate the colors above the time scale. Two structures are considered the same (and hence can have the same <code>id)</code> if they only differ by the number of unpaired end-nucleotides. For example, the structures  <code>.(((((.....)))))..</code> and <code>.(((((.....)))))..........</code> can have the same <code>id</code>, but they do not have to. Using running <code>id</code>'s is also possible. In case your input file does not follow this convention, the plots will still be displayed correctly, but the coloring above the scale will not.</p>
+<p>An occupancy treshhold of 0.01 was used, hence structures with a smaller occupancy will not be displayed.</p>
+<p>The output shown contains the visual output for a <strong>selected time point</strong> (marked with the <strong>red line</strong> on the time scale):</p>
 <ul>
-<li>each structure is shown in the rectangle marked with the ID of the structure in the corner</li>
-<li>the size of each rectangle will be proportional to the occupancy of the corresponding structure at the selected time point</li>
-<li>each nucleotide will be colored according to the helix it is part of, while unpaired nucleotides remain uncolored</li>
-<li>the black line on the time scale marks the end of transciption, which splits the scale into the <strong>linear cotranscriptional time scale</strong> and the <strong>logarithmic scale for time steps after the end of transcription</strong></li>
-<li>for each time point, the <strong>vertical section of the colors</strong> shown on the scale correspond to the nucleotide colors of the most occupied structure present at the selected time point</li>
-<li>a <strong>summary</strong> of the content of the file for the selected timepoint will be shown <strong>as a table</strong>. Each nucleotide of the structure (in dot bracket notation) will be also colored according to the helix it is part of</li>
+<li>each <strong>structure</strong> is shown in the <strong>rectangle</strong> marked with the <strong>ID</strong> of the structure in the corner.</li>
+<li>the <strong>size</strong> of each rectangle will be <strong>proportional to the occupancy</strong> of the corresponding structure at the selected time point.</li>
+<li>each nucleotide will be <strong>colored according to the helix</strong> it is part of, while unpaired nucleotides remain uncolored.</li>
+<li>the <strong>black line</strong> on the time scale marks the end of transciption, which splits the scale into the <strong>linear cotranscriptional time scale</strong> and the <strong>logarithmic scale for time steps after the end of transcription</strong>.</li>
+<li>for each time point, the <strong>vertical section of the colors</strong> shown on the scale correspond to the nucleotide colors of the most occupied structure present at the selected time point.</li>
+<li>a <strong>summary</strong> of the content of the file for the selected timepoint will be shown <strong>as a table</strong>. Each nucleotide of the structure (in dot bracket notation) will be also colored according to the helix it is part of. The <code>id</code> of the most occupied structure for that particular time point will be also marked in the table.</li>
 </ul>
 <p>In the area of the time scale, you can activate or deactivate the mouse with a click. When the mouse is active, you can move the mouse left or right to <strong>select a time point interactively</strong>.</p>
-<p>The <strong>Play/Pause</strong> function goes through every time point in the input file and can be deactivated either by clicking the button again or by a mouse click on the time scale.</p>
+<p>The <strong>Play/Pause</strong> starts the animation: the structures are shown for every time point in the input file. These were marked with small circles on the time scale.  The animation can be deactivated either by clicking the button again or by a mouse click on the scale area.</p>
 <p>By clicking the <strong>Download</strong> button, a file containing the visual output will be downloaded. A notification containing the name of the file will appear.</p>
+<p>The <strong>Fullscreen</strong> button displays the visual output in fullscreen mode.</p>
 <h2>Screennshot:</h2>
 <img src="../public/Screenshot.png"></article>
     </section>
@@ -203,7 +206,7 @@
 <br class="clear">
 
 <footer>
-    Documentation generated by <a href="https://github.com/jsdoc/jsdoc">JSDoc 3.6.10</a> on Thu Feb 24 2022 11:30:03 GMT+0100 (Central European Standard Time)
+    Documentation generated by <a href="https://github.com/jsdoc/jsdoc">JSDoc 3.6.10</a> on Thu Feb 24 2022 12:06:54 GMT+0100 (Central European Standard Time)
 </footer>
 
 <script> prettyPrint(); </script>
