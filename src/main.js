@@ -621,8 +621,8 @@ function formatColors (colors) {
  * @param {Array} strToPlot The list of structures selected for the currently selected time point
  */           
 function WriteTable(strToPlot){
-                var colnames = ['ID',// 'Time', 
-                'Occupancy', 'Structure', 'Energy'];    
+                var colnames = ['ID', 'Energy',// 'Time', 
+                'Occupancy', 'Structure'];    
     
                 d3new.select("#tableContainer")
                     .selectAll("table").remove()
@@ -632,23 +632,26 @@ function WriteTable(strToPlot){
                 .style("font-family", "DejaVu Sans Mono")
                 let structures = d3new.select("#tableContainer").append("table")
                     .style("font-family", "DejaVu Sans Mono")
+                    
                 let ttime = time.append("thead").append('tr')
-                ttime.append("td").text("Selected time point: "+strToPlot[0].time+" s")
+                ttime.append("td").text("Selected time point: "+strToPlot[0].time+" s, Transcription length "+ strToPlot[0].structure.length+"/"+sequenceLength)
+                
                 let th = structures.append("thead")
                 th.append('tr').selectAll('th')
                             .data(colnames).enter()
                             .append('th')
                             .text(function (column) { return column; });
-                let tbody = structures.append('tbody')
+                let tbody = structures.append('tbody').style("text-align", "right")
                 let tr = tbody.selectAll("tr")
                       .data(strToPlot)
                       .enter()
                       .append("tr").attr("class", "tableData")
+                      
                       .selectAll("td")
                       .data(d => {
-                          return [{column:"id", value:d.id},//{column:"time", value: d.time},
+                          return [{column:"id", value:d.id},{column:"en", value: d.energy},//{column:"time", value: d.time},
                                   {column:"oc", value:Math.round(d.occupancy*1000)/1000}, 
-                                  {column:"str", value:d.structure, col:d.colors},{column:"en", value: d.energy}]//, {column:"col", value:d.colors}]
+                                  {column:"str", value:d.structure, col:d.colors}]//, {column:"col", value:d.colors}]
                       })
                       .enter()
                 tr.each((dd,j) =>{
@@ -658,6 +661,7 @@ function WriteTable(strToPlot){
                     }                
                     if (dd.column=="str") {                   
                         let tb=tbody.append("td")
+                                .style( "white-space", "nowrap")
                         tb.selectAll('span').remove()
                         for (let i = 0; i < dd.value.length; i++) {
                           tb.append('span')
