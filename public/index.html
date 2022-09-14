@@ -13,11 +13,17 @@
         float: left;
         margin-left: 5px;
         margin: 5px;
+      
       }
       .form {
         display: table;
         padding: 5px;
         clear: both;
+        margin-left: 5px;
+        margin: 5px;
+        height: 100%;
+        width: 100%;
+        overflow: scroll;
       }
       
      
@@ -52,11 +58,17 @@
               <div class="forminput"><input type="radio" name="fileinput" value="ABCD.drt.drf">ABCD_DrT</div>  
               <div class="forminput"><input type="radio" name="fileinput" value="C_2AE_SC.drf">C_2AE_SC_origami</div>  
               <div class="forminput"><input type="radio" name="fileinput" value="bug">bug</div>               
+            </div><br>
+            (Optional) Sequence:
+            <div class="seqform" max-width="1800px" >
+              <textarea name="Text1" cols="80" rows="3">-</textarea>            
+              
+              
             </div>
-
             <div class="form">
               Or provide a file:</br>
               <div class="fileinput"><input type="file" id="files" name="files" title="Enter an input file"></div>
+              
             </div>
             <!-- <button class="collapseButton" id="collapseButton">Show Input file content</button> -->
       <pre id="textContainer" class="text-container" ></pre>
