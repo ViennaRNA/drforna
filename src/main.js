@@ -182,22 +182,9 @@ function readSequence(){
 function reloadSequence(){
     let reload_b = d3new.select("#SeqReload")
     reload_b.on('click', function() {
+        console.log("clicked ")
         readSequence()
-        for (let i = 0, f; f = files[i]; i++) {
-            let reader = new FileReader()
-            reader.onload = (val) => {                                   
-               let a=[]
-              //console.log(val.target.result.replace(/ +/g, ",").replace(/\n,+/g, "\n").replace(/^\s*\n/gm, ""))
-               a = d3new.csvParse(val.target.result.replace(/ +/g, ",").replace(/\n,+/g, "\n").replace(/^\s*\n/gm, "")) 
-               //console.log(a)
-               //a = d3new.csvParse(a.replace("\n,", "\n"))    
-                containers = {}; 
-                
-               readSequence()
-               ShowData(a)
-            }            
-            reader.readAsText(f);
-        }
+       
         
 
     })
@@ -1058,6 +1045,16 @@ function ShowData(data) {
            // timer(1)
         }
     })
+    let reload_b = d3new.select("#SeqReload")
+    reload_b.on('click', function() {
+        console.log("clicked ")
+        readSequence()
+        prevtime=null
+        ShowData(data) 
+       
+        
+
+    })
     let bfullscr = d3new.select("#toggleFullScreen")
     bfullscr.on('click', function() {
         toggleFullScreen(document.getElementById('fullScreenContainer'));
@@ -1069,7 +1066,7 @@ function ShowData(data) {
         downloadsSVG()})
     let play = d3new.select("#toggleAnimation");
     //
-    reloadSequence()
+     
     play.on("click", () => {playAnimation = !playAnimation    
         
         nestedData.forEach(element => {
