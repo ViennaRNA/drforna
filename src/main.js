@@ -156,7 +156,7 @@ function readFromFileUpload(){
 function readSequence(){
     
     document.querySelectorAll('.seqform').forEach((item) => {
-        console.log(item)
+        //console.log(item)
         item.addEventListener('change', (event) => {
             let input_text_array=event.target.value.trimEnd().trimStart().split("\n")
             if (input_text_array==""|| input_text_array=="-")  {
@@ -175,7 +175,7 @@ function readSequence(){
                     seq_name=""
                     inputSeq= input_text_array.join("").replace(/ +/g, "")
             }  
-            console.log(seq_name, inputSeq)         
+           // console.log(seq_name, inputSeq)         
         })
     })
 }
@@ -652,6 +652,7 @@ let delayPLOT = undefined;
  * @type {boolean} 
  */  
 let playAnimation = false;
+let Sum_of_occ
 /**
  * Mathod for showing a line at the current selected coordinates
  * @param {number} coord the x-coordinate on the visual container of the selected time point 
@@ -702,7 +703,7 @@ function WriteTable(strToPlot){
                     .style("font-family", "DejaVu Sans Mono")
                     
                 let ttime = time.append("thead").append('tr')
-                ttime.append("td").text("Selected time point: "+strToPlot[0].time+" s, Transcription length "+ strToPlot[0].structure.length+"/"+sequenceLength)
+                ttime.append("td").text("Selected time point: "+strToPlot[0].time+" s").append("td").text("Transcription length "+ strToPlot[0].structure.length+"/"+sequenceLength).append("tr").append("td").text("Sum of Occupancies displayed "+Sum_of_occ)
                 
                 let th = structures.append("thead")
                 th.append('tr').selectAll('th')
@@ -790,6 +791,8 @@ function PLOT(realtime) {
                     .parentId(function (d) { return d.parent; })   // Name of the parent (column name is parent in csv)
                     (treemapData);
                 root.sum(d => +d.value)   // Compute the numeric value for each entity
+                console.log(root.value)
+                Sum_of_occ=root.value
                 d3new.treemap()
                     .size([svgWidth, svgHeight])
                     .padding(4)
@@ -827,11 +830,11 @@ function PLOT(realtime) {
                                     containers[rectname].seq=inputSeq
                                         //IF IT IS THERE! 
                                         //containers[rectname].addRNA(inputSeq.slice(0, strToPlot[0].structure.length))
-                                    console.log(containers[rectname])
+                                    //console.log(containers[rectname])
                                         
                                         //SOMEHOW GIVE SEQUENCE AS
                                     containers[rectname].transitionRNA(d.data.str);
-                                    console.log(containers[rectname])    
+                                    //console.log(containers[rectname])    
                                     let colorStrings = d.data.colors.map(function(d, i) {
                                         return `${i+1}:${d}`;
                                     });
@@ -1047,7 +1050,7 @@ function ShowData(data) {
     })
     let reload_b = d3new.select("#SeqReload")
     reload_b.on('click', function() {
-        console.log("clicked ")
+        //console.log("clicked ")
         readSequence()
         prevtime=null
         ShowData(data) 
