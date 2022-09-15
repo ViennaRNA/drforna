@@ -1054,6 +1054,8 @@ function ShowData(data) {
         readSequence()
         prevtime=null
         ShowData(data) 
+        PLOT(realtime)
+        showLine(combinedScale(realtime)) 
        
         
 
