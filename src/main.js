@@ -204,6 +204,31 @@ function downloadPng() {
     });
 }
 /**
+ * Function for downloading the content of the container,
+ ** the name of the downloaded file is generated using the name of the current selected file, the current time and the current date. 
+ ** also dispays a notification when the file was downloaded
+ * @param {string} elem name of the container
+ 
+ */
+function downloadsSVG() {
+   
+    //console.log('Downloading... ')
+    domtoimage.toSvg(document.getElementById("drTrafoContainer")) //try downloading drTrafoContainer without the table 
+    .then(function (dataUrl) {
+        let link = document.createElement('a');
+        let today = new Date()
+        let date = today.getFullYear()+'_'+(today.getMonth()+1)+'_'+today.getDate();
+        let time = today.getHours() + "_" + today.getMinutes() + "_" + today.getSeconds();
+       
+        link.download = filename+"_"+date+"_"+time+'.svg';
+        alert("File "+link.download+" was downloaded")
+        link.href = dataUrl;
+        link.click();
+        
+
+    });
+}
+/**
  * Logarithmic scale- for steps after transcription ends
  *  
  */
@@ -673,13 +698,14 @@ function WriteTable(strToPlot){
                             .append('th')
                             .text(function (column) { return column; })
                             .append('th')
+                            
                             .text(function (column) { 
                                 if (column=="Structure"){
                                     return inputSeq.slice(0, strToPlot[0].structure.length) //
                                 }
                                 else
                                  return ""
-                            })
+                            }).style("text-align", "right")
                             
                 let tbody = structures.append('tbody').style("text-align", "right")
                 let tr = tbody.selectAll("tr")
@@ -701,7 +727,7 @@ function WriteTable(strToPlot){
                     }                
                     if (dd.column=="str") {                   
                         let tb=tbody.append("td")
-                                .style( "white-space", "nowrap")
+                                .style( "white-space", "nowrap").style("text-align", "left")
                         tb.selectAll('span').remove()
                         for (let i = 0; i < dd.value.length; i++) {
                           tb.append('span')
@@ -786,8 +812,14 @@ function PLOT(realtime) {
                                 if ( d.data.str != '') {
                                     containers[rectname] = new FornaContainer('#' + rectname,{zoomable:false, editable:false,animation:false, 
                                         transitionDuration:0});
+                                    containers[rectname].seq=inputSeq
+                                        //IF IT IS THERE! 
+                                        //containers[rectname].addRNA(inputSeq.slice(0, strToPlot[0].structure.length))
+                                    console.log(containers[rectname])
+                                        
                                         //SOMEHOW GIVE SEQUENCE AS
-                                    containers[rectname].transitionRNA(d.data.str);  
+                                    containers[rectname].transitionRNA(d.data.str);
+                                    console.log(containers[rectname])    
                                     let colorStrings = d.data.colors.map(function(d, i) {
                                         return `${i+1}:${d}`;
                                     });
@@ -1009,7 +1041,7 @@ function ShowData(data) {
     bd.on("click", () => {
         if (playAnimation) {playAnimation=false};
       //console.log("down")
-        downloadPng()})
+        downloadsSVG()})
     let play = d3new.select("#toggleAnimation");
     //
     play.on("click", () => {playAnimation = !playAnimation    
