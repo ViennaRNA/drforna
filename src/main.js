@@ -80,6 +80,7 @@ function start() {
     readFromFileRadio();
     readFromFileUpload();
     readSequence()
+   
 } 
 
  /**
@@ -155,6 +156,7 @@ function readFromFileUpload(){
 function readSequence(){
     
     document.querySelectorAll('.seqform').forEach((item) => {
+        console.log(item)
         item.addEventListener('change', (event) => {
             let input_text_array=event.target.value.trimEnd().trimStart().split("\n")
             if (input_text_array==""|| input_text_array=="-")  {
@@ -175,6 +177,29 @@ function readSequence(){
             }  
             console.log(seq_name, inputSeq)         
         })
+    })
+}
+function reloadSequence(){
+    let reload_b = d3new.select("#SeqReload")
+    reload_b.on('click', function() {
+        readSequence()
+        for (let i = 0, f; f = files[i]; i++) {
+            let reader = new FileReader()
+            reader.onload = (val) => {                                   
+               let a=[]
+              //console.log(val.target.result.replace(/ +/g, ",").replace(/\n,+/g, "\n").replace(/^\s*\n/gm, ""))
+               a = d3new.csvParse(val.target.result.replace(/ +/g, ",").replace(/\n,+/g, "\n").replace(/^\s*\n/gm, "")) 
+               //console.log(a)
+               //a = d3new.csvParse(a.replace("\n,", "\n"))    
+                containers = {}; 
+                
+               readSequence()
+               ShowData(a)
+            }            
+            reader.readAsText(f);
+        }
+        
+
     })
 }
 
@@ -1044,6 +1069,7 @@ function ShowData(data) {
         downloadsSVG()})
     let play = d3new.select("#toggleAnimation");
     //
+    reloadSequence()
     play.on("click", () => {playAnimation = !playAnimation    
         
         nestedData.forEach(element => {
