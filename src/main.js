@@ -168,27 +168,25 @@ function readSequence(){
             if (">"==input_text_array[0][0]){
                 seq_name= input_text_array[0].substring(1)
                 inputSeq= input_text_array.slice(1, ).join("").replace(/ +/g, "")
-                
+                inputSeq=inputSeq.toUpperCase()
+                event.target.value=inputSeq
             }
             else{
                 
                     seq_name=""
                     inputSeq= input_text_array.join("").replace(/ +/g, "")
+                    inputSeq=inputSeq.toUpperCase()
+                    event.target.value=inputSeq
             }  
-           // console.log(seq_name, inputSeq)         
+            //if (inputSeq!=""&& sequenceLength!="" && sequenceLength!= inputSeq.length) {
+             //   alert("The Sequence you entered does not have the apropriate length")
+            //    event.target.value="-"
+            //}
+           //console.log(seq_name, inputSeq)         
         })
     })
 }
-function reloadSequence(){
-    let reload_b = d3new.select("#SeqReload")
-    reload_b.on('click', function() {
-        console.log("clicked ")
-        readSequence()
-       
-        
 
-    })
-}
 
 /**
  * Function for downloading the content of the container,
@@ -259,7 +257,7 @@ let svg;
  * the selected time point
  * @type {number}
  */
-let realtime;
+let realtime=null;
 /**
  * the previous time point, to check if anything changed before unnecessarly reploting
  * @type {number}
@@ -965,7 +963,7 @@ function ShowData(data) {
     container.select('#loadingNotification').remove(); //remove the loading notification 
     const onResize = () => {
         //retain position we are at and if animation was on an remake plots accordingly!?? TODO?
-        //maybe not delete everything but just resize
+        //maybe not delete everything but just resize to increase performance
         playAnimation = false        
         tableContainer.selectAll("#timesvg").remove() //remove time scale
         //viscontainer.selectAll(".div").selectAll(".svg").remove() 
@@ -975,6 +973,7 @@ function ShowData(data) {
     window.addEventListener("resize", debounce(onResize, 1000)); // when the window was resize, call the onResize function after 1000 ms
 
     filteredData = data.filter((d) => { return d.occupancy > occupancyTreshold }) // select structures with high enough occupancy
+    //TODO : Tell the user if there are time points that do not have any structures with a big enough occupancy 
     nestedData = Array.from(d3new.group(filteredData, d => d.time)) // nest data by  time points to extract the structures to plot for every time step
     trascriptionSteps,  AfterTrascription, maxNoStr = SplitTranscription(nestedData)
     combinedScale, rainbowScale ,mintime, maxlintime= CreateScales();
@@ -1053,6 +1052,9 @@ function ShowData(data) {
         //console.log("clicked ")
         readSequence()
         prevtime=null
+        if (realtime==null){
+            realtime=mintime
+        }
         ShowData(data) 
         PLOT(realtime)
         showLine(combinedScale(realtime)) 
