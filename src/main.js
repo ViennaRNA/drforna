@@ -96,7 +96,24 @@ function readFromFileRadio(){
         item.addEventListener('change', (event) => {
             document.querySelectorAll('.fileinput').forEach((item)=>{item.lastElementChild.value=""})
              filename = item.lastElementChild.value
-             
+             let seqFileName=filename.split(".")[0]+".fa"
+             console.log(seqFileName)
+             d3new.text(seqFileName).then(d => {
+                a = d3new.csvParse(d)
+                seq_name=a.columns[0]
+                console.log(Array.from(a)[0][seq_name])
+                let se = Object.keys(Array.from(a)).map(function(key){
+                    return a[key][seq_name];
+                  
+                }) 
+                inputSeq=se.join("")                
+                document.querySelectorAll("#sequence").forEach((item)=>{item.value=seq_name+"\n"+inputSeq})
+                
+                
+                //=seq_name+inputSeq   
+
+                       
+            })
        // filename=fileName
             let a = []
             d3new.text(filename).then(d => {
@@ -169,14 +186,14 @@ function readSequence(){
                 seq_name= input_text_array[0].substring(1)
                 inputSeq= input_text_array.slice(1, ).join("").replace(/ +/g, "")
                 inputSeq=inputSeq.toUpperCase()
-                event.target.value=inputSeq
+                event.target.value=">"+seq_name+"\n"+inputSeq
             }
             else{
                 
                     seq_name=""
                     inputSeq= input_text_array.join("").replace(/ +/g, "")
                     inputSeq=inputSeq.toUpperCase()
-                    event.target.value=inputSeq
+                    event.target.value=">"+seq_name+"\n"+inputSeq
             }  
             //if (inputSeq!=""&& sequenceLength!="" && sequenceLength!= inputSeq.length) {
              //   alert("The Sequence you entered does not have the apropriate length")
