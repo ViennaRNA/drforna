@@ -97,22 +97,27 @@ function readFromFileRadio(){
             document.querySelectorAll('.fileinput').forEach((item)=>{item.lastElementChild.value=""})
              filename = item.lastElementChild.value
              let seqFileName=filename.split(".")[0]+".fa"
-             console.log(seqFileName)
+             //console.log(seqFileName)
+             //console.log("a")
              d3new.text(seqFileName).then(d => {
+                
                 a = d3new.csvParse(d)
+                
                 seq_name=a.columns[0]
-                console.log(Array.from(a)[0][seq_name])
+                //console.log(Array.from(a)[0][seq_name])
                 let se = Object.keys(Array.from(a)).map(function(key){
                     return a[key][seq_name];
                   
                 }) 
                 inputSeq=se.join("")                
-                document.querySelectorAll("#sequence").forEach((item)=>{item.value=seq_name+"\n"+inputSeq})
-                
-                
-                //=seq_name+inputSeq   
-
-                       
+                document.querySelectorAll("#sequence").forEach((item)=>{item.value=seq_name+"\n"+inputSeq})})
+            .catch((error) => {
+               //console.log("nu a gasit file, sequence goala   ")
+                inputSeq=""
+                seq_name=""
+                document.querySelectorAll("#sequence").forEach((item)=>{item.value="-"})
+            
+      
             })
        // filename=fileName
             let a = []
@@ -161,7 +166,7 @@ function readFromFileUpload(){
                //a = d3new.csvParse(a.replace("\n,", "\n"))    
                 containers = {}; 
                 
-               readSequence()
+               //readSequence()
                ShowData(a)
             }            
             reader.readAsText(f);
@@ -806,7 +811,7 @@ function PLOT(realtime) {
                     .parentId(function (d) { return d.parent; })   // Name of the parent (column name is parent in csv)
                     (treemapData);
                 root.sum(d => +d.value)   // Compute the numeric value for each entity
-                console.log(root.value)
+                //console.log(root.value)
                 Sum_of_occ=root.value
                 d3new.treemap()
                     .size([svgWidth, svgHeight])
@@ -982,16 +987,28 @@ function ShowData(data) {
         //retain position we are at and if animation was on an remake plots accordingly!?? TODO?
         //maybe not delete everything but just resize to increase performance
         playAnimation = false        
-        tableContainer.selectAll("#timesvg").remove() //remove time scale
+        //tableContainer.selectAll("#timesvg").remove() //remove time scale
         //viscontainer.selectAll(".div").selectAll(".svg").remove() 
-        viscontainer.selectAll("#treemapdiv").remove()//remove plots
+        //viscontainer.selectAll("#treemapdiv").remove()//remove plots
+        initialize(data)
         ShowData(data); // redraw plots
+        if (realtime!=null){
+            PLOT(realtime)
+            showLine(combinedScale(realtime)) 
+        }
+        
     }
     window.addEventListener("resize", debounce(onResize, 1000)); // when the window was resize, call the onResize function after 1000 ms
 
     filteredData = data.filter((d) => { return d.occupancy > occupancyTreshold }) // select structures with high enough occupancy
-    //TODO : Tell the user if there are time points that do not have any structures with a big enough occupancy 
+   
     nestedData = Array.from(d3new.group(filteredData, d => d.time)) // nest data by  time points to extract the structures to plot for every time step
+    //TODO : Tell the user if there are time points that do not have any structures with a big enough occupancy 
+    //let nfd = Array.from(d3new.group(data, d => d.time))
+    //console.log(nestedData)
+    //console.log(nfd)
+    //if (nestedData.length<nfd.length){alert("Some data points were deleted due to only having structures with low occupancy")}
+
     trascriptionSteps,  AfterTrascription, maxNoStr = SplitTranscription(nestedData)
     combinedScale, rainbowScale ,mintime, maxlintime= CreateScales();
     
