@@ -198,7 +198,7 @@ function readSequence(){
                     seq_name=""
                     inputSeq= input_text_array.join("").replace(/ +/g, "")
                     inputSeq=inputSeq.toUpperCase()
-                    event.target.value=">"+seq_name+"\n"+inputSeq
+                    event.target.value=inputSeq
             }  
             //if (inputSeq!=""&& sequenceLength!="" && sequenceLength!= inputSeq.length) {
              //   alert("The Sequence you entered does not have the apropriate length")
