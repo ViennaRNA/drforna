@@ -153,8 +153,6 @@ function readFromFileUpload(){
    
        let files = event.target.files
         filename=files[0].name
-        //console.log(filename)
-       //console.log(files)
        
         for (let i = 0, f; f = files[i]; i++) {
             let reader = new FileReader()
@@ -162,12 +160,20 @@ function readFromFileUpload(){
                let a=[]
               //console.log(val.target.result.replace(/ +/g, ",").replace(/\n,+/g, "\n").replace(/^\s*\n/gm, ""))
                a = d3new.csvParse(val.target.result.replace(/ +/g, ",").replace(/\n,+/g, "\n").replace(/^\s*\n/gm, "")) 
-               //console.log(a)
-               //a = d3new.csvParse(a.replace("\n,", "\n"))    
+               
                 containers = {}; 
                 
                //readSequence()
                ShowData(a)
+
+               //This is where I need to check if the file contains points that are disregarded 
+                 
+                let nd = Array.from(d3new.group(a.filter((d) => { return d.occupancy > occupancyTreshold }), d => d.time)).length
+                let d=Array.from(d3new.group(a, d => d.time)).length
+                if (nd<d) {
+                    console.log("discarded time points")
+                    alert("Some time points present in your file were discarded due to the presence of only low occupied structures ")
+                }
             }            
             reader.readAsText(f);
         }
@@ -199,12 +205,7 @@ function readSequence(){
                     inputSeq= input_text_array.join("").replace(/ +/g, "")
                     inputSeq=inputSeq.toUpperCase()
                     event.target.value=inputSeq
-            }  
-            //if (inputSeq!=""&& sequenceLength!="" && sequenceLength!= inputSeq.length) {
-             //   alert("The Sequence you entered does not have the apropriate length")
-            //    event.target.value="-"
-            //}
-           //console.log(seq_name, inputSeq)         
+            }            
         })
     })
 }
