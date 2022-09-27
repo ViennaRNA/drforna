@@ -1,5 +1,4 @@
 import * as d3new from "d3"
-import { InternMap } from "d3";
 import * as domtoimage from "dom-to-image"
 import {FornaContainer, RNAUtilities} from 'fornac';
 //@ts-check
