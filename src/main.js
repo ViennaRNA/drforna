@@ -1,4 +1,5 @@
 import * as d3new from "d3"
+import { dsv } from "d3";
 import * as domtoimage from "dom-to-image"
 import {FornaContainer, RNAUtilities} from 'fornac';
 //@ts-check
@@ -167,9 +168,11 @@ function readFromFileUpload(){
 
                //This is where I need to check if the file contains points that are disregarded 
                  
-                let nd = Array.from(d3new.group(a.filter((d) => { return d.occupancy > occupancyTreshold }), d => d.time)).length
-                let d=Array.from(d3new.group(a, d => d.time)).length
-                if (nd<d) {
+                let nd = Array.from(d3new.group(a.filter((d) => { return d.occupancy > occupancyTreshold }), d => +d.time))
+                let dd= Array.from(d3new.group( a, d  => +d.time))
+                console.log(dd)
+                console.log("nd", nd)
+                if (nd.length<dd.length) {
                     console.log("discarded time points")
                     alert("Some time points present in your file were discarded due to the presence of only low occupied structures ")
                 }
@@ -1002,7 +1005,7 @@ function ShowData(data) {
 
     filteredData = data.filter((d) => { return d.occupancy > occupancyTreshold }) // select structures with high enough occupancy
    
-    nestedData = Array.from(d3new.group(filteredData, d => d.time)) // nest data by  time points to extract the structures to plot for every time step
+    nestedData = Array.from(d3new.group(filteredData, d =>+d.time)) // nest data by  time points to extract the structures to plot for every time step
     //TODO : Tell the user if there are time points that do not have any structures with a big enough occupancy 
     //let nfd = Array.from(d3new.group(data, d => d.time))
     //console.log(nestedData)
