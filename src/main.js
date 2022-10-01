@@ -1,5 +1,4 @@
 import * as d3new from "d3"
-import { dsv } from "d3";
 import * as domtoimage from "dom-to-image"
 import {FornaContainer, RNAUtilities} from 'fornac';
 //@ts-check
@@ -69,19 +68,60 @@ let filename=""
 let inputSeq=""
 let seq_name=""
 
+
+function load_example(){
+    filteredData=null
+    nestedData=[]
+    filename = "ABCD.drt.drf"
+    let seqFileName=filename.split(".")[0]+".fa"          
+    d3new.text(seqFileName).then(d => {                
+        a = d3new.csvParse(d)                
+        seq_name=a.columns[0]
+                //console.log(Array.from(a)[0][seq_name])
+        let se = Object.keys(Array.from(a)).map(function(key){
+            return a[key][seq_name];                  
+            }) 
+        inputSeq=se.join("")                
+        document.querySelectorAll("#sequence").forEach((item)=>{item.value=seq_name+"\n"+inputSeq})})
+            .catch((error) => {
+               //console.log("nu a gasit file, sequence goala   ")
+                inputSeq=""
+                seq_name=""
+                document.querySelectorAll("#sequence").forEach((item)=>{item.value="-"})
+            
+      
+            })
+       // filename=fileName
+            let a = []
+            d3new.text(filename).then(d => {
+                
+                a = d3new.csvParse(d.replace(/ +/g, ",").replace(/\n,+/g, "\n").replace(/^\s*\n/gm, ""))
+                containers = {};
+                let container = d3new.select("#visContainer")
+                container.remove()
+                
+                ShowData(Array.from(a))
+            })      
+    
+
+ }
+
 /**
+ inputSeq=se.join("")                
  * Method that starts the visualization: 
  ** reads and shows the data from selected or uploaded file
  */
-function start() {
+ function start() {
     prevtime = null
     nestedData = null
-    
+    load_example()
     readFromFileRadio();
     readFromFileUpload();
     readSequence()
    
 } 
+
+
 
  /**
      * 
@@ -726,7 +766,7 @@ function WriteTable(strToPlot){
                     .style("font-family", "DejaVu Sans Mono")
                     
                 let ttime = time.append("thead").append('tr')
-                ttime.append("td").text("Selected time point: "+strToPlot[0].time+" s").append("td").text("Transcription length "+ strToPlot[0].structure.length+"/"+sequenceLength).append("tr").append("td").text("Sum of Occupancies displayed "+Sum_of_occ)
+                ttime.append("td").text("Selected time point: "+strToPlot[0].time+" s").append("td").text("Transcription length: "+ strToPlot[0].structure.length+"/"+sequenceLength).append("tr").append("td").text("Sum of occupancies: "+Sum_of_occ)
                 
                 let th = structures.append("thead")
                 th.append('tr').selectAll('th')
@@ -848,13 +888,10 @@ function PLOT(realtime) {
                             .each( d => {
                                 let rectname="svg"+d.data.name
                                 if ( d.data.str != '') {
-                                    containers[rectname] = new FornaContainer('#' + rectname,{zoomable:false, editable:false,animation:false, 
+                                    containers[rectname] = new FornaContainer('#' + rectname,{zoomable:false, editable:false, animation:false, // labelInterval:0,
                                         transitionDuration:0});
                                     containers[rectname].seq=inputSeq
-                                        //IF IT IS THERE! 
-                                        //containers[rectname].addRNA(inputSeq.slice(0, strToPlot[0].structure.length))
-                                    //console.log(containers[rectname])
-                                        
+                                      //am cum sa dau secventa?
                                         //SOMEHOW GIVE SEQUENCE AS
                                     containers[rectname].transitionRNA(d.data.str);
                                     //console.log(containers[rectname])    
