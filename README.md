@@ -49,5 +49,5 @@ By clicking the **Download** button, a file containing the visual output will be
 
 The **Fullscreen** button displays the visual output in fullscreen mode.
 
-## Screennshot:
+## Screenshot:
 <img src="/public/Screenshot.png"> 
