@@ -18,7 +18,8 @@ body {
     width:80%;
     margin: auto;
     padding-left: 80px;
-    padding-right:  80px
+    padding-right:  80px;
+    font-family: DejaVu Sans Mono;
 
 }
 .form {/*for file input and deleted radio butons */
@@ -47,11 +48,13 @@ body {
     font-size: .875rem;
     font-weight: 600;
     line-height: 1.25rem;
+    display: flex; 
   }
 
 #sequence{
     height: 100%;
-    width: 100%;    
+    width: 95%;   
+    
   }
 #SeqReload, .fileinp::-webkit-file-upload-button, .bform
  {
@@ -95,7 +98,8 @@ body {
     }
   #visContainer {
       padding: 5px;
-      background: #fff;
+      /* background: rgb(205, 229, 247); */
+      height: 500px;
   }
   #controlContainer {
     padding: 5px;
@@ -105,4 +109,29 @@ body {
 #tableContainer {
     padding: 5px;
     background: #fff;
+    font-family: DejaVu Sans Mono;
+}
+#treemapdiv{
+    height: 500px;
+    position: relative;
+}
+#timesvg {
+height:120px
+}
+.timePoint{
+    stroke:black;
+    stroke-width: 1;
+    cy: 90;
+    r:.75;
+    fill:none;
+}
+.transcriplengthLine{
+    stroke-width:  1;
+    stroke: black;
+    fill: none;
+}
+.currenttimeLine{
+    stroke-width: 1;
+    /* stroke: color; */
+    fill: none;
 }
