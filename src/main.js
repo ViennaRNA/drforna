@@ -51,7 +51,7 @@ function preparePlotArea(elementName, notificationContent = 'Loading...') {
     container
         .append('div')
         .attr('id', 'visContainer')
-        .attr("height", 500)
+        //.attr("height", 500)
     // create the table container containing the structures for the selected time point
     container
         .append('div')
@@ -392,7 +392,7 @@ function initialize(data){
     mouseactive=false
     
     viscontainer = d3new.select('#visContainer')
-    viscontainer.append('div').attr('id','treemapdiv').style('height', '500px')
+    viscontainer.append('div').attr('id','treemapdiv')//.style('height', '500px')
     
 }
 /**
@@ -550,7 +550,7 @@ function CreateScales(){
         svg = d3new.select("#tableContainer")
             .append("svg")
             .attr("width", lineChartWidth)
-            .attr("height", 120)
+            //.attr("height", 120)
             .attr("id", "timesvg"); //create the svg containing the scales
         
         //the lin and log scale on the bottom, positions were defined
@@ -633,11 +633,11 @@ function drawCirclesForTimepoints(){
             .append('circle')
                 .attr('class', 'timePoint')
                 .attr('cx',d =>combinedScale(d))//  scale(d))
-                .attr('cy', 90)
-                .attr('r', 1)
-                .attr('fill', 'none')
-                .attr('stroke', 'black')
-                .attr('strokeWidth', 1);
+                //  .attr('cy', 90)
+                //  .attr('r', 1)
+                // .attr('fill', 'none')
+                // .attr('stroke', 'black')
+                // .attr('strokeWidth', 1);
 }
 /**
  * Method for drawing a black line to mark the end of transcription  
@@ -649,9 +649,9 @@ function ShowEndOfTranscriptionLine(){
         .attr("y1", 0)
         .attr("x2", scalel(maxlintime))  
         .attr("y2", 120)
-        .style("stroke-width", 1.5)
-        .style("stroke","black")
-       .style("fill", "none");
+    //     .style("stroke-width", 1.5)
+    //     .style("stroke","black")
+    //    .style("fill", "none");
 }
 
         // function timer(lap){ 
@@ -730,9 +730,9 @@ function showLine(coord, color="red") {
         .attr("y1", 0)
         .attr("x2", coord)  
         .attr("y2", 120)
-        .style("stroke-width", 1)
+        // .style("stroke-width", 1)
         .style("stroke",color)
-        .style("fill", "none");
+        // .style("fill", "none");
 }
 /**
  * Generate a rgb color string from hcl
@@ -766,7 +766,13 @@ function WriteTable(strToPlot){
                     .style("font-family", "DejaVu Sans Mono")
                     
                 let ttime = time.append("thead").append('tr')
-                ttime.append("td").text("Selected time point: "+strToPlot[0].time+" s").append("td").text("Transcription length: "+ strToPlot[0].structure.length+"/"+sequenceLength).append("tr").append("td").text("Sum of occupancies: "+Sum_of_occ)
+                ttime.append("td")
+                .text("Selected time point: "+strToPlot[0].time+" s")
+                .append("td")
+                .text("Transcription length: "+ strToPlot[0].structure.length+"/"+sequenceLength)
+                .append("tr")
+                .append("td")
+                .text("Sum of occupancies: "+Sum_of_occ)
                 
                 let th = structures.append("thead")
                 th.append('tr').selectAll('th')
@@ -862,7 +868,7 @@ function PLOT(realtime) {
                     (root)
                 viscontainer.select("#treemapdiv").remove()
                 viscontainer.append("div").attr("id", "treemapdiv") 
-                            .style('position', 'relative')
+                            //.style('position', 'relative')
                             .style("width", `${svgWidth}px`)
                             .style("height", `${svgHeight}px`)
                             .selectAll(".svg").remove() // leave out
