@@ -6,64 +6,21 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Document</title>
     <style>
-    body {
-        background: white;
-      }
-      .forminput {
-        float: left;
-        margin-left: 5px;
-        margin: 5px;
-      
-      }
-      #sequence{
-        height: 100%;
-        width: 100%;
-
-      }
-      .form {
-        display: table;
-        padding: 5px;
-        clear: both;
-        margin-left: 5px;
-        margin: 5px;
-        height: 100%;
-        width: 100%;
-        overflow: scroll;
-      }
-      #title{
-        text-align: center;
-        background-color: rgb(4,69, 143);
-        color:white;
-        padding: 15px;
-
-      }
-      #subtitle{
-        text-align: center}
-      
-     
-      .active, .collapsible:hover {
-        background-color: #ccc;
-      }
-      .fullScreenContainer, .drTrafoContainer {
-          background: #fff;
-          height: 100%;
-          width: 100%;
-      }
-      #visContainer, #tableContainer, #controlContainer {
-          padding: 5px;
-          background: #fff;
-      }
-      
+    
     </style>
+    <link
+            rel="stylesheet" href="./style.css"
+        />
 </head>
-<body style="background-color: rgb(245, 245, 244)">
+<body> 
+<!-- style="background-color: rgb(245, 245, 244)"> -->
     <!-- <a href="about.html">about</a> -->
     <h1 id="title" >DrForna</h1>
-    <h2 id="subtitle" style=> Cotranscriptional folding visualisation</h2>
-    <ul id='result'>
+    <h2 id="subtitle" > Cotranscriptional folding visualisation</h2>
+    <!-- <ul id='result'> -->
       
-        <div style="max-width: 2000px; margin: auto;">
-           <!--  <div class="form ;text-align: right">
+        <div id='result'>
+            <!-- <div class="form">
               Select example:</br>
               <div class="forminput"><input type="radio" name="fileinput" value="short">short</div>
               <div class="forminput"><input type="radio" name="fileinput" value="SRP.drf">SRP</div>
@@ -77,30 +34,31 @@
                <div class="forminput"><input type="radio" name="fileinput" value="bug">bug</div>            
             </div><br>
 
-            Or</br>-->   
+            Or</br>    -->
 
-            (Optional) Sequence:     
-            <div class="seqform"  max-width="1800px" >
+                
+            <div class="seqform" >(Optional) Sequence: 
               <textarea id="sequence" name="sequence" cols="80" rows="2">-</textarea>
+           
+              <div class="seqButton" >
+                <button id="SeqReload">Reload</button>    
+              </div>  
             </div>
-            <div class="seqButton" >
-              <button id="SeqReload">Reload</button>    
-            </div> 
             <div class="form">
-            Input File:</br>
-              <div class="fileinput"><input type="file" id="files" name="files" title="Enter an input file"></div>
+           
+              <div class="fileinput"> Input File:</br><input class="fileinp" type="file" id="files" name="files" title="Enter an input file"></div>
               
             </div>
             <!-- <button class="collapseButton" id="collapseButton">Show Input file content</button> -->
       <pre id="textContainer" class="text-container" ></pre>
       <div id="fullScreenContainer">
-          <div id="controlContainer" style="background-color: rgb(226, 226, 226);text-align: right;">
-              <button id="toggleAnimation">Play/Pause</button>
-              <button id="downloadButton" title="Download plot as SVG">Download</button>
-              <button id="toggleFullScreen">Fullscreen</button>
+          <div id="controlContainer" >
+              <button class="bform" id="toggleAnimation">Play/Pause</button>
+              <button class="bform"id="downloadButton" title="Download plot as SVG">Download</button>
+              <button class="bform"id="toggleFullScreen">Fullscreen</button>
           </div>
-          <div id="drTrafoContainer" style="background-color: rgb(249, 250, 248); max-width:  1800px; margin: auto;">
-            <div id="visContainer" style='text-align: center;max-width: 1800px; margin: auto;'>See the results here</div></div>
+          <div id="drTrafoContainer" >
+            <div id="visContainer" >See the results here</div></div>
       </div>
     </ul>
     
