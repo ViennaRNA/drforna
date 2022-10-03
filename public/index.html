@@ -13,11 +13,10 @@
         />
 </head>
 <body> 
-<!-- style="background-color: rgb(245, 245, 244)"> -->
-    <!-- <a href="about.html">about</a> -->
-    <h1 id="title" >DrForna</h1>
-    <h2 id="subtitle" > Cotranscriptional folding visualisation</h2>
-    <!-- <ul id='result'> -->
+
+    <div id="title"> DrFoRNA</div>
+    <div id="subtitle"> A cotranscriptional folding visualisation tool</div>
+    
       
         <div id='result'>
             <!-- <div class="form">
@@ -36,23 +35,24 @@
 
             Or</br>    -->
 
-            <div class="seqform" > (Optional) Sequence: </div>
-
-            <div class="seqform" > 
-            </br>
-              <textarea id="sequence" name="sequence" cols="80" rows="2">-</textarea>
-           
-              <!-- <div class="seqButton" > -->
-                <button id="SeqReload">Reload </button>    
-              <!-- </div>   -->
-            </div>
+            
             <div class="form">
            
-              <div class="fileinput"> Input File: <input class="fileinp" type="file" id="files" name="files" title="Enter an input file"></div>
+              <div class="fileinput">  <input class="fileinp" type="file" id="files" name="files" title="Enter an input file"></div>
               
             </div>
+           
+            <div class="seqform"> (Optional) Sequence: </div>
+            <div class="seqform" > 
+             
+               <textarea id="sequence" name="sequence" cols="80" rows="2">-</textarea>
+           
+              <!-- <div class="seqButton" > -->
+                <button id="SeqReload">Load Sequence </button>    
+              <!-- </div>   -->
+            </div>
             <!-- <button class="collapseButton" id="collapseButton">Show Input file content</button> -->
-      <pre id="textContainer" class="text-container" ></pre>
+      <!-- <pre id="textContainer" class="text-container" ></pre> -->
       <div id="fullScreenContainer">
           <div id="controlContainer" >
               <button class="bform" id="toggleAnimation">Play/Pause</button>

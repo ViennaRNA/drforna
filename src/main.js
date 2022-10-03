@@ -189,7 +189,7 @@ function readFromFileUpload(){
         //console.log(rb)
         if (rb.length!=0)
             {rb[0].checked=false}
-    
+        document.querySelectorAll("#sequence").forEach((item)=>{item.value="-"})
    
        let files = event.target.files
         filename=files[0].name
@@ -854,7 +854,7 @@ function PLOT(realtime) {
             if (strtoPlotprev != strToPlot) {
                 const treemapData = makeTreemapData(strToPlot);
                 const svgWidth = lineChartWidth
-                const svgHeight = 500
+                const svgHeight = lineChartWidth*0.4
                 var root = d3new.stratify()
                     .id(function (d) { return d.name; })   // Name of the entity (column name is name in csv)
                     .parentId(function (d) { return d.parent; })   // Name of the parent (column name is parent in csv)
@@ -900,7 +900,7 @@ function PLOT(realtime) {
                                       //am cum sa dau secventa?
                                         //SOMEHOW GIVE SEQUENCE AS
                                     containers[rectname].transitionRNA(d.data.str);
-                                    //console.log(containers[rectname])    
+                                    console.log(containers[rectname])    
                                     let colorStrings = d.data.colors.map(function(d, i) {
                                         return `${i+1}:${d}`;
                                     });
