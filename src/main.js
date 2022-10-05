@@ -894,9 +894,11 @@ function PLOT(realtime) {
                             .each( d => {
                                 let rectname="svg"+d.data.name
                                 if ( d.data.str != '') {
-                                    containers[rectname] = new FornaContainer('#' + rectname,{zoomable:false, editable:false, animation:false, // labelInterval:0,
+                                    containers[rectname] = new FornaContainer('#' + rectname,{zoomable:false, editable:false, animation:false, displayNodeLabel: true,// labelInterval:0,
                                         transitionDuration:0});
-                                    containers[rectname].seq=inputSeq
+                                        containers[rectname].addRNA(d.data.str,{"sequence": inputSeq} )
+                                 
+                                    //containers[rectname].seq=inputSeq
                                       //am cum sa dau secventa?
                                         //SOMEHOW GIVE SEQUENCE AS
                                     containers[rectname].transitionRNA(d.data.str);
