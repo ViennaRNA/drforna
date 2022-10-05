@@ -69,10 +69,12 @@ let inputSeq=""
 let seq_name=""
 
 
-function load_example(){
+
+
+function load_example(filename){
     filteredData=null
     nestedData=[]
-    filename = "grow.drf" //"ABCD.drt.drf"
+    // filename = "grow.drf" //"ABCD.drt.drf"
     let seqFileName=filename.split(".")[0]+".fa"          
     d3new.text(seqFileName).then(d => {                
         a = d3new.csvParse(d)                
@@ -114,7 +116,7 @@ function load_example(){
  function start() {
     prevtime = null
     nestedData = null
-    load_example()
+    load_example("grow.drf")
     readFromFileRadio();
     readFromFileUpload();
     readSequence()
@@ -225,7 +227,30 @@ function readFromFileUpload(){
 }
 
 function readSequence(){
-    
+     document.querySelectorAll('.seqfileinpc').forEach((item) => {
+        
+       
+        item.addEventListener('change', (event) => {
+            let files = event.target.files
+            let seqFileName=event.target.files[0].name
+                console.log(seqFileName)
+                d3new.text(seqFileName).then(d => {
+                let a = d3new.csvParse(d) 
+                       console.log(a)
+                       seq_name=a.columns[0]
+                       //console.log(Array.from(a)[0][seq_name])
+                       let se = Object.keys(Array.from(a)).map(function(key){
+                           return a[key][seq_name];
+                         
+                       }) 
+         inputSeq=se.join("")                
+         document.querySelectorAll("#sequence").forEach((item)=>{item.value=seq_name+"\n"+inputSeq})})
+
+                
+                   
+        })
+     })
+
     document.querySelectorAll('.seqform').forEach((item) => {
         //console.log(item)
         item.addEventListener('change', (event) => {
