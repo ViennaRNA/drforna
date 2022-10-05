@@ -72,7 +72,7 @@ let seq_name=""
 function load_example(){
     filteredData=null
     nestedData=[]
-    filename = "ABCD.drt.drf"
+    filename = "grow.drf" //"ABCD.drt.drf"
     let seqFileName=filename.split(".")[0]+".fa"          
     d3new.text(seqFileName).then(d => {                
         a = d3new.csvParse(d)                
