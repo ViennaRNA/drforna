@@ -36,12 +36,14 @@ body {
     display: table;
     padding-top: 5px;
     clear: both;
-    margin-left: 5px;
-    /* margin: 5px; */
+    padding-left: 5px;
+    font-family:Arial, Helvetica, sans-serif;
+    margin: 5px;
     height: 100%;
     width: 100%;
-    overflow: scroll;
-    text-align: left
+    /* overflow: scroll; */
+    text-align: left;
+    display:flex;
   }
 .forminput { /*deleted radio butons */
     float: left;
@@ -123,6 +125,25 @@ body {
   cursor: pointer;
   
 }
+
+.seqfileinpc::-webkit-file-upload-button{
+  background-color: #d8ddf3;
+  border: 0;
+  border-radius: .5rem;
+  box-sizing: border-box;
+  color: #050e22;
+  /* font-family: "Inter var",ui-sans-serif,system-ui,-apple-system,system-ui,"Segoe UI",Roboto,"Helvetica Neue",Arial,"Noto Sans",sans-serif,"Apple Color Emoji","Segoe UI Emoji","Segoe UI Symbol","Noto Color Emoji"; */
+  font-size: .875rem;
+  font-weight: 600;
+  line-height: 1.25rem;
+  padding: .3rem 1rem;
+  text-align: center;
+  text-decoration: none #D1D5DB solid;
+  text-decoration-thickness: auto;
+  box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.1), 0 1px 2px 0 rgba(0, 0, 0, 0.06);
+  cursor: pointer;
+  
+}
 .sb{
   width:20%;
   align-content: center;
@@ -131,7 +152,15 @@ body {
     font-family:Arial, Helvetica, sans-serif;
     font-size: .875rem;
     font-weight: 600;
-    
+    width:50%;   
+}
+.seqfileinp{
+  font-family:Arial, Helvetica, sans-serif;
+  font-size: .875rem;
+  font-weight: 600;
+  width:50%;   
+  text-align: right;
+  
 }
 
 .fullScreenContainer {

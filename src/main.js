@@ -245,7 +245,7 @@ function readSequence(){
                        }) 
          inputSeq=se.join("")                
          document.querySelectorAll("#sequence").forEach((item)=>{item.value=seq_name+"\n"+inputSeq})})
-
+                 
                 
                    
         })
