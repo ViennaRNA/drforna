@@ -190,6 +190,7 @@ function readFromFileUpload(){
         if (rb.length!=0)
             {rb[0].checked=false}
         document.querySelectorAll("#sequence").forEach((item)=>{item.value="-"})
+        inputSeq=""
    
        let files = event.target.files
         filename=files[0].name
@@ -760,19 +761,24 @@ function WriteTable(strToPlot){
                     .selectAll("table").remove()
                 d3new.select("#tableContainer")
                     .selectAll("time").remove()
-                let time=d3new.select("#tableContainer").append("time")
+                let time=d3new.select("#tableContainer").append("div").attr("id", "time")
                 .style("font-family", "DejaVu Sans Mono")
                 let structures = d3new.select("#tableContainer").append("table")
                     .style("font-family", "DejaVu Sans Mono")
                     
-                let ttime = time.append("thead").append('tr')
-                ttime.append("td")
-                .text("Selected time point: "+strToPlot[0].time+" s")
-                .append("td")
-                .text("Transcription length: "+ strToPlot[0].structure.length+"/"+sequenceLength)
-                .append("tr")
-                .append("td")
-                .text("Sum of occupancies: "+Sum_of_occ)
+                let ttime = time.append("table").attr("id", "ttime")
+                let trow=ttime.append("tr")
+              
+                trow.append("td").text("Selected time point: ")
+                trow.append("td").text(strToPlot[0].time+" s")
+                trow=ttime.append("tr")
+            
+                trow.append("td").text("Transcription length: ")
+                trow.append("td").text( strToPlot[0].structure.length+"/"+sequenceLength)
+                trow=ttime.append("tr")
+            
+                trow.append("td").text("Sum of occupancies: ")
+                trow.append("td").text( Sum_of_occ)
                 
                 let th = structures.append("thead")
                 th.append('tr').selectAll('th')

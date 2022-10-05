@@ -64,6 +64,17 @@ body {
 .seqtext{
     text-align: left;
 }
+#time{
+  text-align: center;
+  margin: auto;
+  width: 50%;
+  font-size: .75rem;
+}
+#ttime{
+  margin: auto;
+  width: 90%;
+  
+}
 #sequence{
     text-align: left;
     height: 100%;
