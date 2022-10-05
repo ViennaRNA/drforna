@@ -87,7 +87,7 @@ function load_example(){
                //console.log("nu a gasit file, sequence goala   ")
                 inputSeq=""
                 seq_name=""
-                document.querySelectorAll("#sequence").forEach((item)=>{item.value="-"})
+                document.querySelectorAll("#sequence").forEach((item)=>{item.value=""})
             
       
             })
@@ -155,7 +155,7 @@ function readFromFileRadio(){
                //console.log("nu a gasit file, sequence goala   ")
                 inputSeq=""
                 seq_name=""
-                document.querySelectorAll("#sequence").forEach((item)=>{item.value="-"})
+                document.querySelectorAll("#sequence").forEach((item)=>{item.value=""})
             
       
             })
@@ -189,7 +189,7 @@ function readFromFileUpload(){
         //console.log(rb)
         if (rb.length!=0)
             {rb[0].checked=false}
-        document.querySelectorAll("#sequence").forEach((item)=>{item.value="-"})
+        document.querySelectorAll("#sequence").forEach((item)=>{item.value=""})
         inputSeq=""
    
        let files = event.target.files
@@ -211,8 +211,8 @@ function readFromFileUpload(){
                  
                 let nd = Array.from(d3new.group(a.filter((d) => { return d.occupancy > occupancyTreshold }), d => +d.time))
                 let dd= Array.from(d3new.group( a, d  => +d.time))
-                console.log(dd)
-                console.log("nd", nd)
+                // console.log(dd)
+                // console.log("nd", nd)
                 if (nd.length<dd.length) {
                     console.log("discarded time points")
                     alert("Some time points present in your file were discarded due to the presence of only low occupied structures ")
@@ -230,10 +230,10 @@ function readSequence(){
         //console.log(item)
         item.addEventListener('change', (event) => {
             let input_text_array=event.target.value.trimEnd().trimStart().split("\n")
-            if (input_text_array==""|| input_text_array=="-")  {
+            if (input_text_array==""|| input_text_array=="")  {
                 seq_name=""
                 inputSeq=""
-                event.target.value="-"
+                event.target.value=""
 
             }
             if (">"==input_text_array[0][0]){
@@ -867,7 +867,7 @@ function PLOT(realtime) {
                     (treemapData);
                 root.sum(d => +d.value)   // Compute the numeric value for each entity
                 //console.log(root.value)
-                Sum_of_occ=root.value
+                Sum_of_occ=Math.round(root.value*100000)/100000
                 d3new.treemap()
                     .size([svgWidth, svgHeight])
                     .padding(4)
@@ -908,7 +908,7 @@ function PLOT(realtime) {
                                       //am cum sa dau secventa?
                                         //SOMEHOW GIVE SEQUENCE AS
                                     containers[rectname].transitionRNA(d.data.str);
-                                    console.log(containers[rectname])    
+                                    // console.log(containers[rectname])    
                                     let colorStrings = d.data.colors.map(function(d, i) {
                                         return `${i+1}:${d}`;
                                     });
