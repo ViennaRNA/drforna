@@ -34,10 +34,10 @@ body {
 }
 .form {/*for file input and deleted radio butons */
     display: table;
-    padding: 5px;
+    padding-top: 5px;
     clear: both;
     margin-left: 5px;
-    margin: 5px;
+    /* margin: 5px; */
     height: 100%;
     width: 100%;
     overflow: scroll;
@@ -51,7 +51,7 @@ body {
 .seqform{
     max-width:1600px;
     height: 100%;
-    width: 100%;
+    /* width: 100%; */
     padding-left: 10px;
     padding-right: 10px;
     font-family:Arial, Helvetica, sans-serif;
@@ -67,11 +67,15 @@ body {
 #sequence{
     text-align: left;
     height: 100%;
-    width: 75%;   
+    width: 80%;   
     
   }
-  #SeqReload
- {width: 23%;
+  #sinp{
+    text-align: left;
+    width:20%
+  }
+  #SeqReload{
+  /* width: 22%;  */
   background-color: #d8ddf3;
   border: 0;
   border-radius: .5rem;
@@ -81,7 +85,7 @@ body {
   font-size: .875rem;
   font-weight: 600;
   line-height: 1.25rem;
-  padding: .5rem 2rem;
+  padding: .3rem 1rem;
   text-align: center;
   text-decoration: none #D1D5DB solid;
   text-decoration-thickness: auto;
@@ -100,7 +104,7 @@ body {
   font-size: .875rem;
   font-weight: 600;
   line-height: 1.25rem;
-  padding: .5rem 2rem;
+  padding: .3rem 1rem;
   text-align: center;
   text-decoration: none #D1D5DB solid;
   text-decoration-thickness: auto;
@@ -108,27 +112,31 @@ body {
   cursor: pointer;
   
 }
+.sb{
+  width:20%;
+  align-content: center;
+}
 .fileinput{
     font-family:Arial, Helvetica, sans-serif;
     font-size: .875rem;
     font-weight: 600;
-    padding-top: 10px;
-    padding-top: 10px;
+    
 }
 
 .fullScreenContainer {
       height: 100%;
       width: 60%;
       padding-bottom: 4rem;
+      padding:0cm
   }
   #drTrafoContainer {
     height: auto;
     width: 100%;
      text-align: center;
      /* max-width: 1800px; */
-     margin: auto;
+     /* margin: auto; */
      background-color: white;
-     
+     padding:0cm
     }
 
   #visContainer {
