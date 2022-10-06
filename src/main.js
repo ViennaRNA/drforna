@@ -316,6 +316,7 @@ function downloadsSVG() {
     //console.log('Downloading... ')
     domtoimage.toSvg(document.getElementById("drTrafoContainer")) //try downloading drTrafoContainer without the table 
     .then(function (dataUrl) {
+        console.log(dataUrl)
         let link = document.createElement('a');
         let today = new Date()
         let date = today.getFullYear()+'_'+(today.getMonth()+1)+'_'+today.getDate();
@@ -1183,7 +1184,10 @@ function ShowData(data) {
     bd.on("click", () => {
         if (playAnimation) {playAnimation=false};
       //console.log("down")
-        downloadsSVG()})
+        
+        downloadPng()
+        downloadsSVG()
+    })
     let play = d3new.select("#toggleAnimation");
     //
      
