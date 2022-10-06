@@ -25,10 +25,14 @@ body {
 #result{
     max-width: 2000px;
     min-width: 450px;
-    width:70%;
     margin: auto;
-    padding-left: 50px;
-    padding-right:  50px;
+     width:80%; 
+    /* margin-left:90px;
+    margin-right:90px;
+    border-left: 90px;
+    border-right: 90px; */
+     /* padding-left: 11rem;  
+     padding-right: 11rem;   */
     font-family: DejaVu Sans Mono;
 
 }
@@ -180,7 +184,7 @@ body {
     }
 
   #visContainer {
-      padding: 5px;
+      /* padding: 5px; */
       /* background: rgb(205, 229, 247); */
       height: 100%;
       width: 100%;
@@ -195,9 +199,10 @@ body {
     padding: 5px;
     background: #fff;
     font-family: DejaVu Sans Mono;
+    font-size:small ;
 }
 #treemapdiv{
-    height: 800px;
+    height: 700px;
     position: relative;
 }
 
