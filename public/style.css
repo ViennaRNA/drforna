@@ -110,7 +110,9 @@ body {
   cursor: pointer;
   
 }
-.fileinp::-webkit-file-upload-button, .bform
+.fileinp::file-selector-button,  .bform
+
+/* -webkit-file-upload-button, .bform */
  {
   background-color: #d8ddf3;
   border: 0;
@@ -130,7 +132,8 @@ body {
   
 }
 
-.seqfileinpc::-webkit-file-upload-button{
+.seqfileinpc::file-selector-button{
+/* -webkit-file-upload-button{ */
   background-color: #d8ddf3;
   border: 0;
   border-radius: .5rem;
@@ -209,13 +212,13 @@ body {
 #timesvg {
 height:120px
 }
-.timePoint{
+/* .timePoint{
     stroke:black;
     stroke-width: 1;
     cy: 90;
     r:.75;
     fill:none;
-}
+} */
 .transcriplengthLine{
     stroke-width:  1;
     stroke: black;
@@ -228,17 +231,18 @@ height:120px
 }
 
 .fornac-nodeLabel {
-   font-weight:0.5rem ;
+   /* font-weight:0.5rem ; */
   font-family:Arial, Helvetica, sans-serif; 
   font-size: 0.45em;
   color: rgb(100,100,100); 
   text-anchor: middle; 
-  alignment-baseline: middle; 
+  /* alignment-baseline: middle;  */
   dominant-baseline: central;
   pointer-events: none;
   -webkit-touch-callout: none;
   -webkit-user-select: none;
   -khtml-user-select: none;
+  
   -moz-user-select: none;
   -ms-user-select: none;
   user-select: none;
