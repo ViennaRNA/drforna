@@ -311,11 +311,12 @@ function downloadPng() {
  * @param {string} elem name of the container
  
  */
-function downloadsSVG() {
-   
-    //console.log('Downloading... ')
-    domtoimage.toSvg(document.getElementById("drTrafoContainer")) //try downloading drTrafoContainer without the table 
-    .then(function (dataUrl) {
+ function downloadsSVG() {
+    let tmddown=document.getElementById("drTrafoContainer")
+    
+   // ("height", "100px").attr("width", "60px")
+    domtoimage.toSvg(tmddown) //try downloading drTrafoContainer without the table 
+    .then(async function (dataUrl) {
         console.log(dataUrl)
         let link = document.createElement('a');
         let today = new Date()
@@ -323,12 +324,12 @@ function downloadsSVG() {
         let time = today.getHours() + "_" + today.getMinutes() + "_" + today.getSeconds();
        
         link.download = filename+"_"+date+"_"+time+'.svg';
-        alert("File "+link.download+" was downloaded")
-        link.href = dataUrl;
-        link.click();
         
-
-    });
+        link.href = await dataUrl;
+        await link.click();
+        alert("File "+link.download+" was downloaded")
+    })
+        
 }
 /**
  * Logarithmic scale- for steps after transcription ends
@@ -660,11 +661,11 @@ function drawCirclesForTimepoints(){
             .append('circle')
                 .attr('class', 'timePoint')
                 .attr('cx',d =>combinedScale(d))//  scale(d))
-                //  .attr('cy', 90)
-                //  .attr('r', 1)
-                // .attr('fill', 'none')
-                // .attr('stroke', 'black')
-                // .attr('strokeWidth', 1);
+                 .attr('cy', 90)
+                 .attr('r', 1)
+                .attr('fill', 'none')
+                .attr('stroke', 'black')
+                .attr('strokeWidth', 1);
 }
 /**
  * Method for drawing a black line to mark the end of transcription  
@@ -906,7 +907,7 @@ function PLOT(realtime) {
                             .selectAll(".svg").remove() // leave out
                             .data(root.leaves())
                             .enter()
-                            .append("svg").attr("id",   d => { return "svg"+d.data.name})                        
+                            .append("svg").attr("class", "plot").attr("id",   d => { return "svg"+d.data.name})                        
                             .style('position', 'absolute')
                             .style('left',  d =>{ return `${d.x0}px`; })
                             .style('top',  d => { return `${d.y0}px`; })
@@ -1185,7 +1186,7 @@ function ShowData(data) {
         if (playAnimation) {playAnimation=false};
       //console.log("down")
         
-        downloadPng()
+        // downloadPng()
         downloadsSVG()
     })
     let play = d3new.select("#toggleAnimation");
