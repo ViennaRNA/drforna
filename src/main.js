@@ -4,28 +4,27 @@ import {FornaContainer, RNAUtilities} from 'fornac';
 //@ts-check
 /**
  * @file main.js
- * @author Anda Latif 
- * @see <a href="https://github.com/AndaLatif/DrFornaA"> DrFornaA </a>
- * @description  Update of the DrForna Prototype <a href="https://github.com/ViennaRNA/drforna.git"> DrForna </a> , authors Peter Kerpedjiev, Stefan Hammer
+ * @author Anda Latif, Stefan Hammer, Peter Kerpediev
+ * @see <a href="https://github.com/ViennaRNA/drforna">DrForna</a>
+ * @description Visualization of cotranscriptional folding
  */  
-
 
 /**
  * Instance of RnaUtilities from fornac
  */  
 var rnaUtilities = new RNAUtilities();
+
 /**
  * containers containing the secondary structure graphs 
  * 
  */
-
 let containers;
+
 /**
  * Occupancy Treshhold, structures with smaller occupancy will not be shown, 0.01 by default
  * @type {number}
  */
 const occupancyTreshold = 0.01
-//displays loading indicator
 
 /**
  * Prepares the plotting area:
@@ -37,7 +36,7 @@ const occupancyTreshold = 0.01
  
  */
 function preparePlotArea(elementName, notificationContent = 'Loading...') {  
-        //remove the previous content
+    //remove the previous content
     let container = d3new.select(elementName)
     container.selectAll('div')
         .remove()
@@ -56,7 +55,7 @@ function preparePlotArea(elementName, notificationContent = 'Loading...') {
     container
         .append('div')
         .attr('id', 'tableContainer')
-        .html(" <p>and time table container-most populated structure</p>")
+        .html("<p>and time table container-most populated structure</p>")
 }
 
 /**
@@ -68,62 +67,49 @@ let filename=""
 let inputSeq=""
 let seq_name=""
 
-
-
-
 function load_example(filename){
     filteredData=null
     nestedData=[]
-    // filename = "grow.drf" //"ABCD.drt.drf"
     let seqFileName=filename.split(".")[0]+".fa"          
     d3new.text(seqFileName).then(d => {                
         a = d3new.csvParse(d)                
         seq_name=a.columns[0]
-                //console.log(Array.from(a)[0][seq_name])
+        //console.log(Array.from(a)[0][seq_name])
         let se = Object.keys(Array.from(a)).map(function(key){
             return a[key][seq_name];                  
-            }) 
+        }) 
         inputSeq=se.join("")                
         document.querySelectorAll("#sequence").forEach((item)=>{item.value=seq_name+"\n"+inputSeq})})
-            .catch((error) => {
-               //console.log("nu a gasit file, sequence goala   ")
-                inputSeq=""
-                seq_name=""
-                document.querySelectorAll("#sequence").forEach((item)=>{item.value=""})
-            
-      
-            })
-       // filename=fileName
-            let a = []
-            d3new.text(filename).then(d => {
-                
-                a = d3new.csvParse(d.replace(/ +/g, ",").replace(/\n,+/g, "\n").replace(/^\s*\n/gm, ""))
-                containers = {};
-                let container = d3new.select("#visContainer")
-                container.remove()
-                
-                ShowData(Array.from(a))
-            })      
-    
-
- }
+        .catch((error) => {
+            //console.log("nu a gasit file, sequence goala   ")
+            inputSeq=""
+            seq_name=""
+            document.querySelectorAll("#sequence").forEach((item)=>{item.value=""})
+        })
+    let a = []
+    d3new.text(filename).then(d => {
+        a = d3new.csvParse(d.replace(/ +/g, ",").replace(/\n,+/g, "\n").replace(/^\s*\n/gm, ""))
+        containers = {};
+        let container = d3new.select("#visContainer")
+        container.remove()
+        ShowData(Array.from(a))
+    })      
+}
 
 /**
  inputSeq=se.join("")                
  * Method that starts the visualization: 
  ** reads and shows the data from selected or uploaded file
  */
- function start() {
+function start() {
     prevtime = null
     nestedData = null
+    console.log('starting')
     load_example("grow.drf")
     readFromFileRadio();
     readFromFileUpload();
     readSequence()
-   
 } 
-
-
 
  /**
      * 
@@ -137,45 +123,38 @@ function readFromFileRadio(){
     document.querySelectorAll('.forminput').forEach((item) => {
         item.addEventListener('change', (event) => {
             document.querySelectorAll('.fileinput').forEach((item)=>{item.lastElementChild.value=""})
-             filename = item.lastElementChild.value
-             let seqFileName=filename.split(".")[0]+".fa"
-             //console.log(seqFileName)
-             //console.log("a")
-             d3new.text(seqFileName).then(d => {
-                
+            filename = item.lastElementChild.value
+            let seqFileName=filename.split(".")[0]+".fa"
+            //console.log(seqFileName)
+            //console.log("a")
+            d3new.text(seqFileName).then(d => {
                 a = d3new.csvParse(d)
-                
                 seq_name=a.columns[0]
                 //console.log(Array.from(a)[0][seq_name])
                 let se = Object.keys(Array.from(a)).map(function(key){
                     return a[key][seq_name];
-                  
                 }) 
                 inputSeq=se.join("")                
                 document.querySelectorAll("#sequence").forEach((item)=>{item.value=seq_name+"\n"+inputSeq})})
-            .catch((error) => {
-               //console.log("nu a gasit file, sequence goala   ")
-                inputSeq=""
-                seq_name=""
-                document.querySelectorAll("#sequence").forEach((item)=>{item.value=""})
-            
-      
-            })
-       // filename=fileName
+                .catch((error) => {
+                    //console.log("nu a gasit file, sequence goala   ")
+                    inputSeq=""
+                    seq_name=""
+                    document.querySelectorAll("#sequence").forEach((item)=>{item.value=""})
+                })
+            // filename=fileName
             let a = []
             d3new.text(filename).then(d => {
-                
+
                 a = d3new.csvParse(d.replace(/ +/g, ",").replace(/\n,+/g, "\n").replace(/^\s*\n/gm, ""))
                 containers = {};
                 let container = d3new.select("#visContainer")
                 container.remove()
-                
+
                 ShowData(Array.from(a))
             })
         })
     })
-
-    
 }
  /**
      * 
@@ -1235,6 +1214,5 @@ function ShowData(data) {
     })
     
 } 
-
 
 start();
