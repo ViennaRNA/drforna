@@ -4,9 +4,19 @@ DrFornaA is a web component for visualizing co-transcriptional RNA folding.
 As an input, the program takes a DrTransformer (short for "DNA-to-RNA transformer") `.drf` output file, containing the details of the cotranscriptional folding simulation.
 
 ## To start this project in development mode, please run:
+This project has been created using **webpack-cli**, you can now run
 
-  `npm install`  
-  `npm start`
+```
+npm run build
+```
+
+or
+
+```
+yarn build
+```
+
+to bundle your application
 
 ## User Documentation:
 You can either select one of the predefined examples or upload your own input file. 
