@@ -1,31 +1,31 @@
 {
-  "name": "my-webpack-project",
-  "version": "1.0.0",
-  "description": "My webpack project",
-  "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1",
-    "start": "npx webpack serve",
-    "jsdoc": "jsdoc -c jsdoc.json",
-    "build": "webpack --mode=production --node-env=production",
-    "build:dev": "webpack --mode=development",
-    "build:prod": "webpack --mode=production --node-env=production",
-    "watch": "webpack --watch",
-    "serve": "webpack serve"
-  },
-  "author": "Anda",
+  "name": "drforna",
+  "version": "0.9.0",
+  "description": "Visualization of cotranscriptional RNA folding.",
   "license": "ISC",
+  "contributors": [
+    "Anda Ramona Tanasie <>",
+    "Peter Kerpedjiev <pkerp@tbi.univie.ac.at>",
+    "Stefan Hammer <shammer@univie.ac.at>"
+  ],
+  "main": "dist/drforna.js",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/ViennaRNA/drFornaA"
+  },
+  "scripts": {
+    "serve": "webpack serve --mode development",
+    "watch": "webpack --config webpack.config.js --mode development --watch",
+    "build": "webpack --config webpack.config.js --mode production",
+    "jsdoc": "jsdoc -c jsdoc.json",
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
   "devDependencies": {
-    "@babel/core": "^7.19.3",
-    "@babel/preset-env": "^7.19.4",
-    "@webpack-cli/generators": "^2.5.0",
-    "babel-loader": "^8.2.5",
-    "html-webpack-plugin": "^5.5.0",
     "jsdoc": "^3.6.10",
-    "prettier": "^2.7.1",
-    "webpack": "^5.74.0",
-    "webpack-cli": "^4.10.0",
-    "webpack-dev-server": "^4.11.1",
-    "workbox-webpack-plugin": "^6.5.4"
+    "webpack": "^5.64.4",
+    "webpack-cli": "^4.9.1",
+    "webpack-dev-server": "^4.5.0",
+    "copy-webpack-plugin": "^11.0.0"
   },
   "dependencies": {
     "d3": "^7.1.1",
