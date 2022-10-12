@@ -10,7 +10,7 @@ An interactive viewer for cotranscriptional RNA folding simulations.
   `npm run build`  
   `npm run jsdoc`  
 
-Those commands are defined in [webpack.config.js](webpack.config.js).
+Those commands are defined in [package.json](package.json).
 
 ## Quick start:
 Visit [gh-pages](https://bad-ants-fleet.github.io/drforna/) to use the app,
