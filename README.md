@@ -6,9 +6,9 @@ An interactive viewer for cotranscriptional RNA folding simulations.
 ## For installation, development, build, documentation, run:
 
   `npm install`  
-  `npm run serve`
-  `npm run build`
-  `npm run jsdoc`
+  `npm run serve`  
+  `npm run build`  
+  `npm run jsdoc`  
 
 Those commands are defined in [webpack.config.js](webpack.config.js).
 
