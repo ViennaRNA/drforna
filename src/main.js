@@ -1057,6 +1057,7 @@ function toggleFullScreen(elem) {
         }
     }
 }
+let ret=false
 /**
  * Function for showing the data, which consists mostly of calls of previously defined functions and the mouse events
  * @param {Array} data the parsed content of the input file
@@ -1224,6 +1225,7 @@ function ShowData(data) {
         //}
             
     })
+
     const onResize = () => {
         //retain position we are at and if animation was on an remake plots accordingly!?? TODO?
         //maybe not delete everything but just resize to increase performance
@@ -1231,20 +1233,33 @@ function ShowData(data) {
         //tableContainer.selectAll("#timesvg").remove() //remove time scale
         //viscontainer.selectAll(".div").selectAll(".svg").remove() 
         //viscontainer.selectAll("#treemapdiv").remove()//remove plots
-        initialize(data)
         
         ShowData(data); // redraw plots
         
-        if (realtime!=null){
-            PLOT(realtime)
-            showLine(combinedScale(realtime)) 
-        }
+        //  ret=true
+        //  if (prevtime!=null){
+        //     PLOT(prevtime)
+        //     showLine(combinedScale(prevtime)) 
+        // }
+        // // else if (mintime!=null){
+        //     PLOT(mintime)
+        //     showLine(combinedScale(mintime)) 
+        // }
         
     }
+    
+  
+    // console.log("init",ret)
     window.onresize = function(event) {
         setTimeout(onResize, 1000)
+       
+        // console.log("1",ret)
+        
+
     };
-   
+//     console.log("after",ret)
+//    if (ret) {ret=false
+//     return prevtime}
     
 } 
 
