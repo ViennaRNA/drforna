@@ -75,7 +75,9 @@ function load_example(filename){
     filteredData=null
     nestedData=[]
     // filename = "grow.drf" //"ABCD.drt.drf"
-    let seqFileName=filename.split(".")[0]+".fa"          
+    let seqFileName=filename.split(".")[0]+".fa"    
+    
+    
     d3new.text(seqFileName).then(d => {                
         a = d3new.csvParse(d)                
         seq_name=a.columns[0]
@@ -227,29 +229,29 @@ function readFromFileUpload(){
 }
 
 function readSequence(){
-     document.querySelectorAll('.seqfileinpc').forEach((item) => {
-        
-       
+    document.querySelectorAll('.seqfileinpc').forEach((item) => {       
         item.addEventListener('change', (event) => {
             let files = event.target.files
-            let seqFileName=event.target.files[0].name
-                console.log(seqFileName)
-                d3new.text(seqFileName).then(d => {
-                let a = d3new.csvParse(d) 
-                       console.log(a)
-                       seq_name=a.columns[0]
-                       //console.log(Array.from(a)[0][seq_name])
-                       let se = Object.keys(Array.from(a)).map(function(key){
-                           return a[key][seq_name];
-                         
-                       }) 
-         inputSeq=se.join("")                
-         document.querySelectorAll("#sequence").forEach((item)=>{item.value=seq_name+"\n"+inputSeq})})
-                 
-                
-                   
+            filename=files[0].name
+            
+            for (let i = 0, f; f = files[i]; i++) {
+                let reader = new FileReader()
+                reader.onload = (val) => {                                   
+                    let a=[]
+                    //console.log(val.target.result.replace(/ +/g, ",").replace(/\n,+/g, "\n").replace(/^\s*\n/gm, ""))
+                    a = d3new.csvParse(val.target.result.replace(/ +/g, ",").replace(/\n,+/g, "\n").replace(/^\s*\n/gm, "")) 
+                    seq_name=a.columns[0]
+                    let se = Object.keys(Array.from(a)).map(function(key){
+                                        return a[key][seq_name];})
+                    inputSeq=se.join("")                
+                    document.querySelectorAll("#sequence").forEach((item)=>{item.value=seq_name+"\n"+inputSeq})
+                    
+                }            
+                reader.readAsText(f);
+            } 
         })
-     })
+     });
+    
 
     document.querySelectorAll('.seqform').forEach((item) => {
         //console.log(item)
