@@ -6,17 +6,14 @@ An interactive viewer for cotranscriptional RNA folding simulations.
 ## For installation, development, build, documentation, run:
 
   `npm install`  
-
   `npm run serve`
-
   `npm run build`
-
   `npm run jsdoc`
 
 Those commands are defined in [webpack.config.js](webpack.config.js).
 
 ## Quick start:
-Visit [gh-pages](https://github.com/bad-ants-fleet/drforna) to use the app,
+Visit [gh-pages](https://bad-ants-fleet.github.io/drforna/) to use the app,
 e.g. view the example simulation or upload your own input file.
 
 ### Input format:
