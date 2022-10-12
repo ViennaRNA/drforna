@@ -105,6 +105,8 @@ function load_example(filename){
                 container.remove()
                 
                 ShowData(Array.from(a))
+                document.querySelectorAll('.fileinput').forEach((item) => {
+                    item.addEventListener('change', (event) => {return false})})
             })      
     
 
@@ -119,7 +121,8 @@ function load_example(filename){
     prevtime = null
     nestedData = null
     load_example("grow.drf")
-    readFromFileRadio();
+   // readFromFileRadio();
+   
     readFromFileUpload();
     readSequence()
    
@@ -1060,28 +1063,14 @@ function toggleFullScreen(elem) {
  */
 
 function ShowData(data) { 
-
+    
     preparePlotArea(drTrafoContainer); 
     initialize(data)
     prevtime = null
     let container = d3new.select("#drTrafoContainer");
     container.select('#loadingNotification').remove(); //remove the loading notification 
-    const onResize = () => {
-        //retain position we are at and if animation was on an remake plots accordingly!?? TODO?
-        //maybe not delete everything but just resize to increase performance
-        playAnimation = false        
-        //tableContainer.selectAll("#timesvg").remove() //remove time scale
-        //viscontainer.selectAll(".div").selectAll(".svg").remove() 
-        //viscontainer.selectAll("#treemapdiv").remove()//remove plots
-        initialize(data)
-        ShowData(data); // redraw plots
-        if (realtime!=null){
-            PLOT(realtime)
-            showLine(combinedScale(realtime)) 
-        }
-        
-    }
-    window.addEventListener("resize", debounce(onResize, 1000)); // when the window was resize, call the onResize function after 1000 ms
+    
+   
 
     filteredData = data.filter((d) => { return d.occupancy > occupancyTreshold }) // select structures with high enough occupancy
    
@@ -1235,6 +1224,27 @@ function ShowData(data) {
         //}
             
     })
+    const onResize = () => {
+        //retain position we are at and if animation was on an remake plots accordingly!?? TODO?
+        //maybe not delete everything but just resize to increase performance
+        playAnimation = false        
+        //tableContainer.selectAll("#timesvg").remove() //remove time scale
+        //viscontainer.selectAll(".div").selectAll(".svg").remove() 
+        //viscontainer.selectAll("#treemapdiv").remove()//remove plots
+        initialize(data)
+        
+        ShowData(data); // redraw plots
+        
+        if (realtime!=null){
+            PLOT(realtime)
+            showLine(combinedScale(realtime)) 
+        }
+        
+    }
+    window.onresize = function(event) {
+        setTimeout(onResize, 1000)
+    };
+   
     
 } 
 
