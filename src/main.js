@@ -129,7 +129,7 @@ function load_example(filename){
 function start() {
     prevtime = null
     nestedData = null
-    console.log('starting')
+    //console.log('starting')
     load_example("grow.drf")
    // readFromFileRadio();   
     readFromFileUpload();
@@ -171,7 +171,7 @@ function readFromFileUpload(){
                 //  console.log(dd)
                 //  console.log("nd", nd)
                 if (nd.length<dd.length) {
-                    console.log("discarded time points")
+                  //  console.log("discarded time points")
                     alert("Some time points present in your file were discarded due to the presence of only low occupied structures ")
                 }
                 realtime=d3new.min(dd[0])
@@ -677,7 +677,7 @@ let strToPlot;
  */  
 function StructuresToPlot(time){
     strToPlot=[]
-    console.log(nestedData)
+   // console.log(nestedData)
     nestedData.forEach(element => {
         if (+element[0] == +time) {
             strToPlot = element[1] 
@@ -749,7 +749,7 @@ function formatColors (colors) {
  * @param {Array} strToPlot The list of structures selected for the currently selected time point
  */           
 function WriteTable(strToPlot){
-    console.log(strToPlot)
+    //console.log(strToPlot)
                 var colnames = ['ID',// 'Time', 
                 'Occupancy', 'Structure' , 'Energy'];    
     
