@@ -13,7 +13,7 @@ An interactive viewer for cotranscriptional RNA folding simulations.
 Those commands are defined in [package.json](package.json).
 
 ## Quick start:
-Visit [gh-pages](https://bad-ants-fleet.github.io/drforna/) to use the app,
+Visit [gh-pages](https://viennarna.github.io/drforna/) to use the app,
 e.g. view the example simulation or upload your own input file.
 
 ### Input format:
