@@ -1,43 +1,62 @@
-## Introduction
+# DrForna
+An interactive viewer for cotranscriptional RNA folding simulations.
 
-Dr. Forna is a web component for visualizing co-transcriptional RNA folding.
+<img src="/doc/Screenshot.png"> 
 
-As input it takes a space separated values (ssv) file:
+## For installation, development, build, documentation, run:
 
-    id time conc struct energy
-    1 0.340000 1.000000 .................   0.00
-    1 0.360000 1.000000 ..................   0.00
-    1 0.380000 1.000000 ...................   0.00
-    2 0.380001 1.537182e-03 .(((.((((...)))).)))  -3.60
-    1 0.380001 9.984628e-01 ....................   0.00
-    2 0.38000274542 4.214534e-03 .(((.((((...)))).)))  -3.60
-    1 0.38000274542 9.957855e-01 ....................   0.00
-    2 0.38000753733 1.152803e-02 .(((.((((...)))).)))  -3.60
-    1 0.38000753733 9.884720e-01 ....................   0.00
-    2 0.38002069313 3.133086e-02 .(((.((((...)))).)))  -3.60
-    1 0.38002069313 9.686691e-01 ....................   0.00
-    2 0.38005681134 8.367606e-02 .(((.((((...)))).)))  -3.60
+  `npm install`  
+  `npm run serve`  
+  `npm run build`  
+  `npm run jsdoc`  
 
-Where `id` groups structures, `time` is the time point for which the structure and the
-concentration are measures. `conc` is the occupancy of that structures at that time point.
-The secondary structure is encoded as a dot-bracket string in the `struct` column while
-the free energy (in kcal / mol) is shown in the `energy` column.
+Those commands are defined in [package.json](package.json).
 
-## Screenshot
+## Quick start:
+Visit [gh-pages](https://bad-ants-fleet.github.io/drforna/) to use the app,
+e.g. view the example simulation or upload your own input file.
 
-<img src="https://raw.githubusercontent.com/pkerpedjiev/drforna/master/doc/img/drforna_screenshot.png" />
+### Input format:
+The following text is a slice of valid input for DrFrona. It is a white-space
+separated value (``csv-like'') table, where the header must contain five fields
+with the names *id time occupancy structure energy*. 
 
-## Starting the Web Server
+```
+id time occupancy structure energy
+6 1.47 1.0000 .((((....((((....))))....))))........  -9.30
+6 1.48 1.0000 .((((....((((....))))....))))........  -9.30
+9 1.49 0.1494 .........((((....))))....((((....)))). -10.00
+6 1.49 0.8506 .((((....((((....))))....)))).........  -9.30
+9 1.50 0.2693 .........((((....))))....((((....)))). -10.00
+6 1.50 0.7306 .((((....((((....))))....)))).........  -9.30
+9 1.51 0.3656 .........((((....))))....((((....)))). -10.00
+6 1.51 0.6344 .((((....((((....))))....)))).........  -9.30
+```
 
-To start this project in development mode, please run:
+For a detailed description on the respective input fields, visit the 
+publication [Tanasie et al. 2022](https://bioarxiv.com)
 
-    npm install
-    bower install
-    gulp serve
+### Frontend interactions:
 
-To build a release version run:
+The output shown contains the visual output for a **selected time point** (marked with the **red line** on the time scale): 
+- each **structure** is shown in the **rectangle** marked with the **ID** of the structure in the corner.
+- the **size** of each rectangle will be **proportional to the occupancy** of the corresponding structure at the selected time point.
+- each nucleotide will be **colored according to the helix** it is part of, while unpaired nucleotides remain uncolored.
+- the **black line** on the time scale marks the end of transciption, which splits the scale into the **linear cotranscriptional time scale** and the **logarithmic scale for time steps after the end of transcription**.
+- for each time point, the **vertical section of the colors** shown on the scale correspond to the nucleotide colors of the most occupied structure present at the selected time point.
+- a **summary** of the content of the file for the selected timepoint will be shown **as a table**. Each nucleotide of the structure (in dot bracket notation) will be also colored according to the helix it is part of. The `id` of the most occupied structure for that particular time point will be also marked in the table.
 
-    gulp build
+In the area of the time scale, you can activate or deactivate the mouse with a
+click. When the mouse is active, you can move the mouse left or right to
+**select a time point interactively**.
 
-And find the output files in the `dist/scripts` directory.
+The **Play/Pause** starts the animation: the structures are shown for every
+time point in the input file. These were marked with small circles on the time
+scale.  The animation can be deactivated either by clicking the button again or
+by a mouse click on the scale area.
 
+## Version
+0.9 -- a more or less full rewrite
+
+## Cite
+[Tanasie et al. 2022](https://bioarxiv.com)

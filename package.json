@@ -1,65 +1,37 @@
 {
   "name": "drforna",
-  "version": "0.8.0",
-  "description": "A cotranscriptional RNA folding visualization component",
-  "main": "dist/scripts/drforna.js",
-  "engines": {
-    "node": ">=0.12.0"
+  "version": "0.9.0",
+  "description": "Visualization of cotranscriptional RNA folding.",
+  "license": "ISC",
+  "contributors": [
+    "Anda Ramona Tanasie <anda-ramona.latif@tuwien.ac.at>",
+    "Peter Kerpedjiev <pkerp@tbi.univie.ac.at>",
+    "Stefan Hammer <shammer@univie.ac.at>",
+    "Stefan Badelt <stefan.badelt@univie.ac.at>"
+  ],
+  "main": "dist/drforna.js",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/ViennaRNA/drforna"
   },
   "scripts": {
-    "serve": "webpack-dev-server",
-    "build": "webpack"
+    "serve": "webpack serve --mode development",
+    "watch": "webpack --config webpack.config.js --mode development --watch",
+    "build": "webpack --config webpack.config.js --mode production",
+    "jsdoc": "./node_modules/.bin/jsdoc -c jsdoc.json",
+    "test": "echo \"Error: no test specified\" && exit 1"
   },
   "devDependencies": {
-    "babel-core": "^6.4.0",
-    "babel-loader": "^7.1.5",
-    "babel-preset-es2015": "~6.24.1",
-    "browser-sync": "^2.2.1",
-    "css-loader": "~1.0.0",
-    "d3": "^3.5.17",
-    "del": "^3.0.0",
-    "es6-promise": "^4.2.4",
-    "eslint-plugin-react": "~7.11.1",
-    "gulp": "^3.9.0",
-    "gulp-autoprefixer": "^5.0.0",
-    "gulp-babel": "^7.0.1",
-    "gulp-cache": "^1.0.2",
-    "gulp-cssnano": "^2.0.0",
-    "gulp-eslint": "^5.0.0",
-    "gulp-htmlmin": "^4.0.0",
-    "gulp-if": "^2.0.2",
-    "gulp-imagemin": "^4.1.0",
-    "gulp-load-plugins": "^1.5.0",
-    "gulp-plumber": "^1.0.1",
-    "gulp-size": "^3.0.0",
-    "gulp-sourcemaps": "^2.6.4",
-    "gulp-uglify": "^3.0.1",
-    "gulp-useref": "^3.0.0",
-    "jquery": "^3.3.1",
-    "main-bower-files": "^2.5.0",
-    "mini-css-extract-plugin": "^0.4.1",
-    "rnautils": "~0.8.2",
-    "style-loader": "^0.22.1",
-    "webpack-cli": "^3.1.0",
-    "webpack-dev-server": "^3.1.5",
-    "webpack-stream": "^5.1.1",
-    "wiredep": "^4.0.0"
-  },
-  "eslintConfig": {
-    "env": {
-      "es6": true,
-      "node": true,
-      "browser": true
-    },
-    "rules": {
-      "quotes": [
-        2,
-        "single"
-      ]
-    }
+    "jsdoc": "^3.6.11",
+    "eslint": "^8.25.0",
+    "webpack": "^5.64.4",
+    "webpack-cli": "^4.9.1",
+    "webpack-dev-server": "^4.5.0",
+    "copy-webpack-plugin": "^11.0.0"
   },
   "dependencies": {
-    "file-saver": "^2.0.0",
-    "fornac": "~1.1.0"
+    "d3": "^7.6.1",
+    "dom-to-image": "^2.6.0",
+    "fornac": "github:ViennaRNA/fornac"
   }
 }

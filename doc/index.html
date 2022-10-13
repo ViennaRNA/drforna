@@ -1,0 +1,224 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <title>JSDoc: Home</title>
+
+    <script src="scripts/prettify/prettify.js"> </script>
+    <script src="scripts/prettify/lang-css.js"> </script>
+    <!--[if lt IE 9]>
+      <script src="//html5shiv.googlecode.com/svn/trunk/html5.js"></script>
+    <![endif]-->
+    <link type="text/css" rel="stylesheet" href="styles/prettify-tomorrow.css">
+    <link type="text/css" rel="stylesheet" href="styles/jsdoc-default.css">
+</head>
+
+<body>
+
+<div id="main">
+
+    <h1 class="page-title">Home</h1>
+
+    
+
+
+
+    
+
+
+    <h3> </h3>
+
+
+
+
+
+
+
+
+
+
+    
+
+
+
+
+    <section>
+        <article><h1>DrForna</h1>
+<p>An interactive viewer for cotranscriptional RNA folding simulations.</p>
+<img src="/doc/Screenshot.png"> 
+<h2>For installation, development, build, documentation, run:</h2>
+<p><code>npm install</code><br>
+<code>npm run serve</code><br>
+<code>npm run build</code><br>
+<code>npm run jsdoc</code></p>
+<p>Those commands are defined in <a href="package.json">package.json</a>.</p>
+<h2>Quick start:</h2>
+<p>Visit <a href="https://bad-ants-fleet.github.io/drforna/">gh-pages</a> to use the app,
+e.g. view the example simulation or upload your own input file.</p>
+<h3>Input format:</h3>
+<p>The following text is a slice of valid input for DrFrona. It is a white-space
+separated value (``csv-like'') table, where the header must contain five fields
+with the names <em>id time occupancy structure energy</em>.</p>
+<pre class="prettyprint source"><code>id time occupancy structure energy
+6 1.47 1.0000 .((((....((((....))))....))))........  -9.30
+6 1.48 1.0000 .((((....((((....))))....))))........  -9.30
+9 1.49 0.1494 .........((((....))))....((((....)))). -10.00
+6 1.49 0.8506 .((((....((((....))))....)))).........  -9.30
+9 1.50 0.2693 .........((((....))))....((((....)))). -10.00
+6 1.50 0.7306 .((((....((((....))))....)))).........  -9.30
+9 1.51 0.3656 .........((((....))))....((((....)))). -10.00
+6 1.51 0.6344 .((((....((((....))))....)))).........  -9.30
+</code></pre>
+<p>For a detailed description on the respective input fields, visit the
+publication <a href="https://bioarxiv.com">Tanasie et al. 2022</a></p>
+<h3>Frontend interactions:</h3>
+<p>The output shown contains the visual output for a <strong>selected time point</strong> (marked with the <strong>red line</strong> on the time scale):</p>
+<ul>
+<li>each <strong>structure</strong> is shown in the <strong>rectangle</strong> marked with the <strong>ID</strong> of the structure in the corner.</li>
+<li>the <strong>size</strong> of each rectangle will be <strong>proportional to the occupancy</strong> of the corresponding structure at the selected time point.</li>
+<li>each nucleotide will be <strong>colored according to the helix</strong> it is part of, while unpaired nucleotides remain uncolored.</li>
+<li>the <strong>black line</strong> on the time scale marks the end of transciption, which splits the scale into the <strong>linear cotranscriptional time scale</strong> and the <strong>logarithmic scale for time steps after the end of transcription</strong>.</li>
+<li>for each time point, the <strong>vertical section of the colors</strong> shown on the scale correspond to the nucleotide colors of the most occupied structure present at the selected time point.</li>
+<li>a <strong>summary</strong> of the content of the file for the selected timepoint will be shown <strong>as a table</strong>. Each nucleotide of the structure (in dot bracket notation) will be also colored according to the helix it is part of. The <code>id</code> of the most occupied structure for that particular time point will be also marked in the table.</li>
+</ul>
+<p>In the area of the time scale, you can activate or deactivate the mouse with a
+click. When the mouse is active, you can move the mouse left or right to
+<strong>select a time point interactively</strong>.</p>
+<p>The <strong>Play/Pause</strong> starts the animation: the structures are shown for every
+time point in the input file. These were marked with small circles on the time
+scale.  The animation can be deactivated either by clicking the button again or
+by a mouse click on the scale area.</p>
+<h2>Version</h2>
+<p>0.9 -- a more or less full rewrite</p>
+<h2>Cite</h2>
+<p><a href="https://bioarxiv.com">Tanasie et al. 2022</a></p></article>
+    </section>
+
+
+
+
+
+
+
+
+
+<section>
+
+<header>
+    
+        <h2>main.js</h2>
+        
+    
+</header>
+
+<article>
+    <div class="container-overview">
+    
+        
+            <div class="description"><p>Visualization of cotranscriptional folding</p></div>
+        
+
+        
+
+
+<dl class="details">
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+    <dt class="tag-author">Author:</dt>
+    <dd class="tag-author">
+        <ul>
+            <li>Anda Latif, Stefan Hammer, Peter Kerpediev</li>
+        </ul>
+    </dd>
+    
+
+    
+
+    
+
+    
+
+    
+    <dt class="tag-source">Source:</dt>
+    <dd class="tag-source"><ul class="dummy"><li>
+        <a href="main.js.html">main.js</a>, <a href="main.js.html#line5">line 5</a>
+    </li></ul></dd>
+    
+
+    
+
+    
+    <dt class="tag-see">See:</dt>
+    <dd class="tag-see">
+        <ul>
+            <li><a href="https://github.com/ViennaRNA/drforna">DrForna</a></li>
+        </ul>
+    </dd>
+    
+
+    
+</dl>
+
+
+        
+    
+    </div>
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+</article>
+
+</section>
+
+
+
+
+</div>
+
+<nav>
+    <h2><a href="index.html">Home</a></h2><h3>Global</h3><ul><li><a href="global.html#AfterTrascription">AfterTrascription</a></li><li><a href="global.html#animationDelay">animationDelay</a></li><li><a href="global.html#calculateNucleotideColors">calculateNucleotideColors</a></li><li><a href="global.html#combinedScale">combinedScale</a></li><li><a href="global.html#containers">containers</a></li><li><a href="global.html#createScaleColors">createScaleColors</a></li><li><a href="global.html#CreateScales">CreateScales</a></li><li><a href="global.html#debounce">debounce</a></li><li><a href="global.html#delayPLOT">delayPLOT</a></li><li><a href="global.html#delayResize">delayResize</a></li><li><a href="global.html#downloadsSVG">downloadsSVG</a></li><li><a href="global.html#drawCirclesForTimepoints">drawCirclesForTimepoints</a></li><li><a href="global.html#drawScales">drawScales</a></li><li><a href="global.html#elementIndex">elementIndex</a></li><li><a href="global.html#filename">filename</a></li><li><a href="global.html#filteredData">filteredData</a></li><li><a href="global.html#formatColors">formatColors</a></li><li><a href="global.html#initialize">initialize</a></li><li><a href="global.html#inputSeq">inputSeq</a></li><li><a href="global.html#lineChartWidth">lineChartWidth</a></li><li><a href="global.html#load_example">load_example</a></li><li><a href="global.html#logscale">logscale</a></li><li><a href="global.html#makeTreemapData">makeTreemapData</a></li><li><a href="global.html#maxlintime">maxlintime</a></li><li><a href="global.html#maxNoStr">maxNoStr</a></li><li><a href="global.html#mintime">mintime</a></li><li><a href="global.html#mostocc">mostocc</a></li><li><a href="global.html#mostOccupiedperTime">mostOccupiedperTime</a></li><li><a href="global.html#mouseactive">mouseactive</a></li><li><a href="global.html#nestedData">nestedData</a></li><li><a href="global.html#nucleotideScale">nucleotideScale</a></li><li><a href="global.html#occupancyTreshold">occupancyTreshold</a></li><li><a href="global.html#playAnimation">playAnimation</a></li><li><a href="global.html#PLOT">PLOT</a></li><li><a href="global.html#preparePlotArea">preparePlotArea</a></li><li><a href="global.html#prevtime">prevtime</a></li><li><a href="global.html#rainbowScale">rainbowScale</a></li><li><a href="global.html#readFromFileUpload">readFromFileUpload</a></li><li><a href="global.html#readSequence">readSequence</a></li><li><a href="global.html#realtime">realtime</a></li><li><a href="global.html#rnaUtilities">rnaUtilities</a></li><li><a href="global.html#scalel">scalel</a></li><li><a href="global.html#seq_name">seq_name</a></li><li><a href="global.html#sequenceLength">sequenceLength</a></li><li><a href="global.html#ShowData">ShowData</a></li><li><a href="global.html#ShowEndOfTranscriptionLine">ShowEndOfTranscriptionLine</a></li><li><a href="global.html#showLine">showLine</a></li><li><a href="global.html#SplitTranscription">SplitTranscription</a></li><li><a href="global.html#start">start</a></li><li><a href="global.html#strToPlot">strToPlot</a></li><li><a href="global.html#strtoPlotprev">strtoPlotprev</a></li><li><a href="global.html#StructuresToPlot">StructuresToPlot</a></li><li><a href="global.html#svg">svg</a></li><li><a href="global.html#tableContainer">tableContainer</a></li><li><a href="global.html#toggleFullScreen">toggleFullScreen</a></li><li><a href="global.html#trascriptionSteps">trascriptionSteps</a></li><li><a href="global.html#viscontainer">viscontainer</a></li><li><a href="global.html#visContainerWidth">visContainerWidth</a></li><li><a href="global.html#WriteTable">WriteTable</a></li><li><a href="global.html#x_axislin">x_axislin</a></li><li><a href="global.html#x_axislog">x_axislog</a></li><li><a href="global.html#y_axis">y_axis</a></li></ul>
+</nav>
+
+<br class="clear">
+
+<footer>
+    Documentation generated by <a href="https://github.com/jsdoc/jsdoc">JSDoc 3.6.10</a> on Thu Oct 13 2022 12:04:46 GMT+0200 (Central European Summer Time)
+</footer>
+
+<script> prettyPrint(); </script>
+<script src="scripts/linenumber.js"> </script>
+</body>
+</html>
