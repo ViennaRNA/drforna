@@ -1050,7 +1050,7 @@ function ShowData(data) {
     let mousetime=30
 
     svg.on("click", (event) => {
-        if (playAnimation) {playAnimation=!playAnimation};
+        if (playAnimation) {playAnimation=!playAnimation}
         mouseactive=!mouseactive;
         //scale invert for combined scale
         (d3new.pointer(event)[0]<scalel(maxlintime))
@@ -1128,7 +1128,7 @@ function ShowData(data) {
     })
     let bd = d3new.select("#downloadButton")
     bd.on("click", () => {
-        if (playAnimation) {playAnimation=false};
+        if (playAnimation) {playAnimation=false}
       //console.log("down")
         
         // downloadPng()
