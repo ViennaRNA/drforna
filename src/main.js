@@ -4,7 +4,8 @@ import {FornaContainer, RNAUtilities} from 'fornac';
 //@ts-check
 /**
  * @file main.js
- * @author Anda Latif 
+ * @author Anda Ramona Tanasie, Peter Kerpedjiev, Stefan Hammer, Stefan Badelt
+
  * @see <a href="https://github.com/AndaLatif/DrFornaA"> DrFornaA </a>
  * @description  Update of the DrForna Prototype <a href="https://github.com/ViennaRNA/drforna.git"> DrForna </a> , authors Peter Kerpedjiev, Stefan Hammer
  */  
@@ -65,12 +66,23 @@ function preparePlotArea(elementName, notificationContent = 'Loading...') {
  * @type {string}
  */
 let filename=""
+/**
+ * Current sequence, can be written in the text field or uploaded from a file
+ * @type {string}
+ */
 let inputSeq=""
+/**
+ * Current sequence name, introduced by ">" on the first line in the text input or in the file
+ * @type {string}
+ */
 let seq_name=""
 
-
-
-
+/**
+ * function that loads an example for the visualization. It loads 
+ ** the file containing the details of the simulation and 
+ **the fasta file containing the sequence. The filename is split by "." and the first part is taken with .fa extension as the name of the file containing the corresponding sequence
+ * @param {string} filename
+ */
 function load_example(filename){
     filteredData=null
     nestedData=[]
@@ -112,17 +124,15 @@ function load_example(filename){
 
  }
 
-/**
- inputSeq=se.join("")                
+/**              
  * Method that starts the visualization: 
- ** reads and shows the data from selected or uploaded file
+ ** reads and shows the data from the example "grow.drf" and then gives the oportunity to upload files and sequences
  */
  function start() {
     prevtime = null
     nestedData = null
     load_example("grow.drf")
-   // readFromFileRadio();
-   
+   // readFromFileRadio();   
     readFromFileUpload();
     readSequence()
    
@@ -130,58 +140,58 @@ function load_example(filename){
 
 
 
- /**
-     * 
-    * method for reading the input from a selected file and then showing the data by calling ShowData
-    * 
-    */  
-function readFromFileRadio(){
-    filteredData=null
-    nestedData=[]
-    //read selected example 
-    document.querySelectorAll('.forminput').forEach((item) => {
-        item.addEventListener('change', (event) => {
-            document.querySelectorAll('.fileinput').forEach((item)=>{item.lastElementChild.value=""})
-             filename = item.lastElementChild.value
-             let seqFileName=filename.split(".")[0]+".fa"
-             //console.log(seqFileName)
-             //console.log("a")
-             d3new.text(seqFileName).then(d => {
+//  /**
+//      * 
+//     * method for reading the input from a selected file and then showing the data by calling ShowData
+//     * 
+//     */  
+// function readFromFileRadio(){
+//     filteredData=null
+//     nestedData=[]
+//     //read selected example 
+//     document.querySelectorAll('.forminput').forEach((item) => {
+//         item.addEventListener('change', (event) => {
+//             document.querySelectorAll('.fileinput').forEach((item)=>{item.lastElementChild.value=""})
+//              filename = item.lastElementChild.value
+//              let seqFileName=filename.split(".")[0]+".fa"
+//              //console.log(seqFileName)
+//              //console.log("a")
+//              d3new.text(seqFileName).then(d => {
                 
-                a = d3new.csvParse(d)
+//                 a = d3new.csvParse(d)
                 
-                seq_name=a.columns[0]
-                //console.log(Array.from(a)[0][seq_name])
-                let se = Object.keys(Array.from(a)).map(function(key){
-                    return a[key][seq_name];
+//                 seq_name=a.columns[0]
+//                 //console.log(Array.from(a)[0][seq_name])
+//                 let se = Object.keys(Array.from(a)).map(function(key){
+//                     return a[key][seq_name];
                   
-                }) 
-                inputSeq=se.join("")                
-                document.querySelectorAll("#sequence").forEach((item)=>{item.value=seq_name+"\n"+inputSeq})})
-            .catch((error) => {
-               //console.log("nu a gasit file, sequence goala   ")
-                inputSeq=""
-                seq_name=""
-                document.querySelectorAll("#sequence").forEach((item)=>{item.value=""})
+//                 }) 
+//                 inputSeq=se.join("")                
+//                 document.querySelectorAll("#sequence").forEach((item)=>{item.value=seq_name+"\n"+inputSeq})})
+//             .catch((error) => {
+//                //console.log("nu a gasit file, sequence goala   ")
+//                 inputSeq=""
+//                 seq_name=""
+//                 document.querySelectorAll("#sequence").forEach((item)=>{item.value=""})
             
       
-            })
-       // filename=fileName
-            let a = []
-            d3new.text(filename).then(d => {
+//             })
+//        // filename=fileName
+//             let a = []
+//             d3new.text(filename).then(d => {
                 
-                a = d3new.csvParse(d.replace(/ +/g, ",").replace(/\n,+/g, "\n").replace(/^\s*\n/gm, ""))
-                containers = {};
-                let container = d3new.select("#visContainer")
-                container.remove()
+//                 a = d3new.csvParse(d.replace(/ +/g, ",").replace(/\n,+/g, "\n").replace(/^\s*\n/gm, ""))
+//                 containers = {};
+//                 let container = d3new.select("#visContainer")
+//                 container.remove()
                 
-                ShowData(Array.from(a))
-            })
-        })
-    })
+//                 ShowData(Array.from(a))
+//             })
+//         })
+//     })
 
     
-}
+// }
  /**
      * 
     * method for reading the input from an uploaded file and then showing the data by calling ShowData
@@ -190,12 +200,15 @@ function readFromFileRadio(){
 function readFromFileUpload(){
     filteredData=null
     nestedData=[]
+    
     document.querySelectorAll('.fileinput').forEach((item) => {
-    item.addEventListener('change', (event) => {
+        item.addEventListener('click', (event) => {playAnimation=false})
+        item.addEventListener('change', (event) => {
         let rb=document.querySelectorAll('input[type=radio][name=fileinput]:checked')
         //console.log(rb)
         if (rb.length!=0)
             {rb[0].checked=false}
+        
         document.querySelectorAll("#sequence").forEach((item)=>{item.value=""})
         inputSeq=""
    
@@ -207,32 +220,33 @@ function readFromFileUpload(){
             reader.onload = (val) => {                                   
                let a=[]
               //console.log(val.target.result.replace(/ +/g, ",").replace(/\n,+/g, "\n").replace(/^\s*\n/gm, ""))
-               a = d3new.csvParse(val.target.result.replace(/ +/g, ",").replace(/\n,+/g, "\n").replace(/^\s*\n/gm, "")) 
-               
-                containers = {}; 
-                
-               //readSequence()
-               ShowData(a)
-
-               //This is where I need to check if the file contains points that are disregarded 
-                 
-                let nd = Array.from(d3new.group(a.filter((d) => { return d.occupancy > occupancyTreshold }), d => +d.time))
+               a = d3new.csvParse(val.target.result.replace(/ +/g, ",").replace(/\n,+/g, "\n").replace(/^\s*\n/gm, ""))                
+                containers = {};                  
+                let nd = Array.from(d3new.group(a.filter((d) => {return +d.occupancy > occupancyTreshold }), d => +d.time))
                 let dd= Array.from(d3new.group( a, d  => +d.time))
-                // console.log(dd)
-                // console.log("nd", nd)
+                //  console.log(dd)
+                //  console.log("nd", nd)
                 if (nd.length<dd.length) {
                     console.log("discarded time points")
                     alert("Some time points present in your file were discarded due to the presence of only low occupied structures ")
                 }
+                realtime=d3new.min(dd[0])
+                ShowData(a)
             }            
             reader.readAsText(f);
         }
     });
  })
 }
+/**
+     * 
+    * method for reading the sequence, from the text field or from the file. 
+    *  
+    */  
 
 function readSequence(){
-    document.querySelectorAll('.seqfileinpc').forEach((item) => {       
+    document.querySelectorAll('.seqfileinpc').forEach((item) => {    
+        item.addEventListener('click', (event) => {playAnimation=false})   
         item.addEventListener('change', (event) => {
             let files = event.target.files
             filename=files[0].name
@@ -257,7 +271,7 @@ function readSequence(){
     
 
     document.querySelectorAll('.seqform').forEach((item) => {
-        //console.log(item)
+        item.addEventListener('click', (event) => {playAnimation=false})
         item.addEventListener('change', (event) => {
             let input_text_array=event.target.value.trimEnd().trimStart().split("\n")
             if (input_text_array==""|| input_text_array=="")  {
@@ -284,37 +298,36 @@ function readSequence(){
 }
 
 
-/**
- * Function for downloading the content of the container,
- ** the name of the downloaded file is generated using the name of the current selected file, the current time and the current date. 
- ** also dispays a notification when the file was downloaded
- * @param {string} elem name of the container
+// /**
+//  * Function for downloading the content of the container,
+//  ** the name of the downloaded file is generated using the name of the current selected file, the current time and the current date. 
+//  ** also dispays a notification when the file was downloaded
+//  * @param {string} elem name of the container
  
- */
-function downloadPng() {
+//  */
+// function downloadPng() {
    
-    //console.log('Downloading... ')
-    domtoimage.toPng(document.getElementById("drTrafoContainer"))
-    .then(function (dataUrl) {
-        let link = document.createElement('a');
-        let today = new Date()
-        let date = today.getFullYear()+'_'+(today.getMonth()+1)+'_'+today.getDate();
-        let time = today.getHours() + "_" + today.getMinutes() + "_" + today.getSeconds();
+//     //console.log('Downloading... ')
+//     domtoimage.toPng(document.getElementById("drTrafoContainer"))
+//     .then(function (dataUrl) {
+//         let link = document.createElement('a');
+//         let today = new Date()
+//         let date = today.getFullYear()+'_'+(today.getMonth()+1)+'_'+today.getDate();
+//         let time = today.getHours() + "_" + today.getMinutes() + "_" + today.getSeconds();
        
-        link.download = filename+"_"+date+"_"+time+'.png';
-        alert("File "+link.download+" was downloaded")
-        link.href = dataUrl;
-        link.click();
+//         link.download = filename+"_"+date+"_"+time+'.png';
+//         alert("File "+link.download+" was downloaded")
+//         link.href = dataUrl;
+//         link.click();
         
 
-    });
-}
+//     });
+// }
 /**
  * Function for downloading the content of the container,
  ** the name of the downloaded file is generated using the name of the current selected file, the current time and the current date. 
  ** also dispays a notification when the file was downloaded
- * @param {string} elem name of the container
- 
+//  * @param {string} elem name of the container 
  */
  function downloadsSVG() {
     let tmddown=document.getElementById("drTrafoContainer")
@@ -322,7 +335,7 @@ function downloadPng() {
    // ("height", "100px").attr("width", "60px")
     domtoimage.toSvg(tmddown) //try downloading drTrafoContainer without the table 
     .then(async function (dataUrl) {
-        console.log(dataUrl)
+        // console.log(dataUrl)
         let link = document.createElement('a');
         let today = new Date()
         let date = today.getFullYear()+'_'+(today.getMonth()+1)+'_'+today.getDate();
@@ -744,6 +757,11 @@ const animationDelay = 10;
  */  
 let delayPLOT = undefined;
 /**
+ * delay for the plot when resize, to avoid plotting all intermediate stages if the mouse already moved further
+ *  
+ */  
+let delayResize = undefined;
+/**
  * Boolean for determining if the play button is active 
  * @type {boolean} 
  */  
@@ -1063,28 +1081,17 @@ let ret=false
  * @param {Array} data the parsed content of the input file
  */
 
-function ShowData(data) { 
-    
+function ShowData(data) {     
     preparePlotArea(drTrafoContainer); 
     initialize(data)
     prevtime = null
     let container = d3new.select("#drTrafoContainer");
-    container.select('#loadingNotification').remove(); //remove the loading notification 
-    
-   
-
-    filteredData = data.filter((d) => { return d.occupancy > occupancyTreshold }) // select structures with high enough occupancy
-   
+    container.select('#loadingNotification').remove(); //remove the loading notification  
+    filteredData = data.filter((d) => { return +d.occupancy > occupancyTreshold }) // select structures with high enough occupancy
     nestedData = Array.from(d3new.group(filteredData, d =>+d.time)) // nest data by  time points to extract the structures to plot for every time step
-    //TODO : Tell the user if there are time points that do not have any structures with a big enough occupancy 
-    //let nfd = Array.from(d3new.group(data, d => d.time))
-    //console.log(nestedData)
-    //console.log(nfd)
-    //if (nestedData.length<nfd.length){alert("Some data points were deleted due to only having structures with low occupancy")}
-
     trascriptionSteps,  AfterTrascription, maxNoStr = SplitTranscription(nestedData)
     combinedScale, rainbowScale ,mintime, maxlintime= CreateScales();
-    
+    if (realtime==null) {realtime=mintime}
     calculateNucleotideColors(filteredData) 
     mostocc = mostOccupiedperTime()
     //console.log(mostoccupiedpertime)
@@ -1156,6 +1163,7 @@ function ShowData(data) {
     })
     let reload_b = d3new.select("#SeqReload")
     reload_b.on('click', function() {
+        playAnimation=false
         //console.log("clicked ")
         readSequence()
         prevtime=null
@@ -1171,6 +1179,7 @@ function ShowData(data) {
     })
     let bfullscr = d3new.select("#toggleFullScreen")
     bfullscr.on('click', function() {
+        playAnimation=false
         toggleFullScreen(document.getElementById('fullScreenContainer'));
     })
     let bd = d3new.select("#downloadButton")
@@ -1229,34 +1238,47 @@ function ShowData(data) {
     const onResize = () => {
         //retain position we are at and if animation was on an remake plots accordingly!?? TODO?
         //maybe not delete everything but just resize to increase performance
-        playAnimation = false        
-        //tableContainer.selectAll("#timesvg").remove() //remove time scale
-        //viscontainer.selectAll(".div").selectAll(".svg").remove() 
-        //viscontainer.selectAll("#treemapdiv").remove()//remove plots
-        
-        ShowData(data); // redraw plots
-        
+        playAnimation = false      
+        ShowData(data); // redraw plot
+       // console.log("ai")
+        if (realtime!=null){
+            try{PLOT(realtime)
+                showLine(combinedScale(realtime)) 
+            }
+            catch{(err)=>{console.log("err", err)
+                 }
+                
+            }
+            return
+        }
         //  ret=true
         //  if (prevtime!=null){
         //     PLOT(prevtime)
         //     showLine(combinedScale(prevtime)) 
         // }
-        // // else if (mintime!=null){
-        //     PLOT(mintime)
-        //     showLine(combinedScale(mintime)) 
-        // }
+      
         
     }
     
   
     // console.log("init",ret)
     window.onresize = function(event) {
-        setTimeout(onResize, 1000)
-       
-        // console.log("1",ret)
-        
 
+        playAnimation=false
+       
+        if (delayResize) clearTimeout(delayResize);
+        delayResize = setTimeout(onResize, 500)
+
+        // ShowData(data)
+        // if (realtime!=null){
+        //         PLOT(realtime)
+        //         showLine(combinedScale(realtime)) 
+        //     }
+        // console.log("1",ret)
+     
     };
+   // console.log(data)
+    return
 //     console.log("after",ret)
 //    if (ret) {ret=false
 //     return prevtime}
