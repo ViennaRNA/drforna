@@ -146,13 +146,14 @@ function readFromFileUpload(){
     nestedData=[]
     
     document.querySelectorAll('.fileinput').forEach((item) => {
-        item.addEventListener('click', () => {playAnimation=false})
-        item.addEventListener('change', (event) => {
-        let rb=document.querySelectorAll('input[type=radio][name=fileinput]:checked')
-        //console.log(rb)
-        if (rb.length!=0)
-            {rb[0].checked=false}
-        
+        item.addEventListener('click', (event) => {playAnimation=false
+             event.target.value=""
+        })
+        item.addEventListener('change', (event) => {  
+        // let rb=document.querySelectorAll('input[type=radio][name=fileinput]:checked')
+        // //console.log(rb)
+        // if (rb.length!=0)
+        //     {rb[0].checked=false}
         document.querySelectorAll("#sequence").forEach((item)=>{item.value=""})
         inputSeq=""
    
