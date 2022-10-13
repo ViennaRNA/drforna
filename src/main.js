@@ -97,7 +97,7 @@ function load_example(filename){
         }) 
         inputSeq=se.join("")                
         document.querySelectorAll("#sequence").forEach((item)=>{item.value=seq_name+"\n"+inputSeq})})
-            .catch((error) => {
+            .catch(() => {
                //console.log("nu a gasit file, sequence goala   ")
                 inputSeq=""
                 seq_name=""
@@ -116,7 +116,7 @@ function load_example(filename){
                 
                 ShowData(Array.from(a))
                 document.querySelectorAll('.fileinput').forEach((item) => {
-                    item.addEventListener('change', (event) => {return false})})
+                    item.addEventListener('change', () => {return false})})
             })      
     
 
@@ -146,7 +146,7 @@ function readFromFileUpload(){
     nestedData=[]
     
     document.querySelectorAll('.fileinput').forEach((item) => {
-        item.addEventListener('click', (event) => {playAnimation=false})
+        item.addEventListener('click', () => {playAnimation=false})
         item.addEventListener('change', (event) => {
         let rb=document.querySelectorAll('input[type=radio][name=fileinput]:checked')
         //console.log(rb)
@@ -190,7 +190,7 @@ function readFromFileUpload(){
 
 function readSequence(){
     document.querySelectorAll('.seqfileinpc').forEach((item) => {    
-        item.addEventListener('click', (event) => {playAnimation=false})   
+        item.addEventListener('click', () => {playAnimation=false})   
         item.addEventListener('change', (event) => {
             let files = event.target.files
             filename=files[0].name
@@ -215,7 +215,7 @@ function readSequence(){
     
 
     document.querySelectorAll('.seqform').forEach((item) => {
-        item.addEventListener('click', (event) => {playAnimation=false})
+        item.addEventListener('click', () => {playAnimation=false})
         item.addEventListener('change', (event) => {
             let input_text_array=event.target.value.trimEnd().trimStart().split("\n")
             if (input_text_array==""|| input_text_array=="")  {
@@ -488,12 +488,12 @@ let maxlintime
                 let best=el[1][0]
                 let all=el[1]
                 all.forEach(e=>{ //console.log(best.occupancy, "   " ,e.occupancy)
-                    if (e.occupancy>=best.occupancy){best=e}})
+                    if (+e.occupancy>=+best.occupancy){best=e}})
                 mostoccupiedpertime.push([el[0], best])
                 })    
             let mostocc=[mostoccupiedpertime[0]]
             //console.log(mostoccupiedpertime)
-            mostoccupiedpertime.forEach((el,i)=>{
+            mostoccupiedpertime.forEach((el)=>{
                 //console.log(mostocc[mostocc.length-1][1].id,"  ", el[1].id)
 
                 if (el[1].id!=mostocc[mostocc.length-1][1].id){
@@ -517,7 +517,7 @@ function CreateScales(){
         let minlintime=d3new.min(trascriptionSteps, d=>+d[0])
         let maxlintime=d3new.max(trascriptionSteps, d=>+d[0])
         //console.log("time", minlintime, maxlintime)
-        let minlogtime=d3new.min(AfterTrascription, d=>+d[0])
+        //let minlogtime=d3new.min(AfterTrascription, d=>+d[0])
         let maxlogtime=d3new.max(AfterTrascription, d=>+d[0])
         //console.log(minlogtime, maxlogtime)
         prevtime = mintime
@@ -606,8 +606,8 @@ function createScaleColors(){
                     .attr("height", 80/sequenceLength)
                     .attr("transform", (d,k)=> `translate(${+combinedScale(el[0])},${nucleotideScale(k)+10})`)
                     .attr("fill", (d) => {return `${(d)}`; })
-                    .each(function(d,i) {//console.log("ha"+d+"ind "+i)
-                    })
+                    //.each(function(d,i) {//console.log("ha"+d+"ind "+i)
+                    //})
     
         })
 }   
@@ -656,14 +656,14 @@ function ShowEndOfTranscriptionLine(){
  * @returns {Function} 
  */
 
- function debounce(func, time){
-    var time = time || 100; // 100 by default if no param
-    var _timer;
-    return function(event){
-        if (_timer) clearTimeout(_timer);
-        _timer = setTimeout(func, time, event);
-    };
-}
+//  function debounce(func, time){
+//     var time = time || 100; // 100 by default if no param
+//     var _timer;
+//     return function(event){
+//         if (_timer) clearTimeout(_timer);
+//         _timer = setTimeout(func, time, event);
+//     };
+// }
 
 /**
  * List of structures to plot for the selected time point
@@ -677,8 +677,9 @@ let strToPlot;
  */  
 function StructuresToPlot(time){
     strToPlot=[]
+    console.log(nestedData)
     nestedData.forEach(element => {
-        if (element[0] == time) {
+        if (+element[0] == +time) {
             strToPlot = element[1] 
             } 
         })
@@ -748,6 +749,7 @@ function formatColors (colors) {
  * @param {Array} strToPlot The list of structures selected for the currently selected time point
  */           
 function WriteTable(strToPlot){
+    console.log(strToPlot)
                 var colnames = ['ID',// 'Time', 
                 'Occupancy', 'Structure' , 'Energy'];    
     
@@ -764,7 +766,7 @@ function WriteTable(strToPlot){
                 let trow=ttime.append("tr")
               
                 trow.append("td").text("Selected time point: ")
-                trow.append("td").text(strToPlot[0].time+" s")
+                trow.append("td").text(+strToPlot[0].time+" s")
                 trow=ttime.append("tr")
             
                 trow.append("td").text("Transcription length: ")
@@ -802,7 +804,7 @@ function WriteTable(strToPlot){
                                   {column:"str", value:d.structure, col:d.colors},{column:"en", value: d.energy}]//, {column:"col", value:d.colors}]
                       })
                       .enter()
-                tr.each((dd,j) =>{
+                tr.each((dd) =>{
                     if (dd.column == "id") {
                          tbody.append("tr")
                         
@@ -855,17 +857,14 @@ function PLOT(realtime) {
                 const treemapData = makeTreemapData(strToPlot);
                 const svgWidth = lineChartWidth
                 const svgHeight = lineChartWidth*0.4
-                var root = d3new.stratify()
-                    .id(function (d) { return d.name; })   // Name of the entity (column name is name in csv)
-                    .parentId(function (d) { return d.parent; })   // Name of the parent (column name is parent in csv)
-                    (treemapData);
+                let root = d3new.stratify().id(function(d) { return d.name})   // Name of the entity (column name is name in csv)
+                    .parentId(function(d){ return d.parent})(treemapData);
                 root.sum(d => +d.value)   // Compute the numeric value for each entity
                 //console.log(root.value)
                 Sum_of_occ=Math.round(root.value*100000)/100000
                 d3new.treemap()
                     .size([svgWidth, svgHeight])
-                    .padding(4)
-                    (root)
+                    .padding(4)(root)
                 viscontainer.select("#treemapdiv").remove()
                 viscontainer.append("div").attr("id", "treemapdiv") 
                             //.style('position', 'relative')
@@ -939,7 +938,7 @@ function makeTreemapData(data) {
  * @param {Array} data the parsed content of the input file
  */
 function calculateNucleotideColors(data) {
-    data.forEach(function(d, i) {
+    data.forEach(function(d) {
         // determine the colors of each nucleotide according to the position
         // of the stem that they're in
         // each 'd' is a line in the dr transfomer output
@@ -1019,18 +1018,20 @@ function toggleFullScreen(elem) {
         }
     }
 }
-let ret=false
+//let ret=false
 /**
  * Function for showing the data, which consists mostly of calls of previously defined functions and the mouse events
  * @param {Array} data the parsed content of the input file
  */
 
 function ShowData(data) {     
-    preparePlotArea(drTrafoContainer); 
+    preparePlotArea("#drTrafoContainer"); 
+   // console.log(drTrafoContainer)
     initialize(data)
-    prevtime = null
     let container = d3new.select("#drTrafoContainer");
     container.select('#loadingNotification').remove(); //remove the loading notification  
+   
+    prevtime = null
     filteredData = data.filter((d) => { return +d.occupancy > occupancyTreshold }) // select structures with high enough occupancy
     nestedData = Array.from(d3new.group(filteredData, d =>+d.time)) // nest data by  time points to extract the structures to plot for every time step
     trascriptionSteps,  AfterTrascription, maxNoStr = SplitTranscription(nestedData)
@@ -1060,9 +1061,9 @@ function ShowData(data) {
         if (d3new.pointer(event)[0] >= 30 && d3new.pointer(event)[0] <= lineChartWidth-30) {
             showLine(d3new.pointer(event)[0])
         }
-        for (let t in data) {
-            if (data[t].time <= mousetime) { 
-                realtime = data[t].time 
+        for (let t in filteredData) {
+            if (filteredData[t].time <= mousetime) { 
+                realtime = filteredData[t].time 
             }
         }
         if (prevtime != realtime) {
@@ -1088,9 +1089,9 @@ function ShowData(data) {
             showLine(x)
         }
 
-        for (let t in data) {
-            if (data[t].time <= mousetime) { 
-                realtime = data[t].time 
+        for (let t in filteredData) {
+            if (filteredData[t].time <= mousetime) { 
+                realtime = filteredData[t].time 
             }
         }
         if (prevtime != realtime) {
@@ -1189,7 +1190,8 @@ function ShowData(data) {
             try{PLOT(realtime)
                 showLine(combinedScale(realtime)) 
             }
-            catch{(err)=>{console.log("err", err)
+            catch{()=>{
+                // console.log("err", err)
                  }
                 
             }
@@ -1206,7 +1208,7 @@ function ShowData(data) {
     
   
     // console.log("init",ret)
-    window.onresize = function(event) {
+    window.onresize = function() {
 
         playAnimation=false
        
