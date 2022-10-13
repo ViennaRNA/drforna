@@ -2,7 +2,7 @@
   "name": "drforna",
   "version": "0.9.0",
   "description": "Visualization of cotranscriptional RNA folding.",
-  "license": "ISC",
+  "license": "Apache-2.0",
   "contributors": [
     "Anda Ramona Tanasie <anda-ramona.latif@tuwien.ac.at>",
     "Peter Kerpedjiev <pkerp@tbi.univie.ac.at>",
