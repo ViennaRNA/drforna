@@ -1267,7 +1267,7 @@ function ShowData(data) {
         playAnimation=false
        
         if (delayResize) clearTimeout(delayResize);
-        delayResize = setTimeout(onResize, 500)
+        delayResize = setTimeout(onResize, 300)
 
         // ShowData(data)
         // if (realtime!=null){
