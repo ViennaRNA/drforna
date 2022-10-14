@@ -191,7 +191,11 @@ function readFromFileUpload(){
 
 function readSequence(){
     document.querySelectorAll('.seqfileinpc').forEach((item) => {    
-        item.addEventListener('click', () => {playAnimation=false})   
+        item.addEventListener('click', (event) => {playAnimation=false
+            event.target.value=""
+            document.querySelectorAll("#sequence").forEach((item)=>{item.value=""})
+            //?? should I delete sequence, what if someone decided on not uploading 
+       }) 
         item.addEventListener('change', (event) => {
             let files = event.target.files
             filename=files[0].name
@@ -695,7 +699,7 @@ let elementIndex = 0;
  * Animation delay for the play button, time in miliseconds between consecutive plots
  * @type {number}
  */  
-const animationDelay = 10;
+let animationDelay = 10;
 
 /**
  * delay for the plot, to avoid plotting all intermediate stages if the mouse already moved further
@@ -1050,6 +1054,8 @@ function ShowData(data) {
     showLine(combinedScale(prevtime)) 
     ShowEndOfTranscriptionLine()
     let mousetime=30
+    
+
 
     svg.on("click", (event) => {
         if (playAnimation) {playAnimation=!playAnimation}
@@ -1146,20 +1152,21 @@ function ShowData(data) {
                 elementIndex=nestedData.indexOf(element)
                 }
             }) 
-        // ToogleAnimation( )
-
-        // /**
-        //  * Mathod for animation upon clicking the play button
-        //  ** starts at the current time point (the first time point in the file OR the first to the left of the current selected one)
-        //  ** goes through every time point present in the file and plots the structures (circles were drawn for these time points)
-        //  *
-        //  */  
-        // function ToogleAnimation(){  
+            document.querySelectorAll('.playspeed').forEach((item) => {
+                item.addEventListener('change', () => {
+                    
+                    animationDelay=item.value
+                    console.log( animationDelay)
+                })
+                   
+            })
             
-            setInterval(() => {
+            let ToogleAnimation= setInterval(() => {
+                console.log(animationDelay)
+                
                 if (!playAnimation) {//console.log("aici ");\\ ruleaza o data pe secunda, nu e foarte frumos...
                      
-                    
+                    clearInterval(ToogleAnimation)
                     return ;
                 }
                 if (elementIndex >= nestedData.length){            
@@ -1169,15 +1176,17 @@ function ShowData(data) {
                 //console.log(nestedData)
                 
                 prevtime = +element[0]
+             
                 PLOT(prevtime)
                 showLine(combinedScale(prevtime))
+       
+
                 
                 elementIndex += 1;
                 
                 return prevtime
             }, animationDelay);
            
-        //}
             
     })
 
