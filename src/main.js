@@ -1156,13 +1156,13 @@ function ShowData(data) {
                 item.addEventListener('change', () => {
                     
                     animationDelay=item.value
-                    console.log( animationDelay)
+                   //console.log( animationDelay)
                 })
                    
             })
             
             let ToogleAnimation= setInterval(() => {
-                console.log(animationDelay)
+               // console.log(animationDelay)
                 
                 if (!playAnimation) {//console.log("aici ");\\ ruleaza o data pe secunda, nu e foarte frumos...
                      
