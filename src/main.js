@@ -25,7 +25,7 @@ let containers;
  * Occupancy Treshhold, structures with smaller occupancy will not be shown, 0.01 by default
  * @type {number}
  */
-const occupancyTreshold = 0.01
+let occupancyTreshold=0.01;
 
 /**
  * Prepares the plotting area:
@@ -56,6 +56,7 @@ function preparePlotArea(elementName, notificationContent = 'Loading...') {
     container
         .append('div')
         .attr('id', 'tableContainer')
+        
         .html("<p>and time table container-most populated structure</p>")
 }
 
@@ -144,6 +145,7 @@ function start() {
 function readFromFileUpload(){
     filteredData=null
     nestedData=[]
+        
     
     document.querySelectorAll('.fileinput').forEach((item) => {
         item.addEventListener('click', (event) => {playAnimation=false
@@ -763,9 +765,9 @@ function WriteTable(strToPlot){
                 d3new.select("#tableContainer")
                     .selectAll("time").remove()
                 let time=d3new.select("#tableContainer").append("div").attr("id", "time")
-                .style("font-family", "DejaVu Sans Mono")
+                
                 let structures = d3new.select("#tableContainer").append("table")
-                    .style("font-family", "DejaVu Sans Mono")
+                 
                     
                 let ttime = time.append("table").attr("id", "ttime")
                 let trow=ttime.append("tr")
@@ -786,8 +788,7 @@ function WriteTable(strToPlot){
                             .data(colnames).enter()
                             .append('th')
                             .text(function (column) { return column; })
-                            .append('th')
-                            
+                            .append('th').style("text-align", "right")
                             .text(function (column) { 
                                 if (column=="Structure"){
                                     return inputSeq.slice(0, strToPlot[0].structure.length) //
@@ -796,7 +797,7 @@ function WriteTable(strToPlot){
                                  return ""
                             }).style("text-align", "right")
                             
-                let tbody = structures.append('tbody').style("text-align", "right")
+                let tbody = structures.append('tbody').style("text-align", "left")
                 let tr = tbody.selectAll("tr")
                       .data(strToPlot)
                       .enter()
@@ -816,7 +817,7 @@ function WriteTable(strToPlot){
                     }                
                     if (dd.column=="str") {                   
                         let tb=tbody.append("td")
-                                .style( "white-space", "nowrap").style("text-align", "left")
+                                .style( "white-space", "nowrap").attr("text-align", "center")
                         tb.selectAll('span').remove()
                         for (let i = 0; i < dd.value.length; i++) {
                           tb.append('span')
@@ -856,7 +857,8 @@ function WriteTable(strToPlot){
  * @param {number} realtime the selected time (as present in the file) 
  * @returns {Array} The list of plotted structures, as the ones that were now previously plotted
   */   
-function PLOT(realtime) {   
+function PLOT(realtime) { 
+              
             strToPlot = StructuresToPlot(realtime)
             if (strtoPlotprev != strToPlot) {
                 const treemapData = makeTreemapData(strToPlot);
@@ -893,7 +895,7 @@ function PLOT(realtime) {
                             .attr("y", 10)    //  to adjust position (lower)
                             .text( d => { return d.data.name })
                             .attr("font-size", "12px")
-                            .attr("font-family", "DejaVu Sans Mono")
+                            
                             .attr("fill", "white")
                             .each( d => {
                                 let rectname="svg"+d.data.name
@@ -1032,9 +1034,21 @@ function toggleFullScreen(elem) {
 function ShowData(data) {     
     preparePlotArea("#drTrafoContainer"); 
    // console.log(drTrafoContainer)
+    
+    document.querySelectorAll('.occupancy').forEach((item) => {
+        occupancyTreshold=item.value
+        item.addEventListener('change', () => {
+            
+        occupancyTreshold=item.value
+        initialize(data)
+        ShowData(data)
+        })
+        
+    })
     initialize(data)
     let container = d3new.select("#drTrafoContainer");
     container.select('#loadingNotification').remove(); //remove the loading notification  
+    
    
     prevtime = null
     filteredData = data.filter((d) => { return +d.occupancy > occupancyTreshold }) // select structures with high enough occupancy
@@ -1129,6 +1143,7 @@ function ShowData(data) {
         
 
     })
+
     let bfullscr = d3new.select("#toggleFullScreen")
     bfullscr.on('click', function() {
         playAnimation=false

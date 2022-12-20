@@ -26,15 +26,22 @@ body {
     max-width: 2000px;
     min-width: 450px;
     margin: auto;
-     width:80%; 
+    width:80%; 
     /* margin-left:90px;
     margin-right:90px;
     border-left: 90px;
     border-right: 90px; */
      /* padding-left: 11rem;  
      padding-right: 11rem;   */
-    font-family: DejaVu Sans Mono;
+    font-family: 'Courier New', Courier, monospace;
 
+}
+.occupancy{
+  width:30pt;
+  font-family: Arial, Helvetica, sans-serif;
+  border-radius: .5rem;
+  box-sizing: border-box;
+  text-align: center;
 }
 .playspeed{
   width:30pt;
@@ -49,7 +56,7 @@ body {
     padding-top: 5px;
     clear: both;
     padding-left: 5px;
-    font-family:Arial, Helvetica, sans-serif;
+    font-family:'Courier New', Courier, monospace;
     margin: 5px;
     height: 100%;
     width: 100%;
@@ -213,8 +220,8 @@ body {
 #tableContainer {
     padding: 5px;
     background: #fff;
-    font-family: DejaVu Sans Mono;
-    font-size:small ;
+    font-family: 'Courier New', Courier, monospace;
+    font-size: small ;
 }
 #treemapdiv{
     height: 700px;
@@ -258,4 +265,19 @@ height:120px
   -moz-user-select: none;
   -ms-user-select: none;
   user-select: none;
+}
+#repository{
+  text-align: right;
+ 
+  width: 100%;
+}
+#help{
+  text-align:left;
+  
+  width: 100%;
+}
+#footnote{
+  display:inline-flex;
+  font-size: 0.6em;
+  width: 100%;
 }

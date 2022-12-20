@@ -10,7 +10,11 @@
 </head>
 <body id="tot"> 
     <div id="title">DrForna</div>
-    <div id="subtitle">Visualization of changing structure ensembles during cotranscriptional folding</div>
+    <div id="subtitle">Visualization of changing structure ensembles during cotranscriptional folding
+       
+
+    
+    </div>
     <div id='result'>
         <div class="form">
             <div class="fileinput">
@@ -29,8 +33,11 @@
         </div>
         <div id="fullScreenContainer">
             <div id="controlContainer" >
-                Play speed: <input class="playspeed" type="text" id="speed" name="playspeed" title="Play speed" value="10" style="width: 30pt;">
-                ms <button class="bform" id="toggleAnimation">Play/Pause</button>
+                Occupancy threshold: <input class="occupancy" type="text" id="occupancy" name="occupancy" title="Occupancy" value="0.01" style="width: 30pt;">
+                
+                Play speed: <input class="playspeed" type="text" id="speed" name="playspeed" title="Play speed" value="5" style="width: 30pt;">
+                ms
+                <button class="bform" id="toggleAnimation">Play/Pause</button>
                 <button class="bform" id="downloadButton" title="Download plot as SVG">Download</button>
                 <button class="bform" id="toggleFullScreen">Fullscreen</button>
             </div>
@@ -39,6 +46,12 @@
             </div>
         </div>
     </div>
+    <div id= "footnote">
+        <p id="help"> <a href=help.html> Help</a></p>
+        <p id="repository"><a href=https://github.com/ViennaRNA/drforna> Github repository</a></p>
+       
+    </div>
     <script language="JavaScript" src="drforna.js"></script>
+
 </body>
 </html>
