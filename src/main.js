@@ -874,7 +874,7 @@ function PLOT(realtime) {
                     .size([svgWidth, svgHeight])
                     .padding(4)(root)
                 viscontainer.select("#treemapdiv").remove()
-                
+                let zoom=false;
                 viscontainer.append("div").attr("id", "treemapdiv") 
                             //.style('position', 'relative')
                             .style("width", `${svgWidth}px`)
@@ -885,16 +885,46 @@ function PLOT(realtime) {
                             .append("svg")
                             .attr("class", "plot")
                             .attr("id",   d => { return "svg"+d.data.name})
-                            .on("mouseover", (d,e)=> {
+                            .on("mouseover", (e,d)=> {  //show occ when mouse over
                                 d3.select(".infodiv").remove()
-                                let infodiv = d3.select("#controlContainer").append("div")
+                                let infodiv = d3.select("#treemapdiv").append("div")
                                         .attr("class", "infodiv")
-                                        .style("opacity", 30);  
-                                console.log(d,e);
-                                infodiv.html(e.data.value)
-                                .style('left',  ()=>{ return `${e.x0+15}px`; })
-                                .style('top',  () => { return `${e.y0+20}px`; })
-                                return infodiv.style("opacity", 90);})                      
+                                        .style("opacity", 0);  
+                                //console.log(e,d);
+                                infodiv.html(d.data.value)
+                                .style('left',  ()=>{ return `${d.x0+25}px`; })
+                                .style('top',  () => { return `${d.y0}px`; })
+                                return infodiv.style("opacity", 90);})    
+                            .on('mouseout', (e,d)=> {  
+                                    d3.select(".infodiv").remove() //delete on mouseout   
+                                }) 
+                            .on("click", (e,d) =>{
+                                //console.log(e,d)
+                                let c = d3.select("#svg"+d.data.name)
+                               
+                                if (zoom==false) {
+                                    zoom=true 
+                                    let helpdiv = d3.select("#treemapdiv").append("div")
+                                    .attr("class", "help").style("width", `${svgWidth}px`)
+                                    .style("height", `${svgHeight}px`)
+                                    .style('position', 'absolute')
+                                    .style("z-index", 2).style("background-color", "azure"); ;                                
+                                    return c.style("width", `${svgWidth}px`)
+                                        .style("height", `${svgHeight}px`)
+                                        .style('left',  d =>{ return `${0}px`; })
+                                        .style('top',  d => { return `${0}px`; })
+                                        .style("opacity", 100).style("z-index", 3)
+                                        
+                                }
+                                else{zoom=false
+                                    d3.select(".help").remove()
+                                    return c.style('left',  d =>{ return `${d.x0}px`; })
+                                    .style('top',  d => { return `${d.y0}px`; })
+                                    .style("z-index", 1)
+                                    .style('width',  d => { return `${(d.x1 - d.x0)}px`; })
+                                    .style('height',  d => { return `${(d.y1 - d.y0)}px`; })}
+                                
+                                })          
                             .style('position', 'absolute')
                             .style('left',  d =>{ return `${d.x0}px`; })
                             .style('top',  d => { return `${d.y0}px`; })
