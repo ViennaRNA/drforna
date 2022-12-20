@@ -41,6 +41,7 @@ function preparePlotArea(elementName, notificationContent = 'Loading...') {
     let container = d3new.select(elementName)
     container.selectAll('div')
         .remove()
+    
     //display loading indicator
     container.style('text-align', 'center')
         .append('div')
@@ -858,7 +859,10 @@ function WriteTable(strToPlot){
  * @returns {Array} The list of plotted structures, as the ones that were now previously plotted
   */   
 function PLOT(realtime) { 
-              
+        d3.select(".infodiv").remove()
+            let infodiv = d3.select("#controlContainer").append("div")
+                    .attr("class", "infodiv")
+                    .style("opacity", 30);  
             strToPlot = StructuresToPlot(realtime)
             if (strtoPlotprev != strToPlot) {
                 const treemapData = makeTreemapData(strToPlot);
@@ -873,6 +877,7 @@ function PLOT(realtime) {
                     .size([svgWidth, svgHeight])
                     .padding(4)(root)
                 viscontainer.select("#treemapdiv").remove()
+                
                 viscontainer.append("div").attr("id", "treemapdiv") 
                             //.style('position', 'relative')
                             .style("width", `${svgWidth}px`)
@@ -880,7 +885,15 @@ function PLOT(realtime) {
                             .selectAll(".svg").remove() // leave out
                             .data(root.leaves())
                             .enter()
-                            .append("svg").attr("class", "plot").attr("id",   d => { return "svg"+d.data.name})                        
+                            .append("svg")
+                            .attr("class", "plot")
+                            .attr("id",   d => { return "svg"+d.data.name})
+                            .on("mouseover", (d,e)=> {console.log(d,e);
+                                
+                                infodiv.html(e.data.value)
+                                     .style("left", (e.data.x0 + 10) + "px")
+                                     .style("top", (e.data.y0  - 15) + "px");
+                                return infodiv.style("opacity", 90);})                      
                             .style('position', 'absolute')
                             .style('left',  d =>{ return `${d.x0}px`; })
                             .style('top',  d => { return `${d.y0}px`; })
@@ -894,9 +907,8 @@ function PLOT(realtime) {
                             .attr("x", 1)    //  to adjust position (to the right)
                             .attr("y", 10)    //  to adjust position (lower)
                             .text( d => { return d.data.name })
-                            .attr("font-size", "12px")
-                            
-                            .attr("fill", "white")
+                            .attr("font-size", "12px")                            
+                            .attr("fill", "white")      
                             .each( d => {
                                 let rectname="svg"+d.data.name
                                 if ( d.data.str != '') {
@@ -1042,6 +1054,7 @@ function ShowData(data) {
             // otherwise the whole time points change! Error message when the occupancy threshold is bigger than max occ at end of transcr
         occupancyTreshold=item.value
         initialize(data)
+        
         ShowData(data)
         })
         
