@@ -859,10 +859,7 @@ function WriteTable(strToPlot){
  * @returns {Array} The list of plotted structures, as the ones that were now previously plotted
   */   
 function PLOT(realtime) { 
-        d3.select(".infodiv").remove()
-            let infodiv = d3.select("#controlContainer").append("div")
-                    .attr("class", "infodiv")
-                    .style("opacity", 30);  
+        
             strToPlot = StructuresToPlot(realtime)
             if (strtoPlotprev != strToPlot) {
                 const treemapData = makeTreemapData(strToPlot);
@@ -888,11 +885,15 @@ function PLOT(realtime) {
                             .append("svg")
                             .attr("class", "plot")
                             .attr("id",   d => { return "svg"+d.data.name})
-                            .on("mouseover", (d,e)=> {console.log(d,e);
-                                
+                            .on("mouseover", (d,e)=> {
+                                d3.select(".infodiv").remove()
+                                let infodiv = d3.select("#controlContainer").append("div")
+                                        .attr("class", "infodiv")
+                                        .style("opacity", 30);  
+                                console.log(d,e);
                                 infodiv.html(e.data.value)
-                                     .style("left", (e.data.x0 + 10) + "px")
-                                     .style("top", (e.data.y0  - 15) + "px");
+                                .style('left',  ()=>{ return `${e.x0+15}px`; })
+                                .style('top',  () => { return `${e.y0+20}px`; })
                                 return infodiv.style("opacity", 90);})                      
                             .style('position', 'absolute')
                             .style('left',  d =>{ return `${d.x0}px`; })

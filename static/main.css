@@ -282,6 +282,17 @@ height:120px
   width: 100%;
 }
 .infodiv{
-  text-align:left;
+    position: relative;
+    width: 30px;
+    height: 10px;
   
+    text-align: center;
+    padding: .1rem;
+    background: #FFFFFF;
+    color: #313639;
+    border: 1px solid #313639;
+    border-radius: 8px;
+    pointer-events: none;
+    font-size: 0.6rem;
 }
+
