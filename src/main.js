@@ -1038,7 +1038,8 @@ function ShowData(data) {
     document.querySelectorAll('.occupancy').forEach((item) => {
         occupancyTreshold=item.value
         item.addEventListener('change', () => {
-            
+            //TODO Look at the end of transcription in the original file and get the max occupancy there,
+            // otherwise the whole time points change! Error message when the occupancy threshold is bigger than max occ at end of transcr
         occupancyTreshold=item.value
         initialize(data)
         ShowData(data)
