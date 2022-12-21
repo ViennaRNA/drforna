@@ -286,8 +286,8 @@ height:120px
 .fornac-nodeLabel {
    /* font-weight:0.5rem ; */
   fill:black;
-  stroke-width: 0.001rem;
-  font-size: 0.4em;
+  stroke-width: 0.005rem;
+  font-size: 0.5em;
   /* font-weight: lighter; */
   font-family:'Times New Roman', Times, serif;
   color: rgb(14, 14, 14); 
