@@ -553,7 +553,7 @@ function CreateScales(){
         
         //the lin and log scale on the bottom, positions were defined
          x_axislog = d3new.axisBottom()
-            .scale(logscale);
+            .scale(logscale).ticks(5);
          x_axislin = d3new.axisBottom()
             .scale(scalel);
         //and the vertical nucleotide  
@@ -564,7 +564,7 @@ function CreateScales(){
         //Append group and insert axes
         nucleotideScale.domain([0, sequenceLength]);
          y_axis = d3new.axisLeft()
-            .scale(nucleotideScale)
+            .scale(nucleotideScale).ticks(5);
         
             
          rainbowScale = (t) => { //console.log(t/ sequenceLength)
@@ -894,7 +894,7 @@ function PLOT(realtime) {
                                 infodiv.html(d.data.value)
                                 .style('left',  ()=>{ return `${d.x0+25}px`; })
                                 .style('top',  () => { return `${d.y0}px`; })
-                                return infodiv.style("opacity", 90);})    
+                                return infodiv.style("opacity", 90).style("z-index", 3);})    
                             .on('mouseout', (e,d)=> {  
                                     d3.select(".infodiv").remove() //delete on mouseout   
                                 }) 
@@ -904,11 +904,13 @@ function PLOT(realtime) {
                                
                                 if (zoom==false) {
                                     zoom=true 
+                                    d3.select(".infodiv").remove()
                                     let helpdiv = d3.select("#treemapdiv").append("div")
                                     .attr("class", "help").style("width", `${svgWidth}px`)
                                     .style("height", `${svgHeight}px`)
-                                    .style('position', 'absolute')
-                                    .style("z-index", 2).style("background-color", "azure"); ;                                
+                                    .style('position', 'relative')
+                                    .style("z-index", 2).style("background-color", "azure").text("Selected structure, occupancy "+d.data.value); 
+                                    // console.log(d.data)                              
                                     return c.style("width", `${svgWidth}px`)
                                         .style("height", `${svgHeight}px`)
                                         .style('left',  d =>{ return `${0}px`; })
