@@ -999,9 +999,15 @@ function calculateNucleotideColors(data) {
 
         // get a pairtable and a list of the secondary structure elements
         let pt = rnaUtilities.dotbracketToPairtable(d.structure);
-        //console.log("pt", pt)
+        // console.log("pt", pt)
+        let pk=rnaUtilities.removePseudoknotsFromPairtable(pt)
+        if  (pk.length>0){
+            // console.log(d.time, "pk", pk, pt)
+            // console.log(pt)
+        }
+            
         let elements = rnaUtilities.ptToElements(pt, 0, 1, pt[0], []);
-        //console.log("el",elements)
+        // console.log("el",elements)
         // store the colors of each nucleotide
         let colors = Array(pt[0]).fill(d3.hsl("white"));
         //console.log(elements)

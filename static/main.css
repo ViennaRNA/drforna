@@ -19,12 +19,12 @@ body {
   flex-wrap: wrap;
 }
 .left_container{    
-width: 65%;
+width: 63%;
 padding-left: 0.5rem;
  padding-right: .5rem;
 }
 .right_container{    
-  width: 30%;
+  width: 34%;
   padding-left: .5rem;
   padding-right: .5rem;
 }
