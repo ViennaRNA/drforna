@@ -648,8 +648,8 @@ function drawCirclesForTimepoints(){
             .append('circle')
                 .attr('class', 'timePoint')
                 .attr('cx',d =>combinedScale(d))//  scale(d))
-                 .attr('cy', 90)
-                 .attr('r', 1)
+                .attr('cy', 90)
+                .attr('r', 1)
                 .attr('fill', 'none')
                 .attr('stroke', 'black')
                 .attr('strokeWidth', 1);
@@ -870,7 +870,7 @@ function WriteTable(strToPlot){
                 let j=10
                 let res=""
                 for (let i = 0; i < length; i++) {
-                    if ((res.length+1)==i){
+                    if ((res.length)==i){
                     if ((res.length+1)%10==0){
                         res+=j
                         j+=10
