@@ -1,0 +1,115 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>DrForna</title>
+    <link rel="stylesheet" href="main.css" />
+    <link rel="shortcut icon" href="#" />
+</head>
+<body id="helptot"> 
+    <div id="title">How to use DrForna</div>
+    <div class="main_container">
+        <div class="left_container">
+            <h3>  Input format:</h2>
+                <ol>
+                    <li>The <em> input file </em>should be a white-space separated value (``csv-like'') file.<br>
+                        The header should be <em> id time occupancy structure energy</em>. 
+                
+                        <ul> 
+                            <!-- <li>the header must contain five fields with the names <em>id time occupancy structure energy</em>.</li> -->
+                            <!-- <li>each further line in the file must contain this information </li> -->
+                            <li> The <em>id</em> can group structures: <br>
+                                Two structures can have the same id if they only differ in the number of the unpaired nucleotides at the end.<br>
+                                This grouping is recommended for a better performance of the tool, but not mandatory. Running id's can be used without a change in the visual output.
+                                <br> Note: The visualization will not work if the same id is used for multiple structures</li>
+                                <li> The <em>time</em> is a time point in the transcription  </li>
+                                <li> The <em>occupancy</em> is the probability of observing the structure in
+                                    the ensemble at the given time point </li>
+                                <li> The <em>structure</em> is the dot-bracket notation  </li>
+                                <li> The <em>energy</em> of that specific structure  </li>
+                        </ul>
+                        <li>The <em> sequence </em> is optional and can be either uploaded using a fasta file or written in the provided text box. 
+                            Lines starting with the symbol ">" are disregarded. <br>
+                            Note:The colors of the nucleotides may appear darker when the sequence is also present, but this is just due to our perception.
+                        <li>The parameters  <em> Occupancy threshold</em> and  <em>Playback speed </em> can be set manually. <br>
+                            Note: The occupancy threshold should be smaller than the maximal occupancy at the end of transciption in the file,
+                             otherwise the end of transciption changes due to completely deleted time points
+                </ol></div>
+        <div class="right_container">
+            <h4>Example input file:</h4>
+            <p>id time occupancy structure energy</p>
+            <p>6 1.47 1.0000 .((((....((((....))))....))))........  -9.30</p>
+            <p>6 1.48 1.0000 .((((....((((....))))....))))........  -9.30</p>
+            <p> 9 1.49 0.1494 .........((((....))))....((((....)))). -10.00</p>
+            <p> 6 1.49 0.8506 .((((....((((....))))....)))).........  -9.30</p>
+            <p> 9 1.50 0.2693 .........((((....))))....((((....)))). -10.00</p>
+            <p> 6 1.50 0.7306 .((((....((((....))))....)))).........  -9.30</p>
+            <p> 9 1.51 0.3656 .........((((....))))....((((....)))). -10.00</p>
+            <p> 6 1.51 0.6344 .((((....((((....))))....)))).........  -9.30</p>
+        </div>
+    </div>
+    <div class="main_container">
+        <div class="right_container">            
+            The visual output contains three parts:
+            <ol>
+                <li>The treemap</li>
+                <p>The output shown contains the visual output for a selected time point (marked with the red line on the time scale):
+
+                </p>
+                <!-- <img style="width:50%" , alt="Treemap " src="./toata.svg"> -->
+                <ul>
+                    <li>each structure is shown in the rectangle marked with the ID of the structure in the corner.</li>
+                    <li>the size of each rectangle will be proportional to the occupancy of the corresponding structure at the selected time point.</li>
+                    <li>each nucleotide will be colored according to the helix it is part of, while unpaired nucleotides remain uncolored.</li>
+
+                </ul>
+                <p>When the mouse is over a plot the occupancy is displayed</p>
+                <p>The user can zoom in any plot, by clicking anywhere on its corresponding rectangle. Another ckick reverses this action</p>
+                <!-- <img style="width:50%" , alt="Treemap " src="./zoomed.png"> -->
+
+
+                <li>The scales</li>
+                <!-- <img style="width:80%" , alt="Treemap " src="./scales.svg"> -->
+                <ul>
+                    <li> the black line on the time scale marks the end of transciption, which splits the scale into the linear cotranscriptional 
+                        time scale and the logarithmic scale for time steps after the end of transcription.</li>
+                    <li>for each time point, the vertical section of the colors shown on the scale correspond to the nucleotide colors of
+                        the most occupied structure present at the selected time point.</li>
+                    <li>In the area of the scales, you can activate or deactivate the mouse with a click.
+                        when the mouse is active, you can move the mouse left or right to select a time point interactively.
+                        </li>
+                
+                </ul>
+                <li>The summary table</li>
+                
+                <ul>
+                    <li>a summary of the content of the file for the selected timepoint will be shown as a table. 
+                        Each nucleotide of the structure (in dot bracket notation) will be also colored according to the helix it is part of. 
+                        The id of the most occupied structure for that particular time point will be also marked in the table.
+                </li><img style="width:100%" , alt="Treemap " src="./table.svg">
+                </ul>
+            </ol>
+
+        </div>
+        <div class="left_container">
+            <img style="width:100%" , alt="Treemap " src="./anot.png">
+        </div>
+            
+            
+                
+                
+        <div class="left_container">      
+                <li> The Play/Pause starts the animation: the structures are shown for every time point in the input file. 
+                    These were marked with small circles on the time scale. 
+                    The animation can be deactivated either by clicking the button again or by a mouse click on the scale area.
+                </li>
+            </ul>
+        </div>
+        
+    </div>
+    
+    <a href=index.html> Back to DrForna</a></div>
+</body>
+</html>

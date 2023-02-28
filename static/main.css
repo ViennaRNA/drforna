@@ -1,6 +1,40 @@
 body {
     background: white;
   }
+#helptot{
+  background: white;
+  font-size: 0.75rem;
+  padding: 0px;
+  margin-block-start: 0.2em;
+  margin-block-end: 0.2em;
+}  
+.main_container {
+  /* text-align: justify; */
+  display: flex;
+  padding-top: 1rem;
+  padding-bottom: 1rem;
+  padding-left: 0.5rem;
+  padding-right: 0.5rem;
+  flex-direction: row;
+  flex-wrap: wrap;
+}
+.left_container{    
+width: 63%;
+padding-left: 0.5rem;
+ padding-right: .5rem;
+}
+.right_container{    
+  width: 34%;
+  padding-left: .5rem;
+  padding-right: .5rem;
+}
+p {
+  display: block;
+  margin-block-start: 0.2em;
+  margin-block-end: 0.2em;
+  margin-inline-start: 0px;
+  margin-inline-end: 0px;
+}
 #title{
     text-align: center;
     background-color: rgb(0, 69, 148);
@@ -26,14 +60,29 @@ body {
     max-width: 2000px;
     min-width: 450px;
     margin: auto;
-     width:80%; 
+    width:80%; 
     /* margin-left:90px;
     margin-right:90px;
     border-left: 90px;
     border-right: 90px; */
      /* padding-left: 11rem;  
      padding-right: 11rem;   */
-    font-family: DejaVu Sans Mono;
+    font-family: 'Courier New', Courier, monospace;
+
+}
+.occupancy{
+  width:30pt;
+  font-family: Arial, Helvetica, sans-serif;
+  border-radius: .5rem;
+  box-sizing: border-box;
+  text-align: center;
+}
+.playspeed{
+  width:30pt;
+  font-family: Arial, Helvetica, sans-serif;
+  border-radius: .5rem;
+  box-sizing: border-box;
+  text-align: center;
 
 }
 .form {/*for file input and deleted radio butons */
@@ -41,7 +90,7 @@ body {
     padding-top: 5px;
     clear: both;
     padding-left: 5px;
-    font-family:Arial, Helvetica, sans-serif;
+    font-family:'Courier New', Courier, monospace;
     margin: 5px;
     height: 100%;
     width: 100%;
@@ -66,6 +115,7 @@ body {
     line-height: 1.25rem;
     display: flex; 
     text-align: right;
+    
   }
 .seqtext{
     text-align: left;
@@ -84,7 +134,9 @@ body {
 #sequence{
     text-align: left;
     height: 100%;
-    width: 80%;   
+    width: 80%;  
+    border-radius: .5rem;
+    box-sizing: border-box; 
     
   }
   #sinp{
@@ -196,13 +248,14 @@ body {
   #controlContainer {
     padding: 5px;
     text-align: right;
+    font-family:Arial, Helvetica, sans-serif;
     
 }
 #tableContainer {
     padding: 5px;
     background: #fff;
-    font-family: DejaVu Sans Mono;
-    font-size:small ;
+    font-family: 'Courier New', Courier, monospace;
+    font-size: small ;
 }
 #treemapdiv{
     height: 700px;
@@ -232,12 +285,15 @@ height:120px
 
 .fornac-nodeLabel {
    /* font-weight:0.5rem ; */
-  font-family:Arial, Helvetica, sans-serif; 
-  font-size: 0.45em;
-  color: rgb(100,100,100); 
+  fill:black;
+  stroke-width: 0.005rem;
+  font-size: 0.5em;
+  /* font-weight: lighter; */
+  font-family:'Times New Roman', Times, serif;
+  color: rgb(14, 14, 14); 
   text-anchor: middle; 
   /* alignment-baseline: middle;  */
-  dominant-baseline: central;
+  dominant-baseline: central; 
   pointer-events: none;
   -webkit-touch-callout: none;
   -webkit-user-select: none;
@@ -247,3 +303,33 @@ height:120px
   -ms-user-select: none;
   user-select: none;
 }
+#repository{
+  text-align: right;
+ 
+  width: 100%;
+}
+#help{
+  text-align:left;
+  
+  width: 100%;
+}
+#footnote{
+  display:inline-flex;
+  font-size: 0.6em;
+  width: 100%;
+}
+.infodiv{
+    position: relative;
+    width: 40px;
+    height: 10px;
+  
+    text-align: center;
+    padding: .1rem;
+    background: #FFFFFF;
+    color: #313639;
+    border: 1px solid #313639;
+    border-radius: 8px;
+    pointer-events: none;
+    font-size: 0.6rem;
+}
+

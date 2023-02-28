@@ -1,5 +1,5 @@
 import * as d3new from "d3"
-import * as domtoimage from "dom-to-image"
+import * as htmlToImage from "html-to-image"
 import {FornaContainer, RNAUtilities} from 'fornac';
 //@ts-check
 /**
@@ -25,7 +25,7 @@ let containers;
  * Occupancy Treshhold, structures with smaller occupancy will not be shown, 0.01 by default
  * @type {number}
  */
-const occupancyTreshold = 0.01
+let occupancyTreshold=0.01;
 
 /**
  * Prepares the plotting area:
@@ -41,6 +41,7 @@ function preparePlotArea(elementName, notificationContent = 'Loading...') {
     let container = d3new.select(elementName)
     container.selectAll('div')
         .remove()
+    
     //display loading indicator
     container.style('text-align', 'center')
         .append('div')
@@ -56,6 +57,7 @@ function preparePlotArea(elementName, notificationContent = 'Loading...') {
     container
         .append('div')
         .attr('id', 'tableContainer')
+        
         .html("<p>and time table container-most populated structure</p>")
 }
 
@@ -97,7 +99,7 @@ function load_example(filename){
         }) 
         inputSeq=se.join("")                
         document.querySelectorAll("#sequence").forEach((item)=>{item.value=seq_name+"\n"+inputSeq})})
-            .catch((error) => {
+            .catch(() => {
                //console.log("nu a gasit file, sequence goala   ")
                 inputSeq=""
                 seq_name=""
@@ -116,7 +118,7 @@ function load_example(filename){
                 
                 ShowData(Array.from(a))
                 document.querySelectorAll('.fileinput').forEach((item) => {
-                    item.addEventListener('change', (event) => {return false})})
+                    item.addEventListener('change', () => {return false})})
             })      
     
 
@@ -129,7 +131,7 @@ function load_example(filename){
 function start() {
     prevtime = null
     nestedData = null
-    console.log('starting')
+    //console.log('starting')
     load_example("grow.drf")
    // readFromFileRadio();   
     readFromFileUpload();
@@ -144,15 +146,17 @@ function start() {
 function readFromFileUpload(){
     filteredData=null
     nestedData=[]
+        
     
     document.querySelectorAll('.fileinput').forEach((item) => {
-        item.addEventListener('click', (event) => {playAnimation=false})
-        item.addEventListener('change', (event) => {
-        let rb=document.querySelectorAll('input[type=radio][name=fileinput]:checked')
-        //console.log(rb)
-        if (rb.length!=0)
-            {rb[0].checked=false}
-        
+        item.addEventListener('click', (event) => {playAnimation=false
+             event.target.value=""
+        })
+        item.addEventListener('change', (event) => {  
+        // let rb=document.querySelectorAll('input[type=radio][name=fileinput]:checked')
+        // //console.log(rb)
+        // if (rb.length!=0)
+        //     {rb[0].checked=false}
         document.querySelectorAll("#sequence").forEach((item)=>{item.value=""})
         inputSeq=""
    
@@ -171,7 +175,7 @@ function readFromFileUpload(){
                 //  console.log(dd)
                 //  console.log("nd", nd)
                 if (nd.length<dd.length) {
-                    console.log("discarded time points")
+                  //  console.log("discarded time points")
                     alert("Some time points present in your file were discarded due to the presence of only low occupied structures ")
                 }
                 realtime=d3new.min(dd[0])
@@ -190,7 +194,11 @@ function readFromFileUpload(){
 
 function readSequence(){
     document.querySelectorAll('.seqfileinpc').forEach((item) => {    
-        item.addEventListener('click', (event) => {playAnimation=false})   
+        item.addEventListener('click', (event) => {playAnimation=false
+            event.target.value=""
+            document.querySelectorAll("#sequence").forEach((item)=>{item.value=""})
+            //?? should I delete sequence, what if someone decided on not uploading 
+       }) 
         item.addEventListener('change', (event) => {
             let files = event.target.files
             filename=files[0].name
@@ -215,7 +223,7 @@ function readSequence(){
     
 
     document.querySelectorAll('.seqform').forEach((item) => {
-        item.addEventListener('click', (event) => {playAnimation=false})
+        item.addEventListener('click', () => {playAnimation=false})
         item.addEventListener('change', (event) => {
             let input_text_array=event.target.value.trimEnd().trimStart().split("\n")
             if (input_text_array==""|| input_text_array=="")  {
@@ -274,10 +282,27 @@ function readSequence(){
 //  * @param {string} elem name of the container 
  */
  function downloadsSVG() {
+    function filter (node) {
+        return (node.tagName !== 'i');
+      }
     let tmddown=document.getElementById("drTrafoContainer")
-    
-   // ("height", "100px").attr("width", "60px")
-    domtoimage.toSvg(tmddown) //try downloading drTrafoContainer without the table 
+    htmlToImage.toJpeg(tmddown)
+        .then(function (dataUrl) {
+            
+            let link = document.createElement('a');
+            let today = new Date()
+            let date = today.getFullYear()+'_'+(today.getMonth()+1)+'_'+today.getDate();
+            let time = today.getHours() + "_" + today.getMinutes() + "_" + today.getSeconds();
+           
+            link.download = filename+"_"+date+"_"+time+'.jpeg';
+            link.href = dataUrl;
+            link.click();
+          });
+       
+        
+
+    // ("height", "100px").attr("width", "60px")
+    htmlToImage.toSvg(tmddown, { filter: filter }) //try downloading drTrafoContainer without the table 
     .then(async function (dataUrl) {
         // console.log(dataUrl)
         let link = document.createElement('a');
@@ -488,12 +513,12 @@ let maxlintime
                 let best=el[1][0]
                 let all=el[1]
                 all.forEach(e=>{ //console.log(best.occupancy, "   " ,e.occupancy)
-                    if (e.occupancy>=best.occupancy){best=e}})
+                    if (+e.occupancy>=+best.occupancy){best=e}})
                 mostoccupiedpertime.push([el[0], best])
                 })    
             let mostocc=[mostoccupiedpertime[0]]
             //console.log(mostoccupiedpertime)
-            mostoccupiedpertime.forEach((el,i)=>{
+            mostoccupiedpertime.forEach((el)=>{
                 //console.log(mostocc[mostocc.length-1][1].id,"  ", el[1].id)
 
                 if (el[1].id!=mostocc[mostocc.length-1][1].id){
@@ -517,7 +542,7 @@ function CreateScales(){
         let minlintime=d3new.min(trascriptionSteps, d=>+d[0])
         let maxlintime=d3new.max(trascriptionSteps, d=>+d[0])
         //console.log("time", minlintime, maxlintime)
-        let minlogtime=d3new.min(AfterTrascription, d=>+d[0])
+        //let minlogtime=d3new.min(AfterTrascription, d=>+d[0])
         let maxlogtime=d3new.max(AfterTrascription, d=>+d[0])
         //console.log(minlogtime, maxlogtime)
         prevtime = mintime
@@ -545,7 +570,7 @@ function CreateScales(){
         
         //the lin and log scale on the bottom, positions were defined
          x_axislog = d3new.axisBottom()
-            .scale(logscale);
+            .scale(logscale).ticks(5);
          x_axislin = d3new.axisBottom()
             .scale(scalel);
         //and the vertical nucleotide  
@@ -556,7 +581,7 @@ function CreateScales(){
         //Append group and insert axes
         nucleotideScale.domain([0, sequenceLength]);
          y_axis = d3new.axisLeft()
-            .scale(nucleotideScale)
+            .scale(nucleotideScale).ticks(5);
         
             
          rainbowScale = (t) => { //console.log(t/ sequenceLength)
@@ -606,8 +631,8 @@ function createScaleColors(){
                     .attr("height", 80/sequenceLength)
                     .attr("transform", (d,k)=> `translate(${+combinedScale(el[0])},${nucleotideScale(k)+10})`)
                     .attr("fill", (d) => {return `${(d)}`; })
-                    .each(function(d,i) {//console.log("ha"+d+"ind "+i)
-                    })
+                    //.each(function(d,i) {//console.log("ha"+d+"ind "+i)
+                    //})
     
         })
 }   
@@ -623,8 +648,8 @@ function drawCirclesForTimepoints(){
             .append('circle')
                 .attr('class', 'timePoint')
                 .attr('cx',d =>combinedScale(d))//  scale(d))
-                 .attr('cy', 90)
-                 .attr('r', 1)
+                .attr('cy', 90)
+                .attr('r', 1)
                 .attr('fill', 'none')
                 .attr('stroke', 'black')
                 .attr('strokeWidth', 1);
@@ -656,14 +681,14 @@ function ShowEndOfTranscriptionLine(){
  * @returns {Function} 
  */
 
- function debounce(func, time){
-    var time = time || 100; // 100 by default if no param
-    var _timer;
-    return function(event){
-        if (_timer) clearTimeout(_timer);
-        _timer = setTimeout(func, time, event);
-    };
-}
+//  function debounce(func, time){
+//     var time = time || 100; // 100 by default if no param
+//     var _timer;
+//     return function(event){
+//         if (_timer) clearTimeout(_timer);
+//         _timer = setTimeout(func, time, event);
+//     };
+// }
 
 /**
  * List of structures to plot for the selected time point
@@ -677,8 +702,9 @@ let strToPlot;
  */  
 function StructuresToPlot(time){
     strToPlot=[]
+   // console.log(nestedData)
     nestedData.forEach(element => {
-        if (element[0] == time) {
+        if (+element[0] == +time) {
             strToPlot = element[1] 
             } 
         })
@@ -693,7 +719,7 @@ let elementIndex = 0;
  * Animation delay for the play button, time in miliseconds between consecutive plots
  * @type {number}
  */  
-const animationDelay = 10;
+let animationDelay = 10;
 
 /**
  * delay for the plot, to avoid plotting all intermediate stages if the mouse already moved further
@@ -748,6 +774,7 @@ function formatColors (colors) {
  * @param {Array} strToPlot The list of structures selected for the currently selected time point
  */           
 function WriteTable(strToPlot){
+    //console.log(strToPlot)
                 var colnames = ['ID',// 'Time', 
                 'Occupancy', 'Structure' , 'Energy'];    
     
@@ -756,15 +783,15 @@ function WriteTable(strToPlot){
                 d3new.select("#tableContainer")
                     .selectAll("time").remove()
                 let time=d3new.select("#tableContainer").append("div").attr("id", "time")
-                .style("font-family", "DejaVu Sans Mono")
+                
                 let structures = d3new.select("#tableContainer").append("table")
-                    .style("font-family", "DejaVu Sans Mono")
+                 
                     
                 let ttime = time.append("table").attr("id", "ttime")
                 let trow=ttime.append("tr")
               
                 trow.append("td").text("Selected time point: ")
-                trow.append("td").text(strToPlot[0].time+" s")
+                trow.append("td").text(+strToPlot[0].time+" s")
                 trow=ttime.append("tr")
             
                 trow.append("td").text("Transcription length: ")
@@ -779,17 +806,16 @@ function WriteTable(strToPlot){
                             .data(colnames).enter()
                             .append('th')
                             .text(function (column) { return column; })
-                            .append('th')
-                            
+                            .append('th').style("text-align", "right")
                             .text(function (column) { 
                                 if (column=="Structure"){
                                     return inputSeq.slice(0, strToPlot[0].structure.length) //
                                 }
                                 else
-                                 return ""
+                                 return " "
                             }).style("text-align", "right")
                             
-                let tbody = structures.append('tbody').style("text-align", "right")
+                let tbody = structures.append('tbody').style("text-align", "left")
                 let tr = tbody.selectAll("tr")
                       .data(strToPlot)
                       .enter()
@@ -802,14 +828,14 @@ function WriteTable(strToPlot){
                                   {column:"str", value:d.structure, col:d.colors},{column:"en", value: d.energy}]//, {column:"col", value:d.colors}]
                       })
                       .enter()
-                tr.each((dd,j) =>{
+                tr.each((dd) =>{
                     if (dd.column == "id") {
                          tbody.append("tr")
                         
                     }                
                     if (dd.column=="str") {                   
                         let tb=tbody.append("td")
-                                .style( "white-space", "nowrap").style("text-align", "left")
+                                .style( "white-space", "nowrap").attr("text-align", "center")
                         tb.selectAll('span').remove()
                         for (let i = 0; i < dd.value.length; i++) {
                           tb.append('span')
@@ -838,10 +864,34 @@ function WriteTable(strToPlot){
                         } else
                         tbody.append("td").text(dd.value)
                     }
-                
+               
                 })  
-                            
-                
+            function writeLabels(length){
+                let j=10
+                let res=""
+                for (let i = 0; i < length; i++) {
+                    if ((res.length)==i){
+                    if ((res.length+1)%10==0){
+                        res+=j
+                        j+=10
+                    }
+                    else if((res.length+1)%5==0){res+=","}
+                        else {res+="."}}}
+                console.log(res)
+                return res
+
+            }
+            let lastrow=tbody.append("tr") 
+            lastrow.append('td')
+                .text(" ")
+                lastrow.append('td')
+                .text(" ")
+                lastrow.append('td')
+                .text(writeLabels(strToPlot[0].structure.length))
+                .style("text-align", "left") 
+                lastrow.append('td')
+                .text(" ")               
+            
             }
           
 /**
@@ -849,24 +899,25 @@ function WriteTable(strToPlot){
  * @param {number} realtime the selected time (as present in the file) 
  * @returns {Array} The list of plotted structures, as the ones that were now previously plotted
   */   
-function PLOT(realtime) {   
+function PLOT(realtime) { 
+        
             strToPlot = StructuresToPlot(realtime)
             if (strtoPlotprev != strToPlot) {
                 const treemapData = makeTreemapData(strToPlot);
                 const svgWidth = lineChartWidth
                 const svgHeight = lineChartWidth*0.4
-                var root = d3new.stratify()
-                    .id(function (d) { return d.name; })   // Name of the entity (column name is name in csv)
-                    .parentId(function (d) { return d.parent; })   // Name of the parent (column name is parent in csv)
-                    (treemapData);
-                root.sum(d => +d.value)   // Compute the numeric value for each entity
+                let root = d3new.stratify().id(function(d) { return d.name})   // Name of the entity (column name is name in csv)
+                    .parentId(function(d){ return d.parent})(treemapData);
+                root.sum(d => +d.value).sort((a, b) => b.value - a.value)  // Compute the numeric value for each entity
                 //console.log(root.value)
                 Sum_of_occ=Math.round(root.value*100000)/100000
                 d3new.treemap()
                     .size([svgWidth, svgHeight])
-                    .padding(4)
-                    (root)
+                    .padding(4)(root)
+                    
+                    
                 viscontainer.select("#treemapdiv").remove()
+                let zoom=false;
                 viscontainer.append("div").attr("id", "treemapdiv") 
                             //.style('position', 'relative')
                             .style("width", `${svgWidth}px`)
@@ -874,7 +925,51 @@ function PLOT(realtime) {
                             .selectAll(".svg").remove() // leave out
                             .data(root.leaves())
                             .enter()
-                            .append("svg").attr("class", "plot").attr("id",   d => { return "svg"+d.data.name})                        
+                            .append("svg")
+                            .attr("class", "plot")
+                            .attr("id",   d => { return "svg"+d.data.name})
+                            .on("mouseover", (e,d)=> {  //show occ when mouse over
+                                d3.select(".infodiv").remove()
+                                let infodiv = d3.select("#treemapdiv").append("div")
+                                        .attr("class", "infodiv")
+                                        .style("opacity", 0);  
+                                //console.log(e,d);
+                                infodiv.html(d.data.value)
+                                .style('left',  ()=>{ return `${d.x0+25}px`; })
+                                .style('top',  () => { return `${d.y0}px`; })
+                                return infodiv.style("opacity", 90).style("z-index", 3);})    
+                            .on('mouseout', (e,d)=> {  
+                                    d3.select(".infodiv").remove() //delete on mouseout   
+                                }) 
+                            .on("click", (e,d) =>{
+                                //console.log(e,d)
+                                let c = d3.select("#svg"+d.data.name)
+                               
+                                if (zoom==false) {
+                                    zoom=true 
+                                    d3.select(".infodiv").remove()
+                                    let helpdiv = d3.select("#treemapdiv").append("div")
+                                    .attr("class", "help").style("width", `${svgWidth}px`)
+                                    .style("height", `${svgHeight}px`)
+                                    .style('position', 'relative')
+                                    .style("z-index", 2).style("background-color", "azure").text("Selected structure, occupancy "+d.data.value); 
+                                    // console.log(d.data)                              
+                                    return c.style("width", `${svgWidth}px`)
+                                        .style("height", `${svgHeight}px`)
+                                        .style('left',  d =>{ return `${0}px`; })
+                                        .style('top',  d => { return `${0}px`; })
+                                        .style("opacity", 100).style("z-index", 3)
+                                        
+                                }
+                                else{zoom=false
+                                    d3.select(".help").remove()
+                                    return c.style('left',  d =>{ return `${d.x0}px`; })
+                                    .style('top',  d => { return `${d.y0}px`; })
+                                    .style("z-index", 1)
+                                    .style('width',  d => { return `${(d.x1 - d.x0)}px`; })
+                                    .style('height',  d => { return `${(d.y1 - d.y0)}px`; })}
+                                
+                                })          
                             .style('position', 'absolute')
                             .style('left',  d =>{ return `${d.x0}px`; })
                             .style('top',  d => { return `${d.y0}px`; })
@@ -888,9 +983,8 @@ function PLOT(realtime) {
                             .attr("x", 1)    //  to adjust position (to the right)
                             .attr("y", 10)    //  to adjust position (lower)
                             .text( d => { return d.data.name })
-                            .attr("font-size", "12px")
-                            .attr("font-family", "DejaVu Sans Mono")
-                            .attr("fill", "white")
+                            .attr("font-size", "12px")                            
+                            .attr("fill", "white")      
                             .each( d => {
                                 let rectname="svg"+d.data.name
                                 if ( d.data.str != '') {
@@ -939,7 +1033,7 @@ function makeTreemapData(data) {
  * @param {Array} data the parsed content of the input file
  */
 function calculateNucleotideColors(data) {
-    data.forEach(function(d, i) {
+    data.forEach(function(d) {
         // determine the colors of each nucleotide according to the position
         // of the stem that they're in
         // each 'd' is a line in the dr transfomer output
@@ -948,9 +1042,15 @@ function calculateNucleotideColors(data) {
 
         // get a pairtable and a list of the secondary structure elements
         let pt = rnaUtilities.dotbracketToPairtable(d.structure);
-        //console.log("pt", pt)
+        // console.log("pt", pt)
+        let pk=rnaUtilities.removePseudoknotsFromPairtable(pt)
+        if  (pk.length>0){
+            // console.log(d.time, "pk", pk, pt)
+            // console.log(pt)
+        }
+            
         let elements = rnaUtilities.ptToElements(pt, 0, 1, pt[0], []);
-        //console.log("el",elements)
+        // console.log("el",elements)
         // store the colors of each nucleotide
         let colors = Array(pt[0]).fill(d3.hsl("white"));
         //console.log(elements)
@@ -1019,18 +1119,34 @@ function toggleFullScreen(elem) {
         }
     }
 }
-let ret=false
+//let ret=false
 /**
  * Function for showing the data, which consists mostly of calls of previously defined functions and the mouse events
  * @param {Array} data the parsed content of the input file
  */
 
 function ShowData(data) {     
-    preparePlotArea(drTrafoContainer); 
+    preparePlotArea("#drTrafoContainer"); 
+   // console.log(drTrafoContainer)
+    
+    document.querySelectorAll('.occupancy').forEach((item) => {
+        occupancyTreshold=item.value
+        item.addEventListener('change', () => {
+            //TODO Look at the end of transcription in the original file and get the max occupancy there,
+            // otherwise the whole time points change! Error message when the occupancy threshold is bigger than max occ at end of transcr
+        occupancyTreshold=item.value
+        initialize(data)
+        
+        ShowData(data)
+        })
+        
+    })
     initialize(data)
-    prevtime = null
     let container = d3new.select("#drTrafoContainer");
     container.select('#loadingNotification').remove(); //remove the loading notification  
+    
+   
+    prevtime = null
     filteredData = data.filter((d) => { return +d.occupancy > occupancyTreshold }) // select structures with high enough occupancy
     nestedData = Array.from(d3new.group(filteredData, d =>+d.time)) // nest data by  time points to extract the structures to plot for every time step
     trascriptionSteps,  AfterTrascription, maxNoStr = SplitTranscription(nestedData)
@@ -1048,6 +1164,8 @@ function ShowData(data) {
     showLine(combinedScale(prevtime)) 
     ShowEndOfTranscriptionLine()
     let mousetime=30
+    
+
 
     svg.on("click", (event) => {
         if (playAnimation) {playAnimation=!playAnimation}
@@ -1060,9 +1178,9 @@ function ShowData(data) {
         if (d3new.pointer(event)[0] >= 30 && d3new.pointer(event)[0] <= lineChartWidth-30) {
             showLine(d3new.pointer(event)[0])
         }
-        for (let t in data) {
-            if (data[t].time <= mousetime) { 
-                realtime = data[t].time 
+        for (let t in filteredData) {
+            if (filteredData[t].time <= mousetime) { 
+                realtime = filteredData[t].time 
             }
         }
         if (prevtime != realtime) {
@@ -1088,9 +1206,9 @@ function ShowData(data) {
             showLine(x)
         }
 
-        for (let t in data) {
-            if (data[t].time <= mousetime) { 
-                realtime = data[t].time 
+        for (let t in filteredData) {
+            if (filteredData[t].time <= mousetime) { 
+                realtime = filteredData[t].time 
             }
         }
         if (prevtime != realtime) {
@@ -1121,6 +1239,7 @@ function ShowData(data) {
         
 
     })
+
     let bfullscr = d3new.select("#toggleFullScreen")
     bfullscr.on('click', function() {
         playAnimation=false
@@ -1144,20 +1263,21 @@ function ShowData(data) {
                 elementIndex=nestedData.indexOf(element)
                 }
             }) 
-        // ToogleAnimation( )
-
-        // /**
-        //  * Mathod for animation upon clicking the play button
-        //  ** starts at the current time point (the first time point in the file OR the first to the left of the current selected one)
-        //  ** goes through every time point present in the file and plots the structures (circles were drawn for these time points)
-        //  *
-        //  */  
-        // function ToogleAnimation(){  
+            document.querySelectorAll('.playspeed').forEach((item) => {
+                item.addEventListener('change', () => {
+                    
+                    animationDelay=item.value
+                   //console.log( animationDelay)
+                })
+                   
+            })
             
-            setInterval(() => {
+            let ToogleAnimation= setInterval(() => {
+               // console.log(animationDelay)
+                
                 if (!playAnimation) {//console.log("aici ");\\ ruleaza o data pe secunda, nu e foarte frumos...
                      
-                    
+                    clearInterval(ToogleAnimation)
                     return ;
                 }
                 if (elementIndex >= nestedData.length){            
@@ -1167,15 +1287,17 @@ function ShowData(data) {
                 //console.log(nestedData)
                 
                 prevtime = +element[0]
+             
                 PLOT(prevtime)
                 showLine(combinedScale(prevtime))
+       
+
                 
                 elementIndex += 1;
                 
                 return prevtime
             }, animationDelay);
            
-        //}
             
     })
 
@@ -1189,7 +1311,8 @@ function ShowData(data) {
             try{PLOT(realtime)
                 showLine(combinedScale(realtime)) 
             }
-            catch{(err)=>{console.log("err", err)
+            catch{()=>{
+                // console.log("err", err)
                  }
                 
             }
@@ -1206,7 +1329,7 @@ function ShowData(data) {
     
   
     // console.log("init",ret)
-    window.onresize = function(event) {
+    window.onresize = function() {
 
         playAnimation=false
        
