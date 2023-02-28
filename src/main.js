@@ -1,5 +1,5 @@
 import * as d3new from "d3"
-import * as domtoimage from "dom-to-image"
+import * as htmlToImage from "html-to-image"
 import {FornaContainer, RNAUtilities} from 'fornac';
 //@ts-check
 /**
@@ -282,10 +282,27 @@ function readSequence(){
 //  * @param {string} elem name of the container 
  */
  function downloadsSVG() {
+    function filter (node) {
+        return (node.tagName !== 'i');
+      }
     let tmddown=document.getElementById("drTrafoContainer")
-    
-   // ("height", "100px").attr("width", "60px")
-    domtoimage.toSvg(tmddown) //try downloading drTrafoContainer without the table 
+    htmlToImage.toJpeg(tmddown)
+        .then(function (dataUrl) {
+            
+            let link = document.createElement('a');
+            let today = new Date()
+            let date = today.getFullYear()+'_'+(today.getMonth()+1)+'_'+today.getDate();
+            let time = today.getHours() + "_" + today.getMinutes() + "_" + today.getSeconds();
+           
+            link.download = filename+"_"+date+"_"+time+'.jpeg';
+            link.href = dataUrl;
+            link.click();
+          });
+       
+        
+
+    // ("height", "100px").attr("width", "60px")
+    htmlToImage.toSvg(tmddown, { filter: filter }) //try downloading drTrafoContainer without the table 
     .then(async function (dataUrl) {
         // console.log(dataUrl)
         let link = document.createElement('a');
@@ -795,7 +812,7 @@ function WriteTable(strToPlot){
                                     return inputSeq.slice(0, strToPlot[0].structure.length) //
                                 }
                                 else
-                                 return ""
+                                 return " "
                             }).style("text-align", "right")
                             
                 let tbody = structures.append('tbody').style("text-align", "left")
@@ -847,10 +864,34 @@ function WriteTable(strToPlot){
                         } else
                         tbody.append("td").text(dd.value)
                     }
-                
+               
                 })  
-                            
-                
+            function writeLabels(length){
+                let j=10
+                let res=""
+                for (let i = 0; i < length; i++) {
+                    if ((res.length+1)==i){
+                    if ((res.length+1)%10==0){
+                        res+=j
+                        j+=10
+                    }
+                    else if((res.length+1)%5==0){res+=","}
+                        else {res+="."}}}
+                console.log(res)
+                return res
+
+            }
+            let lastrow=tbody.append("tr") 
+            lastrow.append('td')
+                .text(" ")
+                lastrow.append('td')
+                .text(" ")
+                lastrow.append('td')
+                .text(writeLabels(strToPlot[0].structure.length))
+                .style("text-align", "left") 
+                lastrow.append('td')
+                .text(" ")               
+            
             }
           
 /**
@@ -867,12 +908,14 @@ function PLOT(realtime) {
                 const svgHeight = lineChartWidth*0.4
                 let root = d3new.stratify().id(function(d) { return d.name})   // Name of the entity (column name is name in csv)
                     .parentId(function(d){ return d.parent})(treemapData);
-                root.sum(d => +d.value)   // Compute the numeric value for each entity
+                root.sum(d => +d.value).sort((a, b) => b.value - a.value)  // Compute the numeric value for each entity
                 //console.log(root.value)
                 Sum_of_occ=Math.round(root.value*100000)/100000
                 d3new.treemap()
                     .size([svgWidth, svgHeight])
                     .padding(4)(root)
+                    
+                    
                 viscontainer.select("#treemapdiv").remove()
                 let zoom=false;
                 viscontainer.append("div").attr("id", "treemapdiv") 
