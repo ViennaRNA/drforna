@@ -1,5 +1,7 @@
 import * as d3new from "d3"
-import * as htmlToImage from "html-to-image"
+import { documentToSVG, elementToSVG, inlineResources, formatXML } from 'dom-to-svg'
+import { saveAs } from "file-saver";
+
 import {FornaContainer, RNAUtilities} from 'fornac';
 //@ts-check
 /**
@@ -286,38 +288,32 @@ function readSequence(){
         return (node.tagName !== 'i');
       }
     let tmddown=document.getElementById("drTrafoContainer")
-    htmlToImage.toJpeg(tmddown)
-        .then(function (dataUrl) {
+
+    // htmlToImage.toJpeg(tmddown)
+    //     .then(function (dataUrl) {
             
-            let link = document.createElement('a');
+    //         let link = document.createElement('a');
             let today = new Date()
             let date = today.getFullYear()+'_'+(today.getMonth()+1)+'_'+today.getDate();
             let time = today.getHours() + "_" + today.getMinutes() + "_" + today.getSeconds();
            
-            link.download = filename+"_"+date+"_"+time+'.jpeg';
-            link.href = dataUrl;
-            link.click();
-          });
-       
-        
+            // link.download = filename+"_"+date+"_"+time+'.jpeg';
+    //         link.href = dataUrl;
+    //         link.click();
+    //       });
+    
+		const svgDocument =elementToSVG(tmddown)
+        //  documentToSVG(document)
 
-    // ("height", "100px").attr("width", "60px")
-    htmlToImage.toSvg(tmddown, { filter: filter }) //try downloading drTrafoContainer without the table 
-    .then(async function (dataUrl) {
-        // console.log(dataUrl)
-        let link = document.createElement('a');
-        let today = new Date()
-        let date = today.getFullYear()+'_'+(today.getMonth()+1)+'_'+today.getDate();
-        let time = today.getHours() + "_" + today.getMinutes() + "_" + today.getSeconds();
-       
-        link.download = filename+"_"+date+"_"+time+'.svg';
-        
-        link.href = await dataUrl;
-        await link.click();
-        alert("File "+link.download+" was downloaded")
-    })
-        
+		let svgString = new XMLSerializer().serializeToString(svgDocument)
+        // svgString = formatXML(svgString) //try downloading drTrafoContainer without the table 
+    const blob = new Blob([svgString], { type: 'image/svg+xml' })
+		
+	saveAs(blob, `${filename+"_"+date+"_"+time}.svg`)
+          
+            
 }
+
 /**
  * Logarithmic scale- for steps after transcription ends
  *  
@@ -877,7 +873,7 @@ function WriteTable(strToPlot){
                     }
                     else if((res.length+1)%5==0){res+=","}
                         else {res+="."}}}
-                console.log(res)
+                // console.log(res)
                 return res
 
             }
@@ -928,6 +924,7 @@ function PLOT(realtime) {
                             .append("svg")
                             .attr("class", "plot")
                             .attr("id",   d => { return "svg"+d.data.name})
+                            .style("background-color", "white")
                             .on("mouseover", (e,d)=> {  //show occ when mouse over
                                 d3.select(".infodiv").remove()
                                 let infodiv = d3.select("#treemapdiv").append("div")
@@ -1249,9 +1246,9 @@ function ShowData(data) {
     bd.on("click", () => {
         if (playAnimation) {playAnimation=false}
       //console.log("down")
-        
-        // downloadPng()
         downloadsSVG()
+        // downloadPng()
+        // downloadsSVG()
     })
     let play = d3new.select("#toggleAnimation");
     //

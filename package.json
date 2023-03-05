@@ -30,8 +30,11 @@
     "copy-webpack-plugin": "^11.0.0"
   },
   "dependencies": {
+    "FileSaver": "^0.10.0",
     "d3": "^7.6.1",
     "dom-to-image": "^2.6.0",
+    "dom-to-svg": "^0.12.2",
+    "file-saver": "^2.0.5",
     "fornac": "github:ViennaRNA/fornac",
     "html-to-image": "^1.11.11"
   }
