@@ -923,8 +923,9 @@ function PLOT(realtime) {
                             .enter()
                             .append("svg")
                             .attr("class", "plot")
+                            .style("opacity", 100).style("z-index", 1)
                             .attr("id",   d => { return "svg"+d.data.name})
-                            .style("background-color", "white")
+                            // .style("background-color", "white") .style("opacity", 50)
                             .on("mouseover", (e,d)=> {  //show occ when mouse over
                                 d3.select(".infodiv").remove()
                                 let infodiv = d3.select("#treemapdiv").append("div")
@@ -934,7 +935,7 @@ function PLOT(realtime) {
                                 infodiv.html(d.data.value)
                                 .style('left',  ()=>{ return `${d.x0+25}px`; })
                                 .style('top',  () => { return `${d.y0}px`; })
-                                return infodiv.style("opacity", 90).style("z-index", 3);})    
+                                return infodiv.style("opacity", 100).style("z-index", 3);})    
                             .on('mouseout', (e,d)=> {  
                                     d3.select(".infodiv").remove() //delete on mouseout   
                                 }) 
@@ -945,6 +946,7 @@ function PLOT(realtime) {
                                 if (zoom==false) {
                                     zoom=true 
                                     d3.select(".infodiv").remove()
+                                    d3.select(".help").remove()
                                     let helpdiv = d3.select("#treemapdiv").append("div")
                                     .attr("class", "help").style("width", `${svgWidth}px`)
                                     .style("height", `${svgHeight}px`)
@@ -963,9 +965,10 @@ function PLOT(realtime) {
                                     return c.style('left',  d =>{ return `${d.x0}px`; })
                                     .style('top',  d => { return `${d.y0}px`; })
                                     .style("z-index", 1)
+                                    // .style("background-color", "white")                                
                                     .style('width',  d => { return `${(d.x1 - d.x0)}px`; })
                                     .style('height',  d => { return `${(d.y1 - d.y0)}px`; })}
-                                
+                                    
                                 })          
                             .style('position', 'absolute')
                             .style('left',  d =>{ return `${d.x0}px`; })
