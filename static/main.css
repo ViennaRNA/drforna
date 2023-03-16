@@ -1,5 +1,6 @@
 body {
     background: white;
+    font-size: 1rem;
   }
 #helptot{
   background: white;
@@ -315,7 +316,7 @@ height:120px
 }
 #footnote{
   display:inline-flex;
-  font-size: 0.6em;
+  font-size: 1em;
   width: 100%;
 }
 .infodiv{
