@@ -3,7 +3,7 @@ import { documentToSVG, elementToSVG, inlineResources, formatXML } from 'dom-to-
 import { saveAs } from "file-saver";
 
 import {FornaContainer, RNAUtilities} from 'fornac';
-//@ts-check
+
 /**
  * @file main.js
  * @author Anda Latif, Stefan Hammer, Peter Kerpediev
@@ -13,7 +13,7 @@ import {FornaContainer, RNAUtilities} from 'fornac';
  */  
 
 /**
- * Instance of RnaUtilities from fornac
+ * Instance of RNAUtilities from fornac
  */  
 var rnaUtilities = new RNAUtilities();
 
@@ -24,8 +24,8 @@ var rnaUtilities = new RNAUtilities();
 let containers;
 
 /**
- * Occupancy Treshhold, structures with smaller occupancy will not be shown, 0.01 by default
- * @type {number}
+ * Occupancy Treshhold, structures with smaller occupancy will not be shown,
+ * 0.01 by default @type {number}
  */
 let occupancyTreshold=0.01;
 
@@ -38,29 +38,31 @@ let occupancyTreshold=0.01;
  * @param {string} notificationContent the notification to appear
  
  */
-function preparePlotArea(elementName, notificationContent = 'Loading...') {  
+function preparePlotArea() {  
     //remove the previous content
-    let container = d3new.select(elementName)
-    container.selectAll('div')
-        .remove()
+    let container = d3new.select("#visualization")
+    container.selectAll('div').remove()
     
     //display loading indicator
     container.style('text-align', 'center')
         .append('div')
         .attr('id', 'loadingNotification')
         .style('display', 'inline')
-        .html(notificationContent)
-    // create the visual container containing the treemap
+        .html('Loading ...')
+    // create the ensemble visualization area (treemap)
     container
         .append('div')
-        .attr('id', 'visContainer')
-        //.attr("height", 500)
-    // create the table container containing the structures for the selected time point
+        .attr('id', 'ensemblevis')
+    // create the time-point selection panel
     container
         .append('div')
-        .attr('id', 'tableContainer')
-        
+        .attr('id', 'timetablevis')
         .html("<p>and time table container-most populated structure</p>")
+
+    //// create the table showing input data 
+    //container
+    //    .append('div')
+    //    .attr('id', 'datatable')
 }
 
 /**
@@ -81,68 +83,67 @@ let inputSeq=""
 let seq_name=""
 
 /**
- * function that loads an example for the visualization. It loads 
- ** the file containing the details of the simulation and 
- **the fasta file containing the sequence. The filename is split by "." and the first part is taken with .fa extension as the name of the file containing the corresponding sequence
+ * Function that loads an example for the visualization. 
+ ** It loads the file containing the details of the simulation and the fasta
+ file containing the sequence. The filename is split by "." and the first part
+ is taken with .fa extension as the name of the file containing the
+ corresponding sequence
  * @param {string} filename
  */
-function load_example(filename){
-    filteredData=null
-    nestedData=[]
-    // filename = "grow.drf" //"ABCD.drt.drf"
-    let seqFileName=filename.split(".")[0]+".fa"    
-    
-    d3new.text(seqFileName).then(d => {                
+function load_example(drffile, fafile){
+    filteredData = null
+    nestedData = []
+    d3new.text(fafile).then(d => {
         a = d3new.csvParse(d)                
-        seq_name=a.columns[0]
-        //console.log(Array.from(a)[0][seq_name])
+        seq_name = a.columns[0]
+        console.log(Array.from(a)[0][seq_name])
         let se = Object.keys(Array.from(a)).map(function(key){
             return a[key][seq_name];                  
         }) 
-        inputSeq=se.join("")                
-        document.querySelectorAll("#sequence").forEach((item)=>{item.value=seq_name+"\n"+inputSeq})})
-            .catch(() => {
-               //console.log("nu a gasit file, sequence goala   ")
-                inputSeq=""
-                seq_name=""
-                document.querySelectorAll("#sequence").forEach((item)=>{item.value=""})
-            
-      
-            })
-       // filename=fileName
-            let a = []
-            d3new.text(filename).then(d => {
-                
-                a = d3new.csvParse(d.replace(/ +/g, ",").replace(/\n,+/g, "\n").replace(/^\s*\n/gm, ""))
-                containers = {};
-                let container = d3new.select("#visContainer")
-                container.remove()
-                
-                ShowData(Array.from(a))
-                document.querySelectorAll('.fileinput').forEach((item) => {
-                    item.addEventListener('change', () => {return false})})
-            })      
-    
+        inputSeq = se.join("")
+        document.querySelectorAll("#sequence")
+            .forEach((item)=>{item.value=seq_name+"\n"+inputSeq})})
+        .catch(() => {
+            inputSeq = ""
+            seq_name = ""
+            document.querySelectorAll("#sequence").forEach((item)=>{item.value=""})
+        })
 
+    let a = []
+    d3new.text(drffile).then(d => {
+        a = d3new.csvParse(
+            d.replace(/ +/g, ",").replace(/\n,+/g, "\n").replace(/^\s*\n/gm, ""))
+        containers = {};
+        let container = d3new.select("#ensemblevis")
+        container.remove()
+
+        ShowData(Array.from(a))
+        document.querySelectorAll('.fileinput').forEach((item) => {
+            item.addEventListener('change', () => {return false})})
+    })      
 }
 
 /**              
  * Method that starts the visualization: 
- ** reads and shows the data from the example "grow.drf" and then gives the oportunity to upload files and sequences
+ ** reads and shows the data from the example "grow.drf" and then gives the
+ oportunity to upload files and sequences
  */
 function start() {
-    prevtime = null
-    nestedData = null
-    //console.log('starting')
-    load_example("grow.drf")
-   // readFromFileRadio();   
+    hideseq()
+    document.getElementById("toggleSequence")
+        .addEventListener("click", function() {hideseq();}, false);
+    hidetab()
+    document.getElementById("toggleTable")
+        .addEventListener("click", function() {hidetab();}, false);
+    load_example("grow.drf", "grow.fa")
     readFromFileUpload();
     readSequence()
 } 
 
  /**
-     * 
-    * method for reading the input from an uploaded file and then showing the data by calling ShowData
+    * 
+    * method for reading the input from an uploaded file and then showing the
+    * data by calling ShowData
     *  
     */  
 function readFromFileUpload(){
@@ -251,32 +252,6 @@ function readSequence(){
     })
 }
 
-
-// /**
-//  * Function for downloading the content of the container,
-//  ** the name of the downloaded file is generated using the name of the current selected file, the current time and the current date. 
-//  ** also dispays a notification when the file was downloaded
-//  * @param {string} elem name of the container
- 
-//  */
-// function downloadPng() {
-   
-//     //console.log('Downloading... ')
-//     domtoimage.toPng(document.getElementById("drTrafoContainer"))
-//     .then(function (dataUrl) {
-//         let link = document.createElement('a');
-//         let today = new Date()
-//         let date = today.getFullYear()+'_'+(today.getMonth()+1)+'_'+today.getDate();
-//         let time = today.getHours() + "_" + today.getMinutes() + "_" + today.getSeconds();
-       
-//         link.download = filename+"_"+date+"_"+time+'.png';
-//         alert("File "+link.download+" was downloaded")
-//         link.href = dataUrl;
-//         link.click();
-        
-
-//     });
-// }
 /**
  * Function for downloading the content of the container,
  ** the name of the downloaded file is generated using the name of the current selected file, the current time and the current date. 
@@ -287,7 +262,7 @@ function readSequence(){
     function filter (node) {
         return (node.tagName !== 'i');
       }
-    let tmddown=document.getElementById("drTrafoContainer")
+    let tmddown=document.getElementById("visualization")
 
     // htmlToImage.toJpeg(tmddown)
     //     .then(function (dataUrl) {
@@ -395,14 +370,14 @@ function initialize(data){
     filteredData=null
     nestedData=[]
     //for resizing with window resize
-    visContainerWidth = d3new.select('#visContainer').node().getBoundingClientRect().width; 
+    visContainerWidth = d3new.select('#ensemblevis').node().getBoundingClientRect().width; 
     
     lineChartWidth = visContainerWidth * .98; 
-    tableContainer = d3new.select(`#tableContainer`);
+    tableContainer = d3new.select(`#timetablevis`);
     tableContainer.selectAll("svg").remove()
     mouseactive=false
     
-    viscontainer = d3new.select('#visContainer')
+    viscontainer = d3new.select('#ensemblevis')
     viscontainer.append('div').attr('id','treemapdiv')//.style('height', '500px')
     
 }
@@ -558,7 +533,7 @@ function CreateScales(){
             ? scalel(time)  //if time is lower that the maximal linear time  we are on the linear scale
             : logscale(time); //else on the log scale
 
-        svg = d3new.select("#tableContainer")
+        svg = d3new.select("#timetablevis")
             .append("svg")
             .attr("width", lineChartWidth)
             //.attr("height", 120)
@@ -774,29 +749,17 @@ function WriteTable(strToPlot){
                 var colnames = ['ID',// 'Time', 
                 'Occupancy', 'Structure' , 'Energy'];    
     
-                d3new.select("#tableContainer")
+                d3new.select("#datatable")
                     .selectAll("table").remove()
-                d3new.select("#tableContainer")
+                d3new.select("#datatable")
                     .selectAll("time").remove()
-                let time=d3new.select("#tableContainer").append("div").attr("id", "time")
+                let time=d3new.select("#datatable").append("div").attr("id", "time")
                 
-                let structures = d3new.select("#tableContainer").append("table")
+                let structures = d3new.select("#datatable").append("table")
                  
                     
                 let ttime = time.append("table").attr("id", "ttime")
                 let trow=ttime.append("tr")
-              
-                trow.append("td").text("Selected time point: ")
-                trow.append("td").text(+strToPlot[0].time+" s")
-                trow=ttime.append("tr")
-            
-                trow.append("td").text("Transcription length: ")
-                trow.append("td").text( strToPlot[0].structure.length+"/"+sequenceLength)
-                trow=ttime.append("tr")
-            
-                trow.append("td").text("Sum of occupancies: ")
-                trow.append("td").text( Sum_of_occ)
-                
                 let th = structures.append("thead")
                 th.append('tr').selectAll('th')
                             .data(colnames).enter()
@@ -896,120 +859,137 @@ function WriteTable(strToPlot){
  * @returns {Array} The list of plotted structures, as the ones that were now previously plotted
   */   
 function PLOT(realtime) { 
-        
-            strToPlot = StructuresToPlot(realtime)
-            if (strtoPlotprev != strToPlot) {
-                const treemapData = makeTreemapData(strToPlot);
-                const svgWidth = lineChartWidth
-                const svgHeight = lineChartWidth*0.4
-                let root = d3new.stratify().id(function(d) { return d.name})   // Name of the entity (column name is name in csv)
-                    .parentId(function(d){ return d.parent})(treemapData);
-                root.sum(d => +d.value).sort((a, b) => b.value - a.value)  // Compute the numeric value for each entity
-                //console.log(root.value)
-                Sum_of_occ=Math.round(root.value*100000)/100000
-                d3new.treemap()
-                    .size([svgWidth, svgHeight])
-                    .padding(4)(root)
-                    
-                    
-                viscontainer.select("#treemapdiv").remove()
-                let zoom=false;
-                viscontainer.append("div").attr("id", "treemapdiv") 
-                            //.style('position', 'relative')
-                            .style("width", `${svgWidth}px`)
-                            .style("height", `${svgHeight}px`)
-                            .selectAll(".svg").remove() // leave out
-                            .data(root.leaves())
-                            .enter()
-                            .append("svg")
-                            .attr("class", "plot")
-                            .style("opacity", 100).style("z-index", 1)
-                            .attr("id",   d => { return "svg"+d.data.name})
-                            // .style("background-color", "white") .style("opacity", 50)
-                            .on("mouseover", (e,d)=> {  //show occ when mouse over
-                                d3.select(".infodiv").remove()
-                                let infodiv = d3.select("#treemapdiv").append("div")
-                                        .attr("class", "infodiv")
-                                        .style("opacity", 0);  
-                                //console.log(e,d);
-                                infodiv.html(d.data.value)
-                                .style('left',  ()=>{ return `${d.x0+25}px`; })
-                                .style('top',  () => { return `${d.y0}px`; })
-                                return infodiv.style("opacity", 100).style("z-index", 3);})    
-                            .on('mouseout', (e,d)=> {  
-                                    d3.select(".infodiv").remove() //delete on mouseout   
-                                }) 
-                            .on("click", (e,d) =>{
-                                //console.log(e,d)
-                                let c = d3.select("#svg"+d.data.name)
-                               
-                                if (zoom==false) {
-                                    zoom=true 
-                                    d3.select(".infodiv").remove()
-                                    d3.select(".help").remove()
-                                    let helpdiv = d3.select("#treemapdiv").append("div")
-                                    .attr("class", "help").style("width", `${svgWidth}px`)
-                                    .style("height", `${svgHeight}px`)
-                                    .style('position', 'relative')
-                                    .style("z-index", 2).style("background-color", "azure").text("Selected structure, occupancy "+d.data.value); 
-                                    // console.log(d.data)                              
-                                    return c.style("width", `${svgWidth}px`)
-                                        .style("height", `${svgHeight}px`)
-                                        .style('left',  d =>{ return `${0}px`; })
-                                        .style('top',  d => { return `${0}px`; })
-                                        .style("opacity", 100).style("z-index", 3)
-                                        
-                                }
-                                else{zoom=false
-                                    d3.select(".help").remove()
-                                    return c.style('left',  d =>{ return `${d.x0}px`; })
-                                    .style('top',  d => { return `${d.y0}px`; })
-                                    .style("z-index", 1)
-                                    // .style("background-color", "white")                                
-                                    .style('width',  d => { return `${(d.x1 - d.x0)}px`; })
-                                    .style('height',  d => { return `${(d.y1 - d.y0)}px`; })}
-                                    
-                                })          
-                            .style('position', 'absolute')
-                            .style('left',  d =>{ return `${d.x0}px`; })
-                            .style('top',  d => { return `${d.y0}px`; })
-                            .style('width',  d => { return `${(d.x1 - d.x0)}px`; })
-                            .style('height',  d => { return `${(d.y1 - d.y0)}px`; })
-                            .style("stroke", "black")
-                            .style("fill", "#62b6a2")
-                            .style("border", "thin solid black")
-                            .append("text")
-                            //.style('position', 'relative')
-                            .attr("x", 1)    //  to adjust position (to the right)
-                            .attr("y", 10)    //  to adjust position (lower)
-                            .text( d => { return d.data.name })
-                            .attr("font-size", "12px")                            
-                            .attr("fill", "white")      
-                            .each( d => {
-                                let rectname="svg"+d.data.name
-                                if ( d.data.str != '') {
-                                    containers[rectname] = new FornaContainer('#' + rectname,{zoomable:false, editable:false, animation:false, displayNodeLabel: true,// labelInterval:0,
-                                        transitionDuration:0});
-                                        containers[rectname].addRNA(d.data.str,{"sequence": inputSeq} )
-                                 
-                                    //containers[rectname].seq=inputSeq
-                                      //am cum sa dau secventa?
-                                        //SOMEHOW GIVE SEQUENCE AS
-                                    containers[rectname].transitionRNA(d.data.str);
-                                    // console.log(containers[rectname])    
-                                    let colorStrings = d.data.colors.map(function(d, i) {
-                                        return `${i+1}:${d}`;
-                                    });
-                                    let colorString = colorStrings.join(' ');
-                                    containers[rectname].addCustomColorsText(colorString);              
-                                }     
-                            });
-                WriteTable(strToPlot) 
-            }
-            
-            strtoPlotprev=strToPlot
-            
-            return strtoPlotprev    
+    strToPlot = StructuresToPlot(realtime)
+    if (strtoPlotprev != strToPlot) {
+        const treemapData = makeTreemapData(strToPlot);
+        const svgWidth = lineChartWidth+30
+        const svgHeight = lineChartWidth*0.4
+        let root = d3new.stratify().id(function(d) { return d.name})   // Name of the entity (column name is name in csv)
+            .parentId(function(d){ return d.parent})(treemapData);
+        root.sum(d => +d.value).sort((a, b) => b.value - a.value)  // Compute the numeric value for each entity
+        //console.log(root.value)
+        Sum_of_occ=Math.round(root.value*100000)/100000
+        d3new.treemap()
+            .size([svgWidth, svgHeight])
+            .padding(4)(root)
+
+        viscontainer.select("#treemapdiv").remove()
+        let zoom=false;
+        viscontainer.append("div").attr("id", "treemapdiv") 
+        //.style('position', 'relative')
+            .style("width", `${svgWidth}px`)
+            .style("height", `${svgHeight}px`)
+            .selectAll(".svg").remove() // leave out
+            .data(root.leaves())
+            .enter()
+            .append("svg")
+            .attr("class", "plot")
+            .style("opacity", 100).style("z-index", 1)
+            .attr("id",   d => { return "svg"+d.data.name})
+        // .style("background-color", "white") .style("opacity", 50)
+            .on("mouseover", (e,d)=> {  //show occ when mouse over
+                d3.select(".infodiv").remove()
+                let infodiv = d3.select("#treemapdiv").append("div")
+                    .attr("class", "infodiv")
+                    .style("opacity", 0);  
+                //console.log(e,d);
+                infodiv.html(d.data.value)
+                    .style('left',  ()=>{ return `${d.x0+25}px`; })
+                    .style('top',  () => { return `${d.y0}px`; })
+                return infodiv.style("opacity", 100).style("z-index", 3);})    
+            .on('mouseout', (e,d)=> {  
+                d3.select(".infodiv").remove() //delete on mouseout   
+            }) 
+            .on("click", (e,d) =>{
+                //console.log(e,d)
+                let c = d3.select("#svg"+d.data.name)
+
+                if (zoom==false) {
+                    zoom=true 
+                    d3.select(".infodiv").remove()
+                    d3.select(".help").remove()
+                    let helpdiv = d3.select("#treemapdiv").append("div")
+                        .attr("class", "help").style("width", `${svgWidth}px`)
+                        .style("height", `${svgHeight}px`)
+                        .style('position', 'relative')
+                        .style("z-index", 2).style("background-color", "azure").text("Selected structure, occupancy "+d.data.value); 
+                    // console.log(d.data)                              
+                    return c.style("width", `${svgWidth}px`)
+                        .style("height", `${svgHeight}px`)
+                        .style('left',  d =>{ return `${0}px`; })
+                        .style('top',  d => { return `${0}px`; })
+                        .style("opacity", 100).style("z-index", 3)
+
+                }
+                else{zoom=false
+                    d3.select(".help").remove()
+                    return c.style('left',  d =>{ return `${d.x0}px`; })
+                        .style('top',  d => { return `${d.y0}px`; })
+                        .style("z-index", 1)
+                    // .style("background-color", "white")                                
+                        .style('width',  d => { return `${(d.x1 - d.x0)}px`; })
+                        .style('height',  d => { return `${(d.y1 - d.y0)}px`; })}
+
+            })          
+            .style('position', 'absolute')
+            .style('left',  d =>{ return `${d.x0}px`; })
+            .style('top',  d => { return `${d.y0}px`; })
+            .style('width',  d => { return `${(d.x1 - d.x0)}px`; })
+            .style('height',  d => { return `${(d.y1 - d.y0)}px`; })
+            .style("stroke", "black")
+            .style("fill", "#62b6a2")
+            .style("border", "thin solid black")
+            .append("text")
+        //.style('position', 'relative')
+            .attr("x", 1)    //  to adjust position (to the right)
+            .attr("y", 10)    //  to adjust position (lower)
+            .text( d => { return d.data.name })
+            .attr("font-size", "12px")                            
+            .attr("fill", "white")      
+            .each( d => {
+                let rectname="svg"+d.data.name
+                if ( d.data.str != '') {
+                    containers[rectname] = new FornaContainer('#' + rectname,{zoomable:false, editable:false, animation:false, displayNodeLabel: true,// labelInterval:0,
+                        transitionDuration:0});
+                    containers[rectname].addRNA(d.data.str,{"sequence": inputSeq} )
+
+                    //containers[rectname].seq=inputSeq
+                    //am cum sa dau secventa?
+                    //SOMEHOW GIVE SEQUENCE AS
+                    containers[rectname].transitionRNA(d.data.str);
+                    // console.log(containers[rectname])    
+                    let colorStrings = d.data.colors.map(function(d, i) {
+                        return `${i+1}:${d}`;
+                    });
+                    let colorString = colorStrings.join(' ');
+                    containers[rectname].addCustomColorsText(colorString);              
+                }     
+            });
+        d3new.select("#timetablevis")
+            .selectAll("table").remove()
+        d3new.select("#timetablevis")
+            .selectAll("time").remove()
+        let time = d3new.select("#timetablevis").append("div").attr("id", "time")
+        let structures = d3new.select("#timetablevis").append("table")
+        let ttime = time.append("table").attr("id", "ttime")
+        let trow = ttime.append("tr")
+
+        trow.append("td").text("Selected time point: ")
+        trow.append("td").text(+strToPlot[0].time+" s")
+        trow=ttime.append("tr")
+
+        trow.append("td").text("Transcription length: ")
+        trow.append("td").text( strToPlot[0].structure.length+"/"+sequenceLength)
+        trow=ttime.append("tr")
+
+        trow.append("td").text("Sum of occupancies: ")
+        trow.append("td").text( Sum_of_occ)
+        /*
+        */
+        WriteTable(strToPlot) 
+    }
+    strtoPlotprev=strToPlot
+    return strtoPlotprev    
 }
 /**
  * Function for making a treemap structure out of the data 
@@ -1102,7 +1082,7 @@ function toggleFullScreen(elem) {
             console.log("Fullscreen not working: ", elem)
             return
         }
-        visContainerWidth = d3new.select('#visContainer').node().getBoundingClientRect().width; 
+        visContainerWidth = d3new.select('#ensemblevis').node().getBoundingClientRect().width; 
     } else {
         // exit fullScreen
         if (document.exitFullscreen) {
@@ -1126,8 +1106,7 @@ function toggleFullScreen(elem) {
  */
 
 function ShowData(data) {     
-    preparePlotArea("#drTrafoContainer"); 
-   // console.log(drTrafoContainer)
+    preparePlotArea(); 
     
     document.querySelectorAll('.occupancy').forEach((item) => {
         occupancyTreshold=item.value
@@ -1142,7 +1121,7 @@ function ShowData(data) {
         
     })
     initialize(data)
-    let container = d3new.select("#drTrafoContainer");
+    let container = d3new.select("#visualization");
     container.select('#loadingNotification').remove(); //remove the loading notification  
     
    
@@ -1243,7 +1222,7 @@ function ShowData(data) {
     let bfullscr = d3new.select("#toggleFullScreen")
     bfullscr.on('click', function() {
         playAnimation=false
-        toggleFullScreen(document.getElementById('fullScreenContainer'));
+        toggleFullScreen(document.getElementById('fullscreen'));
     })
     let bd = d3new.select("#downloadButton")
     bd.on("click", () => {
@@ -1351,5 +1330,16 @@ function ShowData(data) {
 //     return prevtime}
     
 } 
+
+function hideseq() { 
+    const x = document.getElementById("seqfield");
+    x.style.display = x.style.display === "none" ? "block" : "none"; 
+}
+
+function hidetab() { 
+    const x = document.getElementById("datatable");
+    x.style.display = x.style.display === "none" ? "block" : "none"; 
+}
+
 
 start();

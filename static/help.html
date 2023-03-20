@@ -5,51 +5,60 @@
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>DrForna</title>
-    <link rel="stylesheet" href="main.css" />
+    <link rel="stylesheet" href="help.css" />
     <link rel="shortcut icon" href="#" />
 </head>
 <body id="helptot"> 
     <div id="title">How to use DrForna</div>
     <div class="main_container">
-        <div class="left_container">
-            <h3>  Input format:</h2>
-                <ol>
-                    <li>The <em> input file </em>should be a white-space separated value (``csv-like'') file.<br>
-                        The header should be <em> id time occupancy structure energy</em>. 
-                
-                        <ul> 
-                            <!-- <li>the header must contain five fields with the names <em>id time occupancy structure energy</em>.</li> -->
-                            <!-- <li>each further line in the file must contain this information </li> -->
-                            <li> The <em>id</em> can group structures: <br>
-                                Two structures can have the same id if they only differ in the number of the unpaired nucleotides at the end.<br>
-                                This grouping is recommended for a better performance of the tool, but not mandatory. Running id's can be used without a change in the visual output.
-                                <br> Note: The visualization will not work if the same id is used for multiple structures</li>
-                                <li> The <em>time</em> is a time point in the transcription  </li>
-                                <li> The <em>occupancy</em> is the probability of observing the structure in
-                                    the ensemble at the given time point </li>
-                                <li> The <em>structure</em> is the dot-bracket notation  </li>
-                                <li> The <em>energy</em> of that specific structure  </li>
-                        </ul>
-                        <li>The <em> sequence </em> is optional and can be either uploaded using a fasta file or written in the provided text box. 
-                            Lines starting with the symbol ">" are disregarded. <br>
-                            Note:The colors of the nucleotides may appear darker when the sequence is also present, but this is just due to our perception.
-                        <li>The parameters  <em> Occupancy threshold</em> and  <em>Playback speed </em> can be set manually. <br>
-                            Note: The occupancy threshold should be smaller than the maximal occupancy at the end of transciption in the file,
-                             otherwise the end of transciption changes due to completely deleted time points
-                </ol></div>
-        <div class="right_container">
+        <h3>Main input format (*.drf files):</h3>
+        <div>
+            The <em>DrFrona input file </em>should be a white-space separated value (``csv-like'') file.
+            The header should have the form <em>id time occupancy structure energy</em>. 
+            <ul> 
+                <li><em>id</em> groups structures that differ
+                    only in the number of unpaired nucleotides at the
+                    end. <br>(This grouping is recommended for a better
+                    performance, but not mandatory. Alternatively, every
+                    structure can have a unique ID, which will not change
+                    in the visual output, or the same ID can be used for 
+                    structures with different base-pairs. However, the latter
+                    may lead to unexpected visualization, as the colors
+                    in the time-point selection panel are defined by first structure
+                    for each ID.)</li>
+                <li><em>time</em> denotes the time-point at which structures are plotted in the ensemble visualization area.</li>
+                <li><em>occupancy</em> is the probability of observing the structure in
+                    the ensemble at the given time point. <br>(This affects the size of a 
+                    structure plot in the ensemble visualization area.)</li>
+                <li><em>structure</em> is the structure in dot-bracket notation. <br>(Pseudoknots 
+                    are denoted by different sets of parenthesis, or pairs of lowercase/uppercase letters.) </li>
+                <li><em>energy</em> is the free energy of the structure. <br>(The value in this field is not used for visualization.)</li>
+            </ul>
             <h4>Example input file:</h4>
-            <p>id time occupancy structure energy</p>
-            <p>6 1.47 1.0000 .((((....((((....))))....))))........  -9.30</p>
-            <p>6 1.48 1.0000 .((((....((((....))))....))))........  -9.30</p>
-            <p> 9 1.49 0.1494 .........((((....))))....((((....)))). -10.00</p>
-            <p> 6 1.49 0.8506 .((((....((((....))))....)))).........  -9.30</p>
-            <p> 9 1.50 0.2693 .........((((....))))....((((....)))). -10.00</p>
-            <p> 6 1.50 0.7306 .((((....((((....))))....)))).........  -9.30</p>
-            <p> 9 1.51 0.3656 .........((((....))))....((((....)))). -10.00</p>
-            <p> 6 1.51 0.6344 .((((....((((....))))....)))).........  -9.30</p>
+            <div id="mono">
+                id time occupancy structure energy<br>
+                6 1.47 1.0000 .((((....((((....))))....))))........  -9.30<br>
+                6 1.48 1.0000 .((((....((((....))))....))))........  -9.30<br>
+                9 1.49 0.1494 .........((((....))))....((((....)))). -10.00<br>
+                6 1.49 0.8506 .((((....((((....))))....)))).........  -9.30<br>
+                9 1.50 0.2693 .........((((....))))....((((....)))). -10.00<br>
+                6 1.50 0.7306 .((((....((((....))))....)))).........  -9.30<br>
+                9 1.51 0.3656 .........((((....))))....((((....)))). -10.00<br>
+                6 1.51 0.6344 .((((....((((....))))....)))).........  -9.30<br>
+            </div>
         </div>
-    </div>
+        <h3>Sequence input (fasta, optional):</h3>
+        <div>
+            <li>The <em> sequence </em> is optional and can be either uploaded using a fasta file or written in the provided text box. 
+                Lines starting with the symbol ">" are disregarded. <br>
+                Note:The colors of the nucleotides may appear darker when the sequence is also present, but this is just due to our perception.
+            </li>
+            <li>The parameters  <em> Occupancy threshold</em> and  <em>Playback speed </em> can be set manually. <br>
+                Note: The occupancy threshold should be smaller than the maximal occupancy at the end of transciption in the file,
+                otherwise the end of transcription changes due to completely deleted time points
+            </li>
+        </div>
+   </div>
     <div class="main_container">
         <div class="right_container">            
             The visual output contains three parts:

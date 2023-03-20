@@ -1,54 +1,79 @@
 <!DOCTYPE html>
 <html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta http-equiv="X-UA-Compatible" content="IE=edge">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>DrForna</title>
-    <link rel="stylesheet" href="main.css" />
-    <link rel="shortcut icon" href="#" />
-</head>
-<body id="tot"> 
-    <div id="title">DrForna: visualization of cotranscriptional folding</div>
-    <!-- <div id="subtitle">Visualization of changing structure ensembles during cotranscriptional folding -->
-    <!-- </div> -->
-    <div id= "footnote">
-        <p id="help"> <a href=help.html> Help</a></p>
-        <p id="repository"><a href=https://github.com/ViennaRNA/drforna> Github repository</a></p>       
-    </div>
-    <div id='result'>
-        <div class="form">
-            <div class="fileinput">
-                Upload input <input class="fileinp" type="file" id="files" name="files"  title="Enter an input file">
-            </div>
-            <div class="seqfileinp">  
-                Import sequence <input class="seqfileinpc" type="file" id="files" name="files" title="Enter an input file">
-            </div>
-        </div>
-        <div class="seqform"> 
-            <a id="sinp">(Optional) Sequence:</a>
-            <textarea id="sequence" name="sequence" cols="80" rows="2">-</textarea>
-            <div class="sb" > 
-                <button id="SeqReload">Load Sequence </button>    
-            </div>  
-        </div>
-        <div id="fullScreenContainer">
-            <div id="controlContainer" >
-                Occupancy threshold: <input class="occupancy" type="text" id="occupancy" name="occupancy" title="Occupancy" value="0.01" style="width: 30pt;">
-                
-                Play speed: <input class="playspeed" type="text" id="speed" name="playspeed" title="Play speed" value="5" style="width: 30pt;">
-                ms
-                <button class="bform" id="toggleAnimation">Play/Pause</button>
-                <button class="bform" id="downloadButton" title="Download plot as SVG">Download</button>
-                <button class="bform" id="toggleFullScreen">Fullscreen</button>
-            </div>
-            <div id="drTrafoContainer">
-                <div id="visContainer">See the results here</div>
-            </div>
-        </div>
-    </div>
-    
-    <script language="JavaScript" src="drforna.js"></script>
+    <head>
+        <meta charset="UTF-8">
+        <meta http-equiv="X-UA-Compatible" content="IE=edge">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <title>DrForna</title>
+        <link rel="stylesheet" href="main.css" />
+        <link rel="shortcut icon" href="#" />
+    </head>
+    <body> 
+        <div id="title">DrForna: visualization of cotranscriptional folding</div>
 
-</body>
+        <div id="root">
+        <div id="fullscreen">
+            <p class="alignleft">
+                <input type="file"
+                       name="files" 
+                       class="fileinput"
+                       title="Provide an DrForna input file"
+                       style="width: 140pt;">
+                @ occupancy threshold: 
+                <input type="text" 
+                       name="occupancy"
+                       class="occupancy"
+                       title="Occupancy threshold" 
+                       value="0.01" style="width: 30pt;">
+            </p>
+            <p class="aligncenter">
+                <button id="toggleAnimation"
+                        title="Play/Pause animation">Play/Pause</button>
+                @ speed: 
+                <input type="text" 
+                       name="playspeed" 
+                       class="playspeed" 
+                       title="Play speed" 
+                       value="5" style="width: 30pt;">
+                ms/frame
+            </p>
+            <p class="alignright">
+                <button id="toggleSequence">Sequence</button>
+                <button id="downloadButton" 
+                        title="Download plotting area as SVG">Download</button>
+                <button id="toggleFullScreen"
+                        title="Fullscreen view">Fullscreen</button>
+            </p>
+            <div style="clear: both;"></div>
+
+            <div id="seqfield">
+                <div class="seqform"> 
+                    <textarea id="sequence" name="sequence" cols="80" rows="2">-</textarea>
+                    <button id="SeqReload">Load Sequence</button> <br>
+                    <input class="seqfileinpc" 
+                           type="file" 
+                           id="files"
+                           name="files"
+                           title="Enter an input file">
+                </div>
+            </div>
+            <div id="visualization">
+                <div id="ensemblevis"></div>
+                <div id="timetablevis"></div>
+            </div>
+        </div>
+        <div id="datatable"></div>
+            <p class="alignleft">
+                <button id="toggleTable">Toggle summary table</button>
+            </p>
+            <p class="aligncenter">
+            </p>
+            <p class="alignright">
+                <a href=help.html>Help</a>
+                <a href=help.html>Github</a>
+            </p>
+            <div style="clear: both;"></div>
+        </div>
+        <script language="JavaScript" src="drforna.js"></script>
+    </body>
 </html>
