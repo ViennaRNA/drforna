@@ -13,10 +13,10 @@ body {
     line-height: 1.25rem;
 }
 #root{
-    max-width: 2000px;
-    min-width: 750px;
+    max-width: 2500px;
+    min-width: 1000px;
     margin: auto;
-    width: 80%; 
+    width: 90%; 
 }
 #fullscreen{
     background: white;
@@ -26,7 +26,12 @@ body {
 }
 .alignleft {
     float: left;
-    width: 33.33333%;
+    width: 33%;
+    min-width: 400px;
+    text-align: left;
+}
+.aleft {
+    float: left;
     text-align: left;
 }
 .aligncenter {
@@ -35,11 +40,36 @@ body {
     text-align: center;
 }
 .alignright {
-    float: left;
-    width: 33.33333%;
+    float: right;
+    /*width: 33.33333%;*/
     text-align: right;
 }
+#sequence{
+    text-align: left;
+    width: 100%;
+    padding: 0px;
+}
 
+#visualization{
+    height: auto;
+    width: 100%;
+    text-align: center;
+    background-color: white;
+    padding:0rem
+}
+#datatable{
+    overflow: hidden;
+    font-family: 'Courier New', Courier, monospace;
+    padding:0rem
+}
+#treemapdiv{
+    width: 100%;
+    height: 700px;
+    position: relative;
+}
+#timesvg {
+    height:110px
+}
 #time{
   text-align: center;
   margin: auto;
@@ -49,40 +79,6 @@ body {
 #ttime{
   margin: auto;
   width: 90%;
-}
-
-.seqform{
-    max-width:1600px;
-    height: 100%;
-    display: flex; 
-}
-#sequence{
-    text-align: left;
-    height: 100%;
-    width: 70%;  
-    box-sizing: border-box; 
-}
-
-
-#visualization{
-    height: auto;
-    width: 100%;
-    text-align: center;
-    background-color: white;
-    padding:0cm
-}
-#datatable{
-    /*background: gray;*/
-    overflow: hidden;
-    font-family: 'Courier New', Courier, monospace;
-}
-#treemapdiv{
-    width: 100%;
-    height: 700px;
-    position: relative;
-}
-#timesvg {
-    height:110px
 }
 .transcriplengthLine{
     stroke-width:  1;
@@ -95,24 +91,16 @@ body {
     fill: none;
 }
 .fornac-nodeLabel {
-   /* font-weight:0.5rem ; */
-  fill:black;
-  stroke-width: 0.005rem;
-  font-size: 0.5em;
-  /* font-weight: lighter; */
-  font-family:'Times New Roman', Times, serif;
-  color: rgb(14, 14, 14); 
-  text-anchor: middle; 
-  /* alignment-baseline: middle;  */
-  dominant-baseline: central; 
-  pointer-events: none;
-  -webkit-touch-callout: none;
-  -webkit-user-select: none;
-  -khtml-user-select: none;
-  
-  -moz-user-select: none;
-  -ms-user-select: none;
-  user-select: none;
+    /*display: none;*/
+    fill:black;
+    stroke-width: 0.005rem;
+    font-size: 0.4rem;
+    font-family:'Times New Roman', Times, serif;
+    color: rgb(14, 14, 14); 
+    text-anchor: middle; 
+    dominant-baseline: central; 
+    pointer-events: none;
+    user-select: none;
 }
 .infodiv{
     position: relative;
@@ -126,6 +114,6 @@ body {
     border: 1px solid #313639;
     border-radius: 8px;
     pointer-events: none;
-    font-size: 0.6rem;
+    font-size: 0.6em;
 }
 
