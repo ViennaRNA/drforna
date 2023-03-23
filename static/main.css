@@ -13,10 +13,10 @@ body {
     line-height: 1.25rem;
 }
 #root{
-    max-width: 2000px;
-    min-width: 750px;
+    max-width: 2500px;
+    min-width: 1000px;
     margin: auto;
-    width: 80%; 
+    width: 90%; 
 }
 #fullscreen{
     background: white;
@@ -26,7 +26,12 @@ body {
 }
 .alignleft {
     float: left;
-    width: 33.33333%;
+    width: 33%;
+    min-width: 400px;
+    text-align: left;
+}
+.aleft {
+    float: left;
     text-align: left;
 }
 .aligncenter {
@@ -35,11 +40,36 @@ body {
     text-align: center;
 }
 .alignright {
-    float: left;
-    width: 33.33333%;
+    float: right;
+    /*width: 33.33333%;*/
     text-align: right;
 }
+#sequence{
+    text-align: left;
+    width: 100%;
+    padding: 0px;
+}
 
+#visualization{
+    height: auto;
+    width: 100%;
+    text-align: center;
+    background-color: white;
+    padding:0rem
+}
+#datatable{
+    overflow: hidden;
+    font-family: 'Courier New', Courier, monospace;
+    padding:0rem
+}
+#treemapdiv{
+    width: 100%;
+    height: 700px;
+    position: relative;
+}
+#timesvg {
+    height:110px
+}
 #time{
   text-align: center;
   margin: auto;
@@ -49,40 +79,6 @@ body {
 #ttime{
   margin: auto;
   width: 90%;
-}
-
-.seqform{
-    max-width:1600px;
-    height: 100%;
-    display: flex; 
-}
-#sequence{
-    text-align: left;
-    height: 100%;
-    width: 70%;  
-    box-sizing: border-box; 
-}
-
-
-#visualization{
-    height: auto;
-    width: 100%;
-    text-align: center;
-    background-color: white;
-    padding:0cm
-}
-#datatable{
-    /*background: gray;*/
-    overflow: hidden;
-    font-family: 'Courier New', Courier, monospace;
-}
-#treemapdiv{
-    width: 100%;
-    height: 700px;
-    position: relative;
-}
-#timesvg {
-    height:110px
 }
 .transcriplengthLine{
     stroke-width:  1;

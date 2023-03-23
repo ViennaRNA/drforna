@@ -10,23 +10,22 @@
     </head>
     <body> 
         <div id="title">DrForna: visualization of cotranscriptional folding</div>
-
         <div id="root">
-        <div id="fullscreen">
-            <p class="alignleft">
+            <div id="fullscreen">
+                <p class="alignleft">
                 <input type="file"
                        name="files" 
                        class="fileinput"
                        title="Provide an DrForna input file"
                        style="width: 140pt;">
-                @ occupancy threshold: 
+                @ min-occupancy: 
                 <input type="text" 
                        name="occupancy"
                        class="occupancy"
                        title="Occupancy threshold" 
                        value="0.01" style="width: 30pt;">
-            </p>
-            <p class="aligncenter">
+                </p>
+                <p class="aligncenter">
                 <button id="toggleAnimation"
                         title="Play/Pause animation">Play/Pause</button>
                 @ speed: 
@@ -36,41 +35,44 @@
                        title="Play speed" 
                        value="5" style="width: 30pt;">
                 ms/frame
-            </p>
-            <p class="alignright">
+                </p>
+                <p class="alignright">
                 <button id="toggleSequence">Sequence</button>
                 <button id="downloadButton" 
                         title="Download plotting area as SVG">Download</button>
                 <button id="toggleFullScreen"
                         title="Fullscreen view">Fullscreen</button>
-            </p>
-            <div style="clear: both;"></div>
+                </p>
+                <div style="clear: both;"></div>
 
-            <div id="seqfield">
-                <div class="seqform"> 
-                    <textarea id="sequence" name="sequence" cols="80" rows="2">-</textarea>
-                    <button id="SeqReload">Load Sequence</button> <br>
-                    <input class="seqfileinpc" 
-                           type="file" 
-                           id="files"
-                           name="files"
-                           title="Enter an input file">
+                <div id="seqfield" class="seqform"> 
+                    <textarea id="sequence" name="sequence" rows="2">-</textarea>
+                    <div class="alignleft">
+                        <input type="file" 
+                               name="files"
+                               id="files"
+                               class="seqfileinpc" 
+                               title="Provide an sequence input file in fasta format."
+                               style="width: 140pt;">
+                    </div>
+                    <div class="alignright">
+                        <button id="SeqReload">Load Sequence</button>
+                    </div>
+                    <div style="clear: both;"></div>
+                    <p></p>
+                </div>
+                <div id="visualization">
+                    <div id="ensemblevis"></div>
+                    <div id="timetablevis"></div>
                 </div>
             </div>
-            <div id="visualization">
-                <div id="ensemblevis"></div>
-                <div id="timetablevis"></div>
-            </div>
-        </div>
-        <div id="datatable"></div>
+            <div id="datatable"></div>
             <p class="alignleft">
                 <button id="toggleTable">Toggle summary table</button>
             </p>
-            <p class="aligncenter">
-            </p>
             <p class="alignright">
                 <a href=help.html>Help</a>
-                <a href=help.html>Github</a>
+                <a href=https://github.com/ViennaRNA/drforna>Github</a>
             </p>
             <div style="clear: both;"></div>
         </div>
