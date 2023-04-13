@@ -96,7 +96,7 @@ function load_example(drffile, fafile){
     d3new.text(fafile).then(d => {
         a = d3new.csvParse(d)                
         seq_name = a.columns[0]
-        console.log(Array.from(a)[0][seq_name])
+        //console.log(Array.from(a)[0][seq_name])
         let se = Object.keys(Array.from(a)).map(function(key){
             return a[key][seq_name];                  
         }) 
@@ -557,7 +557,7 @@ function CreateScales(){
             
          rainbowScale = (t) => { //console.log(t/ sequenceLength)
             //console.log(t, t/(2* sequenceLength))
-            return d3.hcl(360*t, 100, 55); 
+            return d3.hcl(4*t, 100, 55); 
             //return d3.hcl(360* t/(sequenceLength), 100* t/(sequenceLength), 55); 
         // return d3.hcl(360* t, 100, 55); 
         };
@@ -751,15 +751,15 @@ function WriteTable(strToPlot){
     
                 d3new.select("#datatable")
                     .selectAll("table").remove()
-                d3new.select("#datatable")
-                    .selectAll("time").remove()
-                let time=d3new.select("#datatable").append("div").attr("id", "time")
+                // d3new.select("#datatable")
+                //     .selectAll("time").remove()
+                // let time=d3new.select("#datatable").append("div").attr("id", "time")
                 
                 let structures = d3new.select("#datatable").append("table")
                  
                     
-                let ttime = time.append("table").attr("id", "ttime")
-                let trow=ttime.append("tr")
+                // let ttime = time.append("table").attr("id", "ttime")
+                // let trow=ttime.append("tr")
                 let th = structures.append("thead")
                 th.append('tr').selectAll('th')
                             .data(colnames).enter()
@@ -912,17 +912,29 @@ function PLOT(realtime) {
                         .attr("class", "help").style("width", `${svgWidth}px`)
                         .style("height", `${svgHeight}px`)
                         .style('position', 'relative')
-                        .style("z-index", 2).style("background-color", "azure").text("Selected structure, occupancy "+d.data.value); 
+                        .style("z-index", 2)
+                        .style("background-color", "azure")
+                        .text("Selected structure, occupancy "+d.data.value); 
+                        // VARIANT2: PUT SEQ ON ZOOM
+                        let rectname="svg"+d.data.name
+                        containers[rectname].addRNA(d.data.str,{"sequence": inputSeq} )
+                                 
+
                     // console.log(d.data)                              
                     return c.style("width", `${svgWidth}px`)
                         .style("height", `${svgHeight}px`)
                         .style('left',  d =>{ return `${0}px`; })
                         .style('top',  d => { return `${0}px`; })
-                        .style("opacity", 100).style("z-index", 3)
+                        .style("opacity", 100)
+                        .style("z-index", 3)
 
                 }
                 else{zoom=false
                     d3.select(".help").remove()
+                    // VARIANT2: Delete seq from treemap
+                        
+                    let rectname="svg"+d.data.name
+                    containers[rectname].addRNA(d.data.str)
                     return c.style('left',  d =>{ return `${d.x0}px`; })
                         .style('top',  d => { return `${d.y0}px`; })
                         .style("z-index", 1)
@@ -951,11 +963,10 @@ function PLOT(realtime) {
                 if ( d.data.str != '') {
                     containers[rectname] = new FornaContainer('#' + rectname,{zoomable:false, editable:false, animation:false, displayNodeLabel: true,// labelInterval:0,
                         transitionDuration:0});
-                    containers[rectname].addRNA(d.data.str,{"sequence": inputSeq} )
-
-                    //containers[rectname].seq=inputSeq
-                    //am cum sa dau secventa?
-                    //SOMEHOW GIVE SEQUENCE AS
+                    containers[rectname].addRNA(d.data.str
+                        // VARIANT2: Delete seq from treemap
+                        // ,{"sequence": inputSeq} 
+                        )
                     containers[rectname].transitionRNA(d.data.str);
                     // console.log(containers[rectname])    
                     let colorStrings = d.data.colors.map(function(d, i) {
@@ -968,10 +979,10 @@ function PLOT(realtime) {
         d3new.select("#timetablevis")
             .selectAll("table").remove()
         d3new.select("#timetablevis")
-            .selectAll("time").remove()
-        let time = d3new.select("#timetablevis").append("div").attr("id", "time")
-        let structures = d3new.select("#timetablevis").append("table")
-        let ttime = time.append("table").attr("id", "ttime")
+            .selectAll("#time").remove()
+        // let time = d3new.select("#timetablevis").append("div").attr("id", "time")
+        // time.append("table")
+        let ttime =d3new.select("#timetablevis").append("div").attr("id", "time").append("table").attr("id", "ttime")
         let trow = ttime.append("tr")
 
         trow.append("td").text("Selected time point: ")
@@ -1047,7 +1058,9 @@ function calculateNucleotideColors(data) {
                
             // convert average nucleotide numbers to colors
             elements[i][2].map((d) => {
-                let nucleotideNormPosition = nucleotideScale(+averageBpNum);
+                let colorScale = d3new.scaleLinear()
+                .range([0, 360]).domain([0, sequenceLength]);
+                let nucleotideNormPosition = colorScale(+averageBpNum);
                 colors[d-1] = rainbowScale(nucleotideNormPosition);
                 //console.log(elements[i], nucleotideNormPosition)
                 //console.log(i, averageBpNum, nucleotideNormPosition,  colors[d-1])
