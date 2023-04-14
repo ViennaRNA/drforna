@@ -334,12 +334,13 @@ let mouseactive=false;
  * @type {number}
  */
 let visContainerWidth=800
+let visContainerHeight=400
 
 /**
- * width of the scale, 98% of the container width
+ * width of the scale, -30 px of the full visualization width
  * @type {number}
  */
-let lineChartWidth = visContainerWidth * .98; 
+let lineChartWidth = visContainerWidth - 30; 
 /**
  * table container, for the table containing the summary of the file for the selected time point
  * @type {object}
@@ -370,9 +371,12 @@ function initialize(data){
     filteredData=null
     nestedData=[]
     //for resizing with window resize
-    visContainerWidth = d3new.select('#ensemblevis').node().getBoundingClientRect().width; 
-    
-    lineChartWidth = visContainerWidth * .98; 
+    visContainerWidth = d3new.select('#visualization')
+        .node().getBoundingClientRect().width; 
+    visContainerHeight = Math.max(d3new.select('#visualization')
+        .node().getBoundingClientRect().height, 400);
+    lineChartWidth = visContainerWidth - 30; 
+
     tableContainer = d3new.select(`#timetablevis`);
     tableContainer.selectAll("svg").remove()
     mouseactive=false
@@ -522,11 +526,11 @@ function CreateScales(){
     
         scalel = d3new.scaleLinear() //the linear scale
                     .domain([minlintime, maxlintime]) 
-                    .range([30, (lineChartWidth-30)*.75]) //will always occupy 75% of the scale
+                    .range([30, (lineChartWidth)*.75]) //will always occupy 75% of the scale
 
         logscale = d3new.scaleLog() //    LOG SCALE, treat 0 as exception still TO DO!!!!!
                         .domain([maxlintime, maxlogtime+0.001])
-                        .range([(lineChartWidth - 30) * .75, lineChartWidth - 30]) //the last 25% will be occupied by the log scale
+                        .range([(lineChartWidth) * .75, lineChartWidth]) //the last 25% will be occupied by the log scale
         // console.log(logscale)
 
         combinedScale = time => time < maxlintime  //define the combined scale that identifies on which scale we are
@@ -535,8 +539,7 @@ function CreateScales(){
 
         svg = d3new.select("#timetablevis")
             .append("svg")
-            .attr("width", lineChartWidth)
-            //.attr("height", 120)
+            .attr("width", visContainerWidth)
             .attr("id", "timesvg"); //create the svg containing the scales
         
         //the lin and log scale on the bottom, positions were defined
@@ -570,7 +573,7 @@ function CreateScales(){
  * 
  */   
 function drawScales(){
-    svg.append("g").attr("width", lineChartWidth)
+    svg.append("g").attr("width", visContainerWidth)
             .attr("height", 110)
             .attr("transform", "translate (30,10)")
             .call(y_axis)    
@@ -586,7 +589,7 @@ function createScaleColors(){
         mostocc.forEach((el,i)=>{
                 let end=0
                 if (i== mostocc.length-1){
-                    end=lineChartWidth-30
+                    end=lineChartWidth
                 }
                 else{
                     end=combinedScale(mostocc[i+1][0])
@@ -854,8 +857,8 @@ function PLOT(realtime) {
     strToPlot = StructuresToPlot(realtime)
     if (strtoPlotprev != strToPlot) {
         const treemapData = makeTreemapData(strToPlot);
-        const svgWidth = lineChartWidth+20
-        const svgHeight = lineChartWidth*0.4
+        const svgWidth = visContainerWidth
+        const svgHeight = visContainerHeight - 200 // reserve space for time control panel
         let root = d3new.stratify().id(function(d) { return d.name})   // Name of the entity (column name is name in csv)
             .parentId(function(d){ return d.parent})(treemapData);
         root.sum(d => +d.value).sort((a, b) => b.value - a.value)  // Compute the numeric value for each entity
@@ -905,6 +908,10 @@ function PLOT(realtime) {
                         .style("height", `${svgHeight}px`)
                         .style('position', 'relative')
                         .style("z-index", 2).style("background-color", "azure").text("Selected structure, occupancy "+d.data.value); 
+
+                    //let rectname="svg"+d.data.name
+                    //containers[rectname].addRNA(d.data.str,{"sequence": inputSeq} )
+
                     // console.log(d.data)                              
                     return c.style("width", `${svgWidth}px`)
                         .style("height", `${svgHeight}px`)
@@ -914,7 +921,9 @@ function PLOT(realtime) {
 
                 }
                 else{zoom=false
+                    //let rectname="svg"+d.data.name
                     d3.select(".help").remove()
+                    //containers[rectname].addRNA(d.data.str)
                     return c.style('left',  d =>{ return `${d.x0}px`; })
                         .style('top',  d => { return `${d.y0}px`; })
                         .style("z-index", 1)
@@ -943,11 +952,9 @@ function PLOT(realtime) {
                 if ( d.data.str != '') {
                     containers[rectname] = new FornaContainer('#' + rectname,{zoomable:false, editable:false, animation:false, displayNodeLabel: true,// labelInterval:0,
                         transitionDuration:0});
+                    // Remove line if you don't want sequence info shown right away.
                     containers[rectname].addRNA(d.data.str,{"sequence": inputSeq} )
 
-                    //containers[rectname].seq=inputSeq
-                    //am cum sa dau secventa?
-                    //SOMEHOW GIVE SEQUENCE AS
                     containers[rectname].transitionRNA(d.data.str);
                     // console.log(containers[rectname])    
                     let colorStrings = d.data.colors.map(function(d, i) {
@@ -1069,7 +1076,6 @@ function toggleFullScreen(elem) {
             console.log("Fullscreen not working: ", elem)
             return
         }
-        visContainerWidth = d3new.select('#ensemblevis').node().getBoundingClientRect().width; 
     } else {
         // exit fullScreen
         if (document.exitFullscreen) {
@@ -1141,7 +1147,7 @@ function ShowData(data) {
         ?mousetime = scalel.invert(d3new.pointer(event)[0]) 
         :mousetime= logscale.invert(d3new.pointer(event)[0])
       
-        if (d3new.pointer(event)[0] >= 30 && d3new.pointer(event)[0] <= lineChartWidth-30) {
+        if (d3new.pointer(event)[0] >= 30 && d3new.pointer(event)[0] <= lineChartWidth) {
             showLine(d3new.pointer(event)[0])
         }
         for (let t in filteredData) {
@@ -1168,7 +1174,7 @@ function ShowData(data) {
               : mousetime = logscale.invert(x)
        // console.log(mousetime- scale.invert(x) )
         //console.log(mousetime)
-        if (x >= 30 && x <= lineChartWidth-30) {
+        if (x >= 30 && x <= lineChartWidth) {
             showLine(x)
         }
 
