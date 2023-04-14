@@ -11,7 +11,7 @@
 <body id="helptot"> 
     <div id="title">How to use DrForna</div>
     <div class="main_container">
-        <h3>Main input format (*.drf files):</h3>
+        <h3>Main input format (DrForna files):</h3>
         <div>
             The <em>DrFrona input file </em>should be a white-space separated value (``csv-like'') file.
             The header should have the form <em>id time occupancy structure energy</em>. 
@@ -24,9 +24,9 @@
                     in the visual output, or the same ID can be used for 
                     structures with different base-pairs. However, the latter
                     may lead to unexpected visualization, as the colors
-                    in the time-point selection panel are defined by first structure
+                    in the time point selection panel are defined by first structure
                     for each ID.)</li>
-                <li><em>time</em> denotes the time-point at which structures are plotted in the ensemble visualization area.</li>
+                <li><em>time</em> denotes the time point at which structures are plotted in the ensemble visualization area.</li>
                 <li><em>occupancy</em> is the probability of observing the structure in
                     the ensemble at the given time point. <br>(This affects the size of a 
                     structure plot in the ensemble visualization area.)</li>
@@ -46,24 +46,35 @@
                 9 1.51 0.3656 .........((((....))))....((((....)))). -10.00<br>
                 6 1.51 0.6344 .((((....((((....))))....)))).........  -9.30<br>
             </div>
+            <p>
+            The parameter  <em>min-occupancy</em> filters lines from the input
+            file if the occupancy is too low. Note that setting this threshold
+            too low may crash the browser, while a high threshold can delete
+            entire time points for visualization. 
+            <!--
+            set manually. <br> Note: The occupancy threshold should be smaller
+            than the maximal occupancy at the end of transciption in the file,
+            otherwise the end of transcription changes due to completely
+            deleted time points
+            -->
+            </p>
         </div>
-        <h3>Sequence input (fasta, optional):</h3>
+
+        <h3>Sequence input format (fasta files, optional):</h3>
         <div>
-            <li>The <em> sequence </em> is optional and can be either uploaded using a fasta file or written in the provided text box. 
+            <ul> 
+            <li>The <em>sequence</em> is optional and can be either uploaded using a fasta file or written in the provided text box. 
                 Lines starting with the symbol ">" are disregarded. <br>
-                Note:The colors of the nucleotides may appear darker when the sequence is also present, but this is just due to our perception.
+                Note: Providing a sequence may cause the colors of nucleotides be precieved darker than in the time point selection panel.
             </li>
-            <li>The parameters  <em> Occupancy threshold</em> and  <em>Playback speed </em> can be set manually. <br>
-                Note: The occupancy threshold should be smaller than the maximal occupancy at the end of transciption in the file,
-                otherwise the end of transcription changes due to completely deleted time points
-            </li>
+            </ul> 
         </div>
    </div>
     <div class="main_container">
         <div class="right_container">            
             The visual output contains three parts:
             <ol>
-                <li>The treemap</li>
+                <li>The ensemble visualization area (treemap)</li>
                 <p>The output shown contains the visual output for a selected time point (marked with the red line on the time scale):
 
                 </p>
@@ -79,7 +90,7 @@
                 <!-- <img style="width:50%" , alt="Treemap " src="./zoomed.png"> -->
 
 
-                <li>The scales</li>
+                <li>The time point selection panel</li>
                 <!-- <img style="width:80%" , alt="Treemap " src="./scales.svg"> -->
                 <ul>
                     <li> the black line on the time scale marks the end of transciption, which splits the scale into the linear cotranscriptional 

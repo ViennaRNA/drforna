@@ -751,15 +751,7 @@ function WriteTable(strToPlot){
     
                 d3new.select("#datatable")
                     .selectAll("table").remove()
-                d3new.select("#datatable")
-                    .selectAll("time").remove()
-                let time=d3new.select("#datatable").append("div").attr("id", "time")
-                
                 let structures = d3new.select("#datatable").append("table")
-                 
-                    
-                let ttime = time.append("table").attr("id", "ttime")
-                let trow=ttime.append("tr")
                 let th = structures.append("thead")
                 th.append('tr').selectAll('th')
                             .data(colnames).enter()
@@ -862,7 +854,7 @@ function PLOT(realtime) {
     strToPlot = StructuresToPlot(realtime)
     if (strtoPlotprev != strToPlot) {
         const treemapData = makeTreemapData(strToPlot);
-        const svgWidth = lineChartWidth+30
+        const svgWidth = lineChartWidth+20
         const svgHeight = lineChartWidth*0.4
         let root = d3new.stratify().id(function(d) { return d.name})   // Name of the entity (column name is name in csv)
             .parentId(function(d){ return d.parent})(treemapData);
@@ -967,10 +959,7 @@ function PLOT(realtime) {
             });
         d3new.select("#timetablevis")
             .selectAll("table").remove()
-        d3new.select("#timetablevis")
-            .selectAll("time").remove()
-        let time = d3new.select("#timetablevis").append("div").attr("id", "time")
-        let structures = d3new.select("#timetablevis").append("table")
+        let time = d3new.select("#timetablevis")
         let ttime = time.append("table").attr("id", "ttime")
         let trow = ttime.append("tr")
 
@@ -984,8 +973,6 @@ function PLOT(realtime) {
 
         trow.append("td").text("Sum of occupancies: ")
         trow.append("td").text( Sum_of_occ)
-        /*
-        */
         WriteTable(strToPlot) 
     }
     strtoPlotprev=strToPlot
@@ -1214,9 +1201,6 @@ function ShowData(data) {
         ShowData(data) 
         PLOT(realtime)
         showLine(combinedScale(realtime)) 
-       
-        
-
     })
 
     let bfullscr = d3new.select("#toggleFullScreen")

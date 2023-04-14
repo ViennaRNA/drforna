@@ -5,6 +5,7 @@ body {
 }
 #title{
     text-align: center;
+    min-width: 1000px;
     background-color: rgb(0, 69, 148);
     color: white;
     padding: 7px;
@@ -70,15 +71,10 @@ body {
 #timesvg {
     height:110px
 }
-#time{
+#ttime{
   text-align: center;
   margin: auto;
   width: 30%;
-  font-size: 1rem;
-}
-#ttime{
-  margin: auto;
-  width: 90%;
 }
 .transcriplengthLine{
     stroke-width:  1;
@@ -105,7 +101,6 @@ body {
   -webkit-touch-callout: none;
   -webkit-user-select: none;
   -khtml-user-select: none;
-  
   -moz-user-select: none;
   -ms-user-select: none;
   user-select: none;
@@ -114,7 +109,6 @@ body {
     position: relative;
     width: 40px;
     height: 10px;
-  
     text-align: center;
     padding: .1rem;
     background: #FFFFFF;
