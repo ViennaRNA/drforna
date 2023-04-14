@@ -1,5 +1,5 @@
 import * as d3new from "d3"
-import { documentToSVG, elementToSVG, inlineResources, formatXML } from 'dom-to-svg'
+import {elementToSVG } from 'dom-to-svg'
 import { saveAs } from "file-saver";
 
 import {FornaContainer, RNAUtilities} from 'fornac';
@@ -602,6 +602,7 @@ function createScaleColors(){
                     .attr("height", 80/sequenceLength)
                     .attr("transform", (d,k)=> `translate(${+combinedScale(el[0])},${nucleotideScale(k)+10})`)
                     .attr("fill", (d) => {return `${(d)}`; })
+                    
                     //.each(function(d,i) {//console.log("ha"+d+"ind "+i)
                     //})
     
@@ -862,7 +863,7 @@ function PLOT(realtime) {
     strToPlot = StructuresToPlot(realtime)
     if (strtoPlotprev != strToPlot) {
         const treemapData = makeTreemapData(strToPlot);
-        const svgWidth = lineChartWidth+30
+        const svgWidth = lineChartWidth+20
         const svgHeight = lineChartWidth*0.4
         let root = d3new.stratify().id(function(d) { return d.name})   // Name of the entity (column name is name in csv)
             .parentId(function(d){ return d.parent})(treemapData);
@@ -876,6 +877,8 @@ function PLOT(realtime) {
         viscontainer.select("#treemapdiv").remove()
         let zoom=false;
         viscontainer.append("div").attr("id", "treemapdiv") 
+        
+        // .style("background-color", "white")
         //.style('position', 'relative')
             .style("width", `${svgWidth}px`)
             .style("height", `${svgHeight}px`)
@@ -884,6 +887,7 @@ function PLOT(realtime) {
             .enter()
             .append("svg")
             .attr("class", "plot")
+            .style("background-color", "white")
             .style("opacity", 100).style("z-index", 1)
             .attr("id",   d => { return "svg"+d.data.name})
         // .style("background-color", "white") .style("opacity", 50)
@@ -925,7 +929,7 @@ function PLOT(realtime) {
                         .style("height", `${svgHeight}px`)
                         .style('left',  d =>{ return `${0}px`; })
                         .style('top',  d => { return `${0}px`; })
-                        .style("opacity", 100)
+                        .style("opacity", 10)
                         .style("z-index", 3)
 
                 }
@@ -935,6 +939,7 @@ function PLOT(realtime) {
                         
                     let rectname="svg"+d.data.name
                     containers[rectname].addRNA(d.data.str)
+
                     return c.style('left',  d =>{ return `${d.x0}px`; })
                         .style('top',  d => { return `${d.y0}px`; })
                         .style("z-index", 1)
