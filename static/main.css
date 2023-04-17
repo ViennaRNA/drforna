@@ -5,23 +5,25 @@ body {
 }
 #title{
     text-align: center;
-    min-width: 1000px;
     background-color: rgb(0, 69, 148);
     color: white;
     padding: 7px;
+    min-width: 900px;
     font-size: 1.75rem;
     font-weight: 600;
-    line-height: 1.25rem;
 }
 #root{
-    max-width: 2500px;
-    min-width: 1000px;
     margin: auto;
     width: 90%; 
+    min-width: 900px;
 }
 #fullscreen{
     background: white;
-    height: 100%;
+    height: 90vh;
+    width: 100%;
+}
+#controls{
+    margin: auto;
     width: 100%;
 }
 .alignleft {
@@ -37,7 +39,6 @@ body {
 }
 .alignright {
     float: right;
-    /*width: 33.33333%;*/
     text-align: right;
 }
 #sequence{
@@ -47,14 +48,10 @@ body {
 }
 #visualization{
     width: 100%;
-    height: 90vh;
-    text-align: center;
     background-color: white;
-    padding:0rem
+    padding: 0rem;
 }
 #treemapdiv{
-    width: 100%;
-    height: 100%;
     position: relative;
 }
 .fornac-nodeLabel {
@@ -90,25 +87,24 @@ body {
     font-size: 0.6rem;
 }
 #timesvg {
-    height:110px
+    height: 110px;
 }
 .transcriplengthLine{
-    stroke-width:  1;
+    stroke-width: 1;
     stroke: black;
     fill: none;
 }
 .currenttimeLine{
     stroke-width: 1;
-    /* stroke: color; */
     fill: none;
 }
-#ttime{
-  text-align: center;
-  margin: auto;
-  width: 30%;
+#timeinfo{
+    text-align: center;
+    width: 100%;
+    margin: auto;
 }
 #datatable{
     overflow: hidden;
     font-family: 'Courier New', Courier, monospace;
-    padding:0rem
+    padding: 0rem;
 }
