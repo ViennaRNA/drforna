@@ -77,8 +77,6 @@ let seq_name=""
  * @param {string} filename of fasta input
  */
 function load_example(drffile, fafile){
-    filteredData = null
-    nestedData = []
     d3new.text(fafile).then(d => {
         a = d3new.csvParse(d)                
         seq_name = a.columns[0]
@@ -98,14 +96,11 @@ function load_example(drffile, fafile){
     let a = []
     d3new.text(drffile).then(d => {
         a = d3new.csvParse(
-            d.replace(/ +/g, ",").replace(/\n,+/g, "\n").replace(/^\s*\n/gm, ""))
-        containers = {};
-        let container = d3new.select("#ensemblevis")
-        container.remove()
-
-        ShowData(Array.from(a))
-        document.querySelectorAll('.fileinput').forEach((item) => {
-            item.addEventListener('change', () => {return false})})
+                d.replace(/ +/g, ",").replace(/\n,+/g, "\n")
+                 .replace(/^\s*\n/gm, ""))
+        ShowData(Array.from(a), null, null)
+        document.getElementById('drfinput')
+            .addEventListener('change', () => {return false})
     })      
 }
 
@@ -133,47 +128,28 @@ function start() {
   * data by calling ShowData
   *  
   */  
+
 function readFromFileUpload(){
-    filteredData=null
-    nestedData=[]
-    
-    document.querySelectorAll('.fileinput').forEach((item) => {
-        item.addEventListener('click', (event) => {playAnimation=false
-             event.target.value=""
-        })
-        item.addEventListener('change', (event) => {  
-        // let rb=document.querySelectorAll('input[type=radio][name=fileinput]:checked')
-        // //console.log(rb)
-        // if (rb.length!=0)
-        //     {rb[0].checked=false}
-        document.querySelectorAll("#sequence").forEach((item)=>{item.value=""})
-        inputSeq=""
-   
-       let files = event.target.files
-        filename=files[0].name
-       
-        for (let i = 0, f; f = files[i]; i++) {
-            let reader = new FileReader()
-            reader.onload = (val) => {                                   
-               let a=[]
-              //console.log(val.target.result.replace(/ +/g, ",").replace(/\n,+/g, "\n").replace(/^\s*\n/gm, ""))
-               a = d3new.csvParse(val.target.result.replace(/ +/g, ",").replace(/\n,+/g, "\n").replace(/^\s*\n/gm, ""))                
-                containers = {};                  
-                let nd = Array.from(d3new.group(a.filter((d) => {return +d.occupancy > occupancyThreshold }), d => +d.time))
-                let dd= Array.from(d3new.group( a, d  => +d.time))
-                //  console.log(dd)
-                //  console.log("nd", nd)
-                if (nd.length<dd.length) {
-                  //  console.log("discarded time points")
-                    alert("Some time points present in your file were discarded due to the presence of only low occupied structures ")
-                }
-                realtime=d3new.min(dd[0])
-                ShowData(a)
-            }            
-            reader.readAsText(f);
-        }
+  let item = document.getElementById('drfinput');
+  item.addEventListener('click', (event) => {
+    playAnimation = false;
+    //event.target.value = "";
+  });
+  item.addEventListener('change', (event) => {
+    // code for handling file upload
+    document.querySelectorAll('#sequence').forEach((item) => {
+      item.value = '';
     });
- })
+    inputSeq = '';
+    const file = event.target.files[0];
+    const reader = new FileReader();
+    reader.onload = (val) => {
+      const data = d3new.csvParse(val.target.result.replace(/ +/g, ',').replace(/\n,+/g, '\n').replace(/^\s*\n/gm, ''));
+        console.log(data)
+      ShowData(data, null, null);
+    };
+    reader.readAsText(file);
+  });
 }
 /**
      * 
@@ -291,16 +267,6 @@ let linscale;
  */
 let svg;
 /**
- * the selected time point
- * @type {number}
- */
-let realtime=null;
-/**
- * the previous time point, to check if anything changed before unnecessarly reploting
- * @type {number}
- */
-let prevtime=null
-/**
  * the list of structures for the previous selected time point, to verify if anything changed
  * @type {number}
  */
@@ -310,13 +276,6 @@ let strtoPlotprev=null;
  * @type {boolean}
  */
 let mouseactive=false;
-/**
- * visual  container, containing the plots and the scales
- * @type {object}
- */
-let ensContainer=null 
-let visContainer=null 
-
 
 /**
  * Method for initialization based on the data
@@ -324,13 +283,12 @@ let visContainer=null
  ** initialize containers 
  ** set mouse as not active 
  */
-
 function initialize(){
     preparePlotArea(); 
 
     // Set the dimensions of everything in in the visualization area
     // changed that to be relative to fullscreen now, looking ok so far.
-    visContainer = d3new.select(`#fullscreen`).node()
+    let visContainer = d3new.select(`#fullscreen`).node()
     const visContainerWidth = visContainer.getBoundingClientRect().width; 
     const visContainerHeight = visContainer.getBoundingClientRect().height;
 
@@ -345,23 +303,12 @@ function initialize(){
                                         visContainerHeight - subH);
     const timeScaleWidth = visContainerWidth - 30;
 
-    ensContainer = d3new.select('#ensemblevis');
     return [visContainerWidth,
             visContainerHeight,
             ensContainerWidth, 
             ensContainerHeight,
             timeScaleWidth]
 }
-/**
- * filtered data, only those structured with occupancy greater than the threshold
- * @type {Array}
- */
-let filteredData=null
-/**
- * nested data, filtered data grouped by timepoint
- * @type {Array}
- */
-let nestedData=[]
 /**
  * Split time points into 'transcription' and 'after transcription'
  * Also identifies the maximal number of structural alternatives per time point.
@@ -592,6 +539,7 @@ let Sum_of_occ
  * @param {string} color the color of the line, red by default
  */  
 function showLine(coord, color="red") {
+    console.log(coord)
     svg.selectAll(".currenttimeLine").remove()
     svg.append("line")
         .attr("class", "currenttimeLine")
@@ -726,84 +674,74 @@ function WriteTable(strToPlot, mostocc){
  * previously plotted
   */   
 function ensPlot(nestedData, realtime, eCW, eCH, seqlen, mostocc) { 
+    console.log('ep', realtime)
     let strToPlot = StructuresToPlot(nestedData, realtime)
+    console.log('ep2', realtime)
+    console.log('ep2', strToPlot)
+    console.log('ep2', strToPlot[0])
     if (strtoPlotprev != strToPlot) {
         const treemapData = makeTreemapData(strToPlot);
-        const svgWidth = eCW
-        const svgHeight = eCH
-        let root = d3new.stratify().id(function(d) { return d.name})   // Name of the entity (column name is name in csv)
+        let root = d3new.stratify().id(function(d) { return d.name})   
             .parentId(function(d){ return d.parent})(treemapData);
-        root.sum(d => +d.value).sort((a, b) => b.value - a.value)  // Compute the numeric value for each entity
-        //console.log(root.value)
+        root.sum(d => +d.value).sort((a, b) => b.value - a.value)  
         Sum_of_occ=Math.round(root.value*100000)/100000
+
         d3new.treemap()
-            .size([svgWidth, svgHeight])
+            .size([eCW, eCH])
             .padding(4)(root)
 
+        let ensContainer = d3new.select('#ensemblevis');
         ensContainer.select("#treemapdiv").remove()
-        let zoom=false;
+        let zoom = false;
         ensContainer.append("div").attr("id", "treemapdiv") 
-        //.style('position', 'relative')
-            .style("width", `${svgWidth}px`)
-            .style("height", `${svgHeight}px`)
+            .style("width", `${eCW}px`)
+            .style("height", `${eCH}px`)
             .selectAll(".svg").remove() // leave out
             .data(root.leaves())
             .enter()
             .append("svg")
             .attr("class", "plot")
-            .style("opacity", 100).style("z-index", 1)
+            .style("z-index", 1)
             .attr("id",   d => { return "svg"+d.data.name})
-        // .style("background-color", "white") .style("opacity", 50)
-            .on("mouseover", (e,d)=> {  //show occ when mouse over
-                d3.select(".infodiv").remove()
-                let infodiv = d3.select("#treemapdiv").append("div")
-                    .attr("class", "infodiv")
-                    .style("opacity", 0);  
-                //console.log(e,d);
-                infodiv.html(d.data.value)
-                    .style('left',  ()=>{ return `${d.x0+25}px`; })
-                    .style('top',  () => { return `${d.y0}px`; })
-                return infodiv.style("opacity", 100).style("z-index", 3);})    
+            .on("mouseover", (e,d)=> {  // show occ when mouse over
+                d3.select("#treemapdiv").append("div")
+                  .attr("class", "infodiv")
+                  .html(d.data.value)
+                  .style('left',  ()=>{ return `${d.x0+30}px`; })
+                  .style('top',  () => { return `${d.y0}px`; })
+                  .style("z-index", 3);})    
             .on('mouseout', (e,d)=> {  
                 d3.select(".infodiv").remove() //delete on mouseout   
             }) 
             .on("click", (e,d) =>{
-                //console.log(e,d)
-                let c = d3.select("#svg"+d.data.name)
-
-                if (zoom==false) {
-                    zoom=true 
+                let rectname = "svg" + d.data.name
+                let c = d3.select('#' + rectname)
+                if (zoom == false) {
+                    zoom = true 
                     d3.select(".infodiv").remove()
-                    d3.select(".help").remove()
-                    let helpdiv = d3.select("#treemapdiv").append("div")
-                        .attr("class", "help").style("width", `${svgWidth}px`)
-                        .style("height", `${svgHeight}px`)
+                    d3.select("#treemapdiv").append("div")
+                        .attr("class", "help")
+                        .style("width", `${eCW}px`)
+                        .style("height", `${eCH}px`)
                         .style('position', 'relative')
-                        .style("z-index", 2).style("background-color", "azure").text("Selected structure, occupancy "+d.data.value); 
-
-                    //let rectname="svg"+d.data.name
-                    //containers[rectname].addRNA(d.data.str,{"sequence": inputSeq} )
-
-                    // console.log(d.data)                              
-                    return c.style("width", `${svgWidth}px`)
-                        .style("height", `${svgHeight}px`)
+                        .style("z-index", 2)
+                        .style("background-color", "azure")
+                        .style("text-align", "center")
+                        .text("Selected structure, occupancy "+d.data.value); 
+                    c.style("width", `${eCW}px`)
+                        .style("height", `${eCH}px`)
                         .style('left',  d =>{ return `${0}px`; })
                         .style('top',  d => { return `${0}px`; })
-                        .style("opacity", 100).style("z-index", 3)
-
-                }
-                else{zoom=false
-                    //let rectname="svg"+d.data.name
+                        .style("z-index", 3)
+                } else {
+                    zoom = false
                     d3.select(".help").remove()
-                    //containers[rectname].addRNA(d.data.str)
-                    return c.style('left',  d =>{ return `${d.x0}px`; })
-                        .style('top',  d => { return `${d.y0}px`; })
+                    return c.style('left', d =>{ return `${d.x0}px`; })
+                        .style('top', d => { return `${d.y0}px`; })
                         .style("z-index", 1)
-                    // .style("background-color", "white")                                
                         .style('width',  d => { return `${(d.x1 - d.x0)}px`; })
                         .style('height',  d => { return `${(d.y1 - d.y0)}px`; })}
-
-            })          
+            })
             .style('position', 'absolute')
             .style('left',  d =>{ return `${d.x0}px`; })
             .style('top',  d => { return `${d.y0}px`; })
@@ -813,22 +751,22 @@ function ensPlot(nestedData, realtime, eCW, eCH, seqlen, mostocc) {
             .style("fill", "#62b6a2")
             .style("border", "thin solid black")
             .append("text")
-        //.style('position', 'relative')
-            .attr("x", 1)    //  to adjust position (to the right)
-            .attr("y", 10)    //  to adjust position (lower)
+            .attr("x", 2)    //  to adjust position (to the right)
+            .attr("y", 12)    //  to adjust position (lower)
             .text( d => { return d.data.name })
-            .attr("font-size", "12px")                            
-            .attr("fill", "white")      
+            .attr("font-size", "0.8rem")                            
             .each( d => {
                 let rectname="svg"+d.data.name
                 if ( d.data.str != '') {
-                    containers[rectname] = new FornaContainer('#' + rectname,{zoomable:false, editable:false, animation:false, displayNodeLabel: true,// labelInterval:0,
-                        transitionDuration:0});
-                    // Remove line if you don't want sequence info shown right away.
+                    containers[rectname] = new FornaContainer('#' + rectname, {
+                        zoomable: false, 
+                        editable: false, 
+                        animation: false,
+                        displayNodeLabel: true,
+                        transitionDuration: 0});
+                    // Remove line if you don't want sequence info shown 
                     containers[rectname].addRNA(d.data.str,{"sequence": inputSeq} )
-
                     containers[rectname].transitionRNA(d.data.str);
-                    // console.log(containers[rectname])    
                     let colorStrings = d.data.colors.map(function(d, i) {
                         return `${i+1}:${d}`;
                     });
@@ -836,30 +774,38 @@ function ensPlot(nestedData, realtime, eCW, eCH, seqlen, mostocc) {
                     containers[rectname].addCustomColorsText(colorString);              
                 }     
             });
-        d3new.select("#timetableinfo")
-            .selectAll("table").remove()
+
         let time = d3new.select("#timetableinfo")
-        let timeinfo = time.append("table").attr("id", "timeinfo")
-        let trow = timeinfo.append("tr")
-        trow.append("td").style('width', '300px').text("Selected time point: "+strToPlot[0].time+" s")
-        trow.append("td").style('width', '300px').text("Transcript length: "+ strToPlot[0].structure.length+"/"+seqlen+" nt")
-        trow.append("td").style('width', '300px').text("Sum of occupancies: "+ Sum_of_occ)
+        time.selectAll("table").remove()
+        let trow = time.append("table").attr("id", "timeinfo").append("tr")
+        trow.append("td")
+            .style('width', '300px')
+            .text("Selected time point: " + strToPlot[0].time + " s")
+        trow.append("td")
+            .style('width', '300px')
+            .text("Transcript length: " + 
+                strToPlot[0].structure.length + "/" + seqlen + " nt")
+        trow.append("td")
+            .style('width', '300px')
+            .text("Sum of occupancies: " + Sum_of_occ)
         WriteTable(strToPlot, mostocc) 
     }
-    strtoPlotprev=strToPlot
+    strtoPlotprev = strToPlot
     return strtoPlotprev    
 }
+
 /**
  * Function for making a treemap structure out of the data 
  * @param {Array} data the data 
  * @returns {Array} The treemap hierarchical structure, in our case with only one level of hierarchy
   */ 
 function makeTreemapData(data) {
-    return [
-        { name: "parent", parent: null, value: 0, str:"", colors: "" },
-        ...data.map(el => (
-            { 
-                name: el.id, parent: "parent", value: el.occupancy, str: el.structure, colors:formatColors(el.colors) }))
+    return [{ name: "parent", parent: null, value: 0, str:"", colors: "" },
+            ...data.map(el => ({ name: el.id, 
+                                 parent: "parent", 
+                                 value: el.occupancy, 
+                                 str: el.structure, 
+                                 colors:formatColors(el.colors) }))
     ]
 }
 /**
@@ -945,7 +891,7 @@ function toggleFullScreen(elem) {
  * @param {Array} data the parsed content of the input file
  */
 
-function ShowData(data) {     
+function ShowData(data, realtime, prevtime) {     
     const [vCW, vCH, eCW, eCH, tSW] = initialize()
     const seqlen = data[data.length - 1].structure.length;
     containers = {};
@@ -960,18 +906,23 @@ function ShowData(data) {
             //change! Error message when the occupancy threshold is bigger than
             //max occ at end of transcr
         occupancyThreshold=item.value
-        ShowData(data)
+        ShowData(data, realtime, prevtime)
         })
     })
     let container = d3new.select("#visualization");
     container.select('#loadingNotification').remove();
 
-    filteredData = data.filter((d) => { return +d.occupancy > occupancyThreshold }) 
+    let filteredData = data.filter((d) => { return +d.occupancy > occupancyThreshold }) 
     // nested data by time points to extract the structures for every time step
-    nestedData = Array.from(d3new.group(filteredData, d =>+d.time)) 
+    let nestedData = Array.from(d3new.group(filteredData, d =>+d.time)) 
+
+    //            if (nd.length<dd.length) {
+    //              //  console.log("discarded time points")
+    //                alert("Some time points present in your file were discarded due to the presence of only low occupied structures ")
+    //            }
     const [lintimes, logtimes, maxNoStr] = SplitTranscription(nestedData, seqlen)
 
-    // all edits the svg
+    // all do edits to the svg
     const [cScale, rScale, nScale, maxlintime] = CreateScales(vCW, tSW,
         lintimes, logtimes, seqlen);
     calculateNucleotideColors(filteredData, rScale, nScale) 
@@ -987,20 +938,46 @@ function ShowData(data) {
     if (prevtime == null) {prevtime = mintime }
 
     let strToPlot = StructuresToPlot(nestedData, prevtime)
-    // continue here ...
     strtoPlotprev = ensPlot(nestedData, prevtime, eCW, eCH, seqlen, mostocc)
 
+
+    // continue here
     showLine(cScale(prevtime)) 
-    let mousetime=30
-    
+
+    let mousetime = 30 // the beginning of the plot
+    svg.on("mousemove", (event) => {
+        if (playAnimation) return;
+        if (!mouseactive) return;
+        let x = d3new.pointer(event)[0];
+        //scale invert for combined scale
+        (x <= linscale(maxlintime))
+              ? mousetime = linscale.invert(x) 
+              : mousetime = logscale.invert(x)
+        if (x >= 30 && x <= tSW) {
+            showLine(x)
+        }
+        for (let t in filteredData) {
+            if (filteredData[t].time <= mousetime) { 
+                realtime = filteredData[t].time 
+            }
+        }
+        if (prevtime != realtime) {
+            prevtime = realtime
+            if (delayPLOT) clearTimeout(delayPLOT);
+            delayPLOT = setTimeout(ensPlot, 5*maxNoStr, nestedData, realtime, eCW, eCH, seqlen, mostocc);
+        }
+    })
+
+
     svg.on("click", (event) => {
-        if (playAnimation) {playAnimation=!playAnimation}
-        mouseactive=!mouseactive;
+        if (playAnimation) { playAnimation = !playAnimation }
+        mouseactive = !mouseactive;
         //scale invert for combined scale
         (d3new.pointer(event)[0]<linscale(maxlintime))
         ?mousetime = linscale.invert(d3new.pointer(event)[0]) 
-        :mousetime= logscale.invert(d3new.pointer(event)[0])
-      
+        :mousetime = logscale.invert(d3new.pointer(event)[0])
+        console.log(d3new.pointer(event)[0], mousetime)
+        // TODO: redundant?
         if (d3new.pointer(event)[0] >= 30 && d3new.pointer(event)[0] <= tSW) {
             showLine(d3new.pointer(event)[0])
         }
@@ -1015,34 +992,6 @@ function ShowData(data) {
         }
     })
     
-    svg.on("mousemove", (event) => {
-        if (playAnimation) return;
-        if (!mouseactive) return;
-        let x = d3new.pointer(event)[0];
-        //let x = d3new.pointer(event, event.target)[0];
-       
-        //scale invert for combined scale
-        (x <= linscale(maxlintime))
-              ? mousetime = linscale.invert(x) 
-              : mousetime = logscale.invert(x)
-       // console.log(mousetime- scale.invert(x) )
-        //console.log(mousetime)
-        if (x >= 30 && x <= tSW) {
-            showLine(x)
-        }
-
-        for (let t in filteredData) {
-            if (filteredData[t].time <= mousetime) { 
-                realtime = filteredData[t].time 
-            }
-        }
-        if (prevtime != realtime) {
-            prevtime = realtime
-            
-            if (delayPLOT) clearTimeout(delayPLOT);
-            delayPLOT = setTimeout(ensPlot, 5*maxNoStr, nestedData, realtime, eCW, eCH, seqlen, mostocc);
-        }
-    })
     let reload_b = d3new.select("#SeqReload")
     reload_b.on('click', function() {
         playAnimation=false
@@ -1052,7 +1001,7 @@ function ShowData(data) {
         if (realtime==null){
             realtime=mintime
         }
-        ShowData(data) 
+        ShowData(data, realtime, prevtime) 
         ensPlot(nestedData, realtime, eCW, eCH, seqlen, mostocc)
         showLine(cScale(realtime)) 
     })
@@ -1091,9 +1040,7 @@ function ShowData(data) {
             
             let ToogleAnimation= setInterval(() => {
                // console.log(animationDelay)
-                
                 if (!playAnimation) {//console.log("aici ");\\ ruleaza o data pe secunda, nu e foarte frumos...
-                     
                     clearInterval(ToogleAnimation)
                     return ;
                 }
@@ -1102,16 +1049,10 @@ function ShowData(data) {
                 }
                 const element = nestedData[elementIndex];
                 //console.log(nestedData)
-                
                 prevtime = +element[0]
-             
                 ensPlot(nestedData, prevtime, eCW, eCH, seqlen, mostocc)
                 showLine(cScale(prevtime))
-       
-
-                
                 elementIndex += 1;
-                
                 return prevtime
             }, animationDelay);
            
@@ -1120,7 +1061,7 @@ function ShowData(data) {
 
     const onResize = () => {
         playAnimation = false      
-        ShowData(data); // redraw plot
+        ShowData(data, realtime, prevtime); // redraw plot
         // TODO: this does not resize the 
         //if (realtime!=null){
         //    try{ensPlot(realtime, eCW, eCH, seqlen)
