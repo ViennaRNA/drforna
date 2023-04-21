@@ -41,7 +41,7 @@ body {
     float: right;
     text-align: right;
 }
-#sequence{
+#seqtext{
     text-align: left;
     width: 100%;
     padding: 0px;
@@ -110,4 +110,8 @@ body {
     overflow: hidden;
     font-family: 'Courier New', Courier, monospace;
     padding: 0rem;
+}
+button:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
 }

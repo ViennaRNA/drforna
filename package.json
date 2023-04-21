@@ -19,7 +19,7 @@
     "watch": "webpack --config webpack.config.js --mode development --watch",
     "build": "webpack --config webpack.config.js --mode production",
     "jsdoc": "./node_modules/.bin/jsdoc -c jsdoc.json",
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "test": "jest"
   },
   "devDependencies": {
     "copy-webpack-plugin": "^11.0.0",
@@ -30,12 +30,14 @@
     "webpack-dev-server": "^4.5.0"
   },
   "dependencies": {
+    "@babel/cli": "^7.21.0",
+    "@babel/core": "^7.21.4",
+    "@babel/preset-env": "^7.21.4",
+    "core-js": "^3.30.1",
     "d3": "^7.6.1",
-    "dom-to-image": "^2.6.0",
     "dom-to-svg": "^0.12.2",
     "file-saver": "^2.0.5",
-    "FileSaver": "^0.10.0",
     "fornac": "github:ViennaRNA/fornac",
-    "html-to-image": "^1.11.11"
+    "jest": "^29.5.0"
   }
 }

@@ -23,7 +23,6 @@
                         <td>
                             @ min-occupancy: 
                             <input type="text" 
-                                   name="occupancy"
                                    class="occupancy"
                                    title="Occupancy threshold" 
                                    value="0.01" style="width: 30pt;">
@@ -37,7 +36,6 @@
                         <td>
                             @ speed: 
                             <input type="text" 
-                                   name="playspeed" 
                                    class="playspeed" 
                                    title="Play speed" 
                                    value="5" style="width: 30pt;">
@@ -52,18 +50,16 @@
                                 title="Fullscreen view">Fullscreen</button>
                     </td> </tr>
                 </table>
-                <div id="seqfield" class="seqform"> 
-                    <textarea id="sequence" name="sequence" rows="2">-</textarea>
+                <div id="seqfield" id="seqform"> 
+                    <textarea id="seqtext" title = "Provide sequence input in fasta format." rows="2"></textarea>
                     <div class="alignleft">
                         <input type="file" 
-                               name="files"
-                               id="files"
-                               class="seqfileinpc" 
+                               id="seqfile"
                                title="Provide an sequence input file in fasta format."
                                style="width: 140pt;">
                     </div>
                     <div class="alignright">
-                        <button id="SeqReload">Load Sequence</button>
+                        <button id="seqload">Load Sequence</button>
                     </div>
                     <div style="clear: both;"></div>
                     <p></p>

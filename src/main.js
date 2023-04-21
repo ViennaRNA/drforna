@@ -4,6 +4,27 @@ import { saveAs } from "file-saver";
 
 import {FornaContainer, RNAUtilities} from 'fornac';
 
+const { parseFasta } = require('./utils');
+
+function parse_fasta(text) {
+    try {
+        let data = parseFasta(text)
+        if (data.id === null) {
+            data.id = 'drforna'
+        }
+        return [data.id, data.sequence]
+    } catch (error) {
+        throw error
+    }
+} 
+
+function parse_drf(text) {
+    return d3new.csvParse(text.replace(/ +/g, ",")
+        .replace(/\n,+/g, "\n")
+        .replace(/^\s*\n/gm, ""))
+}
+
+
 /**
  * @file main.js
  * @author Anda Latif, Stefan Hammer, Peter Kerpediev, Stefan Badelt
@@ -15,11 +36,6 @@ import {FornaContainer, RNAUtilities} from 'fornac';
  * Instance of RNAUtilities form fornac
  */  
 var rnaUtilities = new RNAUtilities();
-
-/**
- * containers containing the secondary structure graphs 
- */
-let containers;
 
 /**
  * Default occupancy threshhold to reduce input file size 
@@ -54,201 +70,25 @@ function preparePlotArea() {
         .attr('id', 'timetableinfo')
 }
 
+
 /**
- * Current file name (selected or uploaded)
- ** will be used for generating the name of the downloaded image
- * @type {string}
+ * Function for downloading the content of the visualization area.
+ * the name of the downloaded file is generated using the name of the current selected file, the current time and the current date. 
+//  * @param {string} name of the container 
  */
-let filename=""
-/**
- * Current sequence, can be written in the text field or uploaded from a file
- * @type {string}
- */
-let inputSeq=""
-/**
- * Current sequence name, introduced by ">" on the first line in the text input or in the file
- * @type {string}
- */
-let seq_name=""
-
-/**
- * Function that loads an example for the visualization. 
- * @param {string} filename of drf input
- * @param {string} filename of fasta input
- */
-function load_example(drffile, fafile){
-    d3new.text(fafile).then(d => {
-        a = d3new.csvParse(d)                
-        seq_name = a.columns[0]
-        console.log(Array.from(a)[0][seq_name])
-        let se = Object.keys(Array.from(a)).map(function(key){
-            return a[key][seq_name];                  
-        }) 
-        inputSeq = se.join("")
-        document.querySelectorAll("#sequence")
-            .forEach((item)=>{item.value=seq_name+"\n"+inputSeq})})
-        .catch(() => {
-            inputSeq = ""
-            seq_name = ""
-            document.querySelectorAll("#sequence").forEach((item)=>{item.value=""})
-        })
-
-    let a = []
-    d3new.text(drffile).then(d => {
-        a = d3new.csvParse(
-                d.replace(/ +/g, ",").replace(/\n,+/g, "\n")
-                 .replace(/^\s*\n/gm, ""))
-        ShowData(Array.from(a), null, null)
-        document.getElementById('drfinput')
-            .addEventListener('change', () => {return false})
-    })      
-}
-
-/**              
- * Method that starts the visualization: 
- * hides the sequence info and summary table
- * reads and shows the data from the example inputs
- * responds to new data uploaded by the user 
- */
-function start() {
-    hideseq()
-    document.getElementById("toggleSequence")
-        .addEventListener("click", function() {hideseq();}, false);
-    hidetab()
-    document.getElementById("toggleTable")
-        .addEventListener("click", function() {hidetab();}, false);
-    load_example("grow.drf", "grow.fa")
-    readFromFileUpload();
-    readSequence()
-} 
-
-/**
-  * 
-  * method for reading the input from an uploaded file and then showing the
-  * data by calling ShowData
-  *  
-  */  
-
-function readFromFileUpload(){
-  let item = document.getElementById('drfinput');
-  item.addEventListener('click', (event) => {
-    playAnimation = false;
-    //event.target.value = "";
-  });
-  item.addEventListener('change', (event) => {
-    // code for handling file upload
-    document.querySelectorAll('#sequence').forEach((item) => {
-      item.value = '';
-    });
-    inputSeq = '';
-    const file = event.target.files[0];
-    const reader = new FileReader();
-    reader.onload = (val) => {
-      const data = d3new.csvParse(val.target.result.replace(/ +/g, ',').replace(/\n,+/g, '\n').replace(/^\s*\n/gm, ''));
-        console.log(data)
-      ShowData(data, null, null);
-    };
-    reader.readAsText(file);
-  });
-}
-/**
-     * 
-    * method for reading the sequence, from the text field or from the file. 
-    *  
-    */  
-
-function readSequence(){
-    document.querySelectorAll('.seqfileinpc').forEach((item) => {    
-        item.addEventListener('click', (event) => {playAnimation=false
-            event.target.value=""
-            document.querySelectorAll("#sequence").forEach((item)=>{item.value=""})
-            //?? should I delete sequence, what if someone decided on not uploading 
-       }) 
-        item.addEventListener('change', (event) => {
-            let files = event.target.files
-            filename=files[0].name
-            
-            for (let i = 0, f; f = files[i]; i++) {
-                let reader = new FileReader()
-                reader.onload = (val) => {                                   
-                    let a=[]
-                    //console.log(val.target.result.replace(/ +/g, ",").replace(/\n,+/g, "\n").replace(/^\s*\n/gm, ""))
-                    a = d3new.csvParse(val.target.result.replace(/ +/g, ",").replace(/\n,+/g, "\n").replace(/^\s*\n/gm, "")) 
-                    seq_name=a.columns[0]
-                    let se = Object.keys(Array.from(a)).map(function(key){
-                                        return a[key][seq_name];})
-                    inputSeq=se.join("")                
-                    document.querySelectorAll("#sequence").forEach((item)=>{item.value=seq_name+"\n"+inputSeq})
-                    
-                }            
-                reader.readAsText(f);
-            } 
-        })
-     });
-    
-
-    document.querySelectorAll('.seqform').forEach((item) => {
-        item.addEventListener('click', () => {playAnimation=false})
-        item.addEventListener('change', (event) => {
-            let input_text_array=event.target.value.trimEnd().trimStart().split("\n")
-            if (input_text_array==""|| input_text_array=="")  {
-                seq_name=""
-                inputSeq=""
-                event.target.value=""
-
-            }
-            if (">"==input_text_array[0][0]){
-                seq_name= input_text_array[0].substring(1)
-                inputSeq= input_text_array.slice(1, ).join("").replace(/ +/g, "")
-                inputSeq=inputSeq.toUpperCase()
-                event.target.value=">"+seq_name+"\n"+inputSeq
-            }
-            else{
-                
-                    seq_name=""
-                    inputSeq= input_text_array.join("").replace(/ +/g, "")
-                    inputSeq=inputSeq.toUpperCase()
-                    event.target.value=inputSeq
-            }            
-        })
-    })
-}
-
-/**
- * Function for downloading the content of the container,
- ** the name of the downloaded file is generated using the name of the current selected file, the current time and the current date. 
- ** also dispays a notification when the file was downloaded
-//  * @param {string} elem name of the container 
- */
- function downloadsSVG() {
-    function filter (node) {
+function downloadSVG(name, realtime) {
+    function filter(node) {
         return (node.tagName !== 'i');
-      }
-    let tmddown=document.getElementById("visualization")
+    }
+    let tmddown = document.getElementById("visualization")
+    let today = new Date()
+    let date = today.getFullYear() + '_' + (today.getMonth()+1) + '_' + today.getDate();
+    let time = today.getHours() + "_" + today.getMinutes() + "_" + today.getSeconds();
+    const svgDocument = elementToSVG(tmddown)
 
-    // htmlToImage.toJpeg(tmddown)
-    //     .then(function (dataUrl) {
-            
-    //         let link = document.createElement('a');
-            let today = new Date()
-            let date = today.getFullYear()+'_'+(today.getMonth()+1)+'_'+today.getDate();
-            let time = today.getHours() + "_" + today.getMinutes() + "_" + today.getSeconds();
-           
-            // link.download = filename+"_"+date+"_"+time+'.jpeg';
-    //         link.href = dataUrl;
-    //         link.click();
-    //       });
-    
-		const svgDocument =elementToSVG(tmddown)
-        //  documentToSVG(document)
-
-		let svgString = new XMLSerializer().serializeToString(svgDocument)
-        // svgString = formatXML(svgString) //try downloading drTrafoContainer without the table 
+    let svgString = new XMLSerializer().serializeToString(svgDocument)
     const blob = new Blob([svgString], { type: 'image/svg+xml' })
-		
-	saveAs(blob, `${filename+"_"+date+"_"+time}.svg`)
-          
-            
+    saveAs(blob, `${name + "_at_t=" + realtime}.svg`)
 }
 
 /**
@@ -280,7 +120,6 @@ let mouseactive=false;
 /**
  * Method for initialization based on the data
  ** determine sequence length
- ** initialize containers 
  ** set mouse as not active 
  */
 function initialize(){
@@ -539,7 +378,6 @@ let Sum_of_occ
  * @param {string} color the color of the line, red by default
  */  
 function showLine(coord, color="red") {
-    console.log(coord)
     svg.selectAll(".currenttimeLine").remove()
     svg.append("line")
         .attr("class", "currenttimeLine")
@@ -567,7 +405,7 @@ function formatColors (colors) {
  ** A table containing the structures, with 'ID', 'Occupancy', 'Structure' and  'Energy', where the parantheses in dot bracket notation are collored according to the helix they are part of
  * @param {Array} strToPlot The list of structures selected for the currently selected time point
  */           
-function WriteTable(strToPlot, mostocc){
+function WriteTable(strToPlot, mostocc, sequence){
     var colnames = ['ID', 'Occupancy', 'Structure' , 'Energy'];    
 
     d3new.select("#datatable")
@@ -581,7 +419,7 @@ function WriteTable(strToPlot, mostocc){
         .append('th').style("text-align", "right")
         .text(function (column) { 
             if (column=="Structure"){
-                return inputSeq.slice(0, strToPlot[0].structure.length) //
+                return sequence.slice(0, strToPlot[0].structure.length) //
             }
             else
                 return " "
@@ -616,8 +454,6 @@ function WriteTable(strToPlot, mostocc){
                     }
                     else  if (dd.column!="str") {
                          if(dd.column=="id"){
-                             //console.log(mostocc)
-                             //console.log(mostoccupiedpertime)
                             let bestid
                             mostocc.forEach(e=>{
                                 if (+e[0]<=+strToPlot[0].time){
@@ -673,13 +509,10 @@ function WriteTable(strToPlot, mostocc){
  * @returns {Array} The list of plotted structures, as the ones that were now
  * previously plotted
   */   
-function ensPlot(nestedData, realtime, eCW, eCH, seqlen, mostocc) { 
-    console.log('ep', realtime)
+function ensPlot(nestedData, realtime, eCW, eCH, seqlen, mostocc, sequence) { 
     let strToPlot = StructuresToPlot(nestedData, realtime)
-    console.log('ep2', realtime)
-    console.log('ep2', strToPlot)
-    console.log('ep2', strToPlot[0])
     if (strtoPlotprev != strToPlot) {
+        let containers = {}
         const treemapData = makeTreemapData(strToPlot);
         let root = d3new.stratify().id(function(d) { return d.name})   
             .parentId(function(d){ return d.parent})(treemapData);
@@ -765,7 +598,7 @@ function ensPlot(nestedData, realtime, eCW, eCH, seqlen, mostocc) {
                         displayNodeLabel: true,
                         transitionDuration: 0});
                     // Remove line if you don't want sequence info shown 
-                    containers[rectname].addRNA(d.data.str,{"sequence": inputSeq} )
+                    containers[rectname].addRNA(d.data.str,{"sequence": sequence} )
                     containers[rectname].transitionRNA(d.data.str);
                     let colorStrings = d.data.colors.map(function(d, i) {
                         return `${i+1}:${d}`;
@@ -788,7 +621,7 @@ function ensPlot(nestedData, realtime, eCW, eCH, seqlen, mostocc) {
         trow.append("td")
             .style('width', '300px')
             .text("Sum of occupancies: " + Sum_of_occ)
-        WriteTable(strToPlot, mostocc) 
+        WriteTable(strToPlot, mostocc, sequence) 
     }
     strtoPlotprev = strToPlot
     return strtoPlotprev    
@@ -891,10 +724,10 @@ function toggleFullScreen(elem) {
  * @param {Array} data the parsed content of the input file
  */
 
-function ShowData(data, realtime, prevtime) {     
+function ShowData(data, realtime, prevtime, seqname, sequence) {
+    console.log('calling ShowData', realtime, prevtime, seqname, sequence)
     const [vCW, vCH, eCW, eCH, tSW] = initialize()
     const seqlen = data[data.length - 1].structure.length;
-    containers = {};
     strtoPlotprev = null
     mouseactive = false
 
@@ -906,7 +739,7 @@ function ShowData(data, realtime, prevtime) {
             //change! Error message when the occupancy threshold is bigger than
             //max occ at end of transcr
         occupancyThreshold=item.value
-        ShowData(data, realtime, prevtime)
+        ShowData(data, realtime, prevtime, seqname, sequence)
         })
     })
     let container = d3new.select("#visualization");
@@ -938,7 +771,7 @@ function ShowData(data, realtime, prevtime) {
     if (prevtime == null) {prevtime = mintime }
 
     let strToPlot = StructuresToPlot(nestedData, prevtime)
-    strtoPlotprev = ensPlot(nestedData, prevtime, eCW, eCH, seqlen, mostocc)
+    strtoPlotprev = ensPlot(nestedData, prevtime, eCW, eCH, seqlen, mostocc, sequence)
 
 
     // continue here
@@ -964,7 +797,7 @@ function ShowData(data, realtime, prevtime) {
         if (prevtime != realtime) {
             prevtime = realtime
             if (delayPLOT) clearTimeout(delayPLOT);
-            delayPLOT = setTimeout(ensPlot, 5*maxNoStr, nestedData, realtime, eCW, eCH, seqlen, mostocc);
+            delayPLOT = setTimeout(ensPlot, 5*maxNoStr, nestedData, realtime, eCW, eCH, seqlen, mostocc, sequence);
         }
     })
 
@@ -976,7 +809,6 @@ function ShowData(data, realtime, prevtime) {
         (d3new.pointer(event)[0]<linscale(maxlintime))
         ?mousetime = linscale.invert(d3new.pointer(event)[0]) 
         :mousetime = logscale.invert(d3new.pointer(event)[0])
-        console.log(d3new.pointer(event)[0], mousetime)
         // TODO: redundant?
         if (d3new.pointer(event)[0] >= 30 && d3new.pointer(event)[0] <= tSW) {
             showLine(d3new.pointer(event)[0])
@@ -988,24 +820,10 @@ function ShowData(data, realtime, prevtime) {
         }
         if (prevtime != realtime) {
             prevtime = realtime
-            ensPlot(nestedData, realtime, eCW, eCH, seqlen, mostocc)
+            ensPlot(nestedData, realtime, eCW, eCH, seqlen, mostocc, sequence)
         }
     })
     
-    let reload_b = d3new.select("#SeqReload")
-    reload_b.on('click', function() {
-        playAnimation=false
-        //console.log("clicked ")
-        readSequence()
-        prevtime=null
-        if (realtime==null){
-            realtime=mintime
-        }
-        ShowData(data, realtime, prevtime) 
-        ensPlot(nestedData, realtime, eCW, eCH, seqlen, mostocc)
-        showLine(cScale(realtime)) 
-    })
-
     let bfullscr = d3new.select("#toggleFullScreen")
     bfullscr.on('click', function() {
         playAnimation=false
@@ -1014,16 +832,13 @@ function ShowData(data, realtime, prevtime) {
     let bd = d3new.select("#downloadButton")
     bd.on("click", () => {
         if (playAnimation) {playAnimation=false}
-      //console.log("down")
-        downloadsSVG()
+        downloadSVG(seqname, realtime)
         // downloadPng()
         // downloadsSVG()
     })
     let play = d3new.select("#toggleAnimation");
-    //
      
     play.on("click", () => {playAnimation = !playAnimation    
-        
         nestedData.forEach(element => {
             if (+element[0] == +prevtime) {
                 elementIndex=nestedData.indexOf(element)
@@ -1050,7 +865,7 @@ function ShowData(data, realtime, prevtime) {
                 const element = nestedData[elementIndex];
                 //console.log(nestedData)
                 prevtime = +element[0]
-                ensPlot(nestedData, prevtime, eCW, eCH, seqlen, mostocc)
+                ensPlot(nestedData, prevtime, eCW, eCH, seqlen, mostocc, sequence)
                 showLine(cScale(prevtime))
                 elementIndex += 1;
                 return prevtime
@@ -1061,27 +876,42 @@ function ShowData(data, realtime, prevtime) {
 
     const onResize = () => {
         playAnimation = false      
-        ShowData(data, realtime, prevtime); // redraw plot
-        // TODO: this does not resize the 
-        //if (realtime!=null){
-        //    try{ensPlot(realtime, eCW, eCH, seqlen)
-        //        showLine(combinedScale(realtime)) 
-        //    }
-        //    catch{()=>{
-        //        // console.log("err", err)
-        //         }
-        //        
-        //    }
-        //    return
-        //}
+        ShowData(data, realtime, prevtime, seqname, sequence); // redraw plot
     }
     
     window.onresize = function() {
-        playAnimation=false
+        playAnimation = false;
         if (delayResize) clearTimeout(delayResize);
         delayResize = setTimeout(onResize, 300)
     };
+
+    let sload = d3new.select("#seqload")
+    let stext = document.getElementById("seqtext")
+    sload.on('click', function() {
+        playAnimation = false;
+        const [seqname, sequence] = parse_fasta(stext.value);
+        ShowData(data, realtime, prevtime, seqname, sequence);
+    })
+
     return
+} 
+
+/**
+ * Method that starts the visualization: 
+ * hides the sequence info and summary table
+ * reads and shows the data from the example inputs
+ * responds to new data uploaded by the user 
+ */
+function start() {
+    hideseq()
+    document.getElementById("toggleSequence")
+        .addEventListener("click", function() {hideseq();}, false);
+    hidetab()
+    document.getElementById("toggleTable")
+        .addEventListener("click", function() {hidetab();}, false);
+    load_examples("grow.drf", "grow.fa");
+    read_drf_file();
+    read_seq_file();
 } 
 
 function hideseq() { 
@@ -1092,6 +922,122 @@ function hideseq() {
 function hidetab() { 
     const x = document.getElementById("datatable");
     x.style.display = x.style.display === "none" ? "block" : "none"; 
+}
+
+/**
+ * Function that loads an example for the visualization. 
+ * @param {string} filename of drf input
+ * @param {string} filename of fasta input
+ */
+function load_examples(drffile, fafile) {
+    let sload = document.getElementById("seqload")
+    let stext = document.getElementById("seqtext")
+    const promise1 = d3new.text(fafile).then(data => {
+        stext.value = data
+        return data
+    }).then(data => {
+        stext.style.borderColor = 'black';
+        stext.title = "Provide sequence input in fasta format.";
+        sload.disabled = false
+        return parse_fasta(data);
+    }).catch(error => {
+        console.log("Error while loading " + fafile + ": " + error);
+        stext.style.borderColor = 'red';
+        stext.title = error;
+        sload.disabled = true
+        return ['drforna', '']
+    })
+
+    const promise2 = d3new.text(drffile).then(data => {
+        return parse_drf(data)
+    }).catch(error => {
+        console.log("Error while loading " + drffile + ": " + error)
+    })
+
+    Promise.all([promise1, promise2])
+        .then(([[seqname, sequence], drfdata]) => {
+            ShowData(drfdata, null, null, '', '');
+    }).catch(error => {
+        throw error
+    });
+}
+
+/**
+ * Method for reading drf input from an uploaded file.
+ * (Automatically clears sequence information.)
+ *  
+ */  
+function read_drf_file() {
+    let item = document.getElementById('drfinput');
+    item.addEventListener('click', (event) => {
+        playAnimation = false;
+    });
+    item.addEventListener('change', (event) => {
+        const file = event.target.files[0];
+        const reader = new FileReader();
+        reader.onload = (val) => {
+            const data = parse_drf(val.target.result)
+            ShowData(data, null, null, '', '');
+        };
+        let st = document.getElementById("seqtext")
+        st.value = "";
+        st.title = "Provide sequence input in fasta format.";
+        st.style.borderColor = 'black';
+        reader.readAsText(file);
+    });
+}
+
+/**
+  * 
+  * method for reading the sequence, from the text field or from the file. 
+  *  
+  */  
+function read_seq_file() {
+    let sload = document.getElementById("seqload")
+    let sfile = document.getElementById("seqfile")
+    sfile.addEventListener("click", (event) => {
+        playAnimation = false
+    }) 
+    sfile.addEventListener('change', (event) => {
+        const file = event.target.files[0];
+        const reader = new FileReader();
+        reader.onload = (val) => {
+            let st = document.getElementById("seqtext")
+            try {
+                const [seqname, sequence] = parse_fasta(val.target.result);
+                st.style.borderColor = 'black';
+                st.title = "Provide sequence input in fasta format.";
+                st.value = ">"+seqname+"\n"+sequence;
+                sload.disabled = false;
+            } catch (error) {
+                console.log("Error while loading " + val + ": " + error);
+                st.style.borderColor = 'red';
+                st.title = error;
+                st.value = val.target.result
+                sload.disabled = true;
+            }
+        };
+        reader.readAsText(file);
+    });
+
+    let stext = document.getElementById("seqtext")
+    stext.addEventListener('click', () => {
+        playAnimation = false
+    })
+    stext.addEventListener('change', (event) => {
+        sfile.value = ""
+        try {
+            const [seqname, sequence] = parse_fasta(event.target.value);
+            stext.style.borderColor = 'black';
+            stext.title = "Provide sequence input in fasta format.";
+            sload.disabled = false;
+        } catch (error) {
+            console.log("Error while loading " + event.target.value + ": " + error);
+            stext.style.borderColor = 'red';
+            stext.title = error;
+            sload.disabled = true
+        }
+    })
 }
 
 start();
