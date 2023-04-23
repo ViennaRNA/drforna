@@ -1,29 +1,10 @@
-import * as d3new from "d3"
-import { documentToSVG, elementToSVG, inlineResources, formatXML } from 'dom-to-svg'
-import { saveAs } from "file-saver";
-
-import {FornaContainer, RNAUtilities} from 'fornac';
+import * as d3 from "d3"
+import { saveAs } from 'file-saver';
+import { elementToSVG } from 'dom-to-svg'
 
 const { parseFasta } = require('./utils');
-
-function parse_fasta(text) {
-    try {
-        let data = parseFasta(text)
-        if (data.id === null) {
-            data.id = 'drforna'
-        }
-        return [data.id, data.sequence]
-    } catch (error) {
-        throw error
-    }
-} 
-
-function parse_drf(text) {
-    return d3new.csvParse(text.replace(/ +/g, ",")
-        .replace(/\n,+/g, "\n")
-        .replace(/^\s*\n/gm, ""))
-}
-
+import { getFornaContainer, 
+         calculateNucleotideColors } from './myforna';
 
 /**
  * @file main.js
@@ -32,10 +13,19 @@ function parse_drf(text) {
  * @description Visualization of cotranscriptional folding.
  */  
 
-/**
- * Instance of RNAUtilities form fornac
- */  
-var rnaUtilities = new RNAUtilities();
+function parse_fasta(text) {
+    let data = parseFasta(text)
+    if (data.id === null) {
+        data.id = 'drforna'
+    }
+    return [data.id, data.sequence]
+} 
+
+function parse_drf(text) {
+    return d3.csvParse(text.replace(/ +/g, ",")
+        .replace(/\n,+/g, "\n")
+        .replace(/^\s*\n/gm, ""))
+}
 
 /**
  * Default occupancy threshhold to reduce input file size 
@@ -48,7 +38,7 @@ let occupancyThreshold = 0.01;
  */
 function preparePlotArea() {  
     //remove the previous content
-    let container = d3new.select("#visualization")
+    let container = d3.select("#visualization")
     container.selectAll('div').remove()
     
     //display loading indicator
@@ -81,11 +71,7 @@ function downloadSVG(name, realtime) {
         return (node.tagName !== 'i');
     }
     let tmddown = document.getElementById("visualization")
-    let today = new Date()
-    let date = today.getFullYear() + '_' + (today.getMonth()+1) + '_' + today.getDate();
-    let time = today.getHours() + "_" + today.getMinutes() + "_" + today.getSeconds();
     const svgDocument = elementToSVG(tmddown)
-
     let svgString = new XMLSerializer().serializeToString(svgDocument)
     const blob = new Blob([svgString], { type: 'image/svg+xml' })
     saveAs(blob, `${name + "_at_t=" + realtime}.svg`)
@@ -111,11 +97,6 @@ let svg;
  * @type {number}
  */
 let strtoPlotprev=null;
-/**
- * Boolean variable to show if the mouse is active
- * @type {boolean}
- */
-let mouseactive=false;
 
 /**
  * Method for initialization based on the data
@@ -127,7 +108,7 @@ function initialize(){
 
     // Set the dimensions of everything in in the visualization area
     // changed that to be relative to fullscreen now, looking ok so far.
-    let visContainer = d3new.select(`#fullscreen`).node()
+    let visContainer = d3.select(`#fullscreen`).node()
     const visContainerWidth = visContainer.getBoundingClientRect().width; 
     const visContainerHeight = visContainer.getBoundingClientRect().height;
 
@@ -218,21 +199,20 @@ function mostOccupiedperTime(nestedData) {
 /**
  * function  for creating the scales, and determinining the start and end of transcription
  * @returns {Object} the combined Scale  
- * @returns {Object} rainbow Scale
  * @returns {number} first time point in the file
  * @returns {number} time of the end of transcription 
  */
 function CreateScales(vCW, tSW, lintimes, logtimes, seqlen){
 
-    let minlintime=d3new.min(lintimes, d=>+d[0])
-    let maxlintime=d3new.max(lintimes, d=>+d[0])
-    let minlogtime=d3new.min(logtimes, d=>+d[0]) // this may come in handy later ...
-    let maxlogtime=d3new.max(logtimes, d=>+d[0])
+    let minlintime=d3.min(lintimes, d=>+d[0])
+    let maxlintime=d3.max(lintimes, d=>+d[0])
+    let minlogtime=d3.min(logtimes, d=>+d[0]) // this may come in handy later ...
+    let maxlogtime=d3.max(logtimes, d=>+d[0])
 
-    linscale = d3new.scaleLinear()
+    linscale = d3.scaleLinear()
         .domain([minlintime, maxlintime]) 
         .range([30, tSW * .75]) // occupy 75% of the scale
-    logscale = d3new.scaleLog() 
+    logscale = d3.scaleLog() 
         .domain([maxlintime, maxlogtime+0.001])
         .range([tSW * .75, tSW]) // occupy last 25% 
 
@@ -240,7 +220,7 @@ function CreateScales(vCW, tSW, lintimes, logtimes, seqlen){
     // lin or log scale
     combinedScale = time => time < maxlintime ? linscale(time) : logscale(time); 
 
-    let tableContainer = d3new.select(`#timetablevis`);
+    let tableContainer = d3.select(`#timetablevis`);
     tableContainer.selectAll("#timesvg").remove()
     svg = tableContainer
         .append("svg")
@@ -248,19 +228,16 @@ function CreateScales(vCW, tSW, lintimes, logtimes, seqlen){
         .attr("id", "timesvg"); //create the svg containing the scales
 
     // the lin and log scale on the bottom, positions were defined
-    x_axislin = d3new.axisBottom().scale(linscale);
-    x_axislog = d3new.axisBottom().scale(logscale).ticks(5);
+    x_axislin = d3.axisBottom().scale(linscale);
+    x_axislog = d3.axisBottom().scale(logscale).ticks(5);
     // and the vertical nucleotide  
-    nucleotideScale = d3new.scaleLinear().range([80, 0]);
+    nucleotideScale = d3.scaleLinear().range([80, 0]);
     // Append group and insert axes
     nucleotideScale.domain([0, seqlen]);
-    y_axis = d3new.axisLeft()
+    y_axis = d3.axisLeft()
         .scale(nucleotideScale).ticks(5);
 
-    let rainbowScale = (t) => { 
-        return d3.hcl(360*t, 100, 55); 
-    };
-    return [combinedScale, rainbowScale, nucleotideScale, maxlintime]
+    return [combinedScale, nucleotideScale, maxlintime]
 }
 
 /**
@@ -307,8 +284,8 @@ function createScaleColors(tSW, seqlen, mostocc, cScale, nScale){
 function drawCirclesForTimepoints(nestedData){
     const timePoints = nestedData.map(d => +d[0]);
     
-    d3new.select("#timesvg").selectAll('.timePoint').remove();
-    d3new.select("#timesvg").selectAll('.timePoint').data(timePoints)
+    d3.select("#timesvg").selectAll('.timePoint').remove();
+    d3.select("#timesvg").selectAll('.timePoint').data(timePoints)
         .enter()
             .append('circle')
                 .attr('class', 'timePoint')
@@ -357,16 +334,6 @@ let elementIndex = 0;
 let animationDelay = 10;
 
 /**
- * delay for the plot, to avoid plotting all intermediate stages if the mouse already moved further
- *  
- */  
-let delayPLOT = undefined;
-/**
- * delay for the plot when resize, to avoid plotting all intermediate stages if the mouse already moved further
- *  
- */  
-let delayResize = undefined;
-/**
  * Boolean for determining if the play button is active 
  * @type {boolean} 
  */  
@@ -408,9 +375,9 @@ function formatColors (colors) {
 function WriteTable(strToPlot, mostocc, sequence){
     var colnames = ['ID', 'Occupancy', 'Structure' , 'Energy'];    
 
-    d3new.select("#datatable")
+    d3.select("#datatable")
         .selectAll("table").remove()
-    let structures = d3new.select("#datatable").append("table")
+    let structures = d3.select("#datatable").append("table")
     let th = structures.append("thead")
     th.append('tr').selectAll('th')
         .data(colnames).enter()
@@ -462,7 +429,6 @@ function WriteTable(strToPlot, mostocc, sequence){
                             })
                             if( dd.value==bestid){
                                         tbody.append("td").text(dd.value).style('background-color',"rgb(247, 200, 194)")
-                                        //console.log("colored")
                             }
                             else {
                                     tbody.append("td").text(dd.value)
@@ -484,7 +450,6 @@ function WriteTable(strToPlot, mostocc, sequence){
                     }
                     else if((res.length+1)%5==0){res+=","}
                         else {res+="."}}}
-                // console.log(res)
                 return res
 
             }
@@ -514,16 +479,16 @@ function ensPlot(nestedData, realtime, eCW, eCH, seqlen, mostocc, sequence) {
     if (strtoPlotprev != strToPlot) {
         let containers = {}
         const treemapData = makeTreemapData(strToPlot);
-        let root = d3new.stratify().id(function(d) { return d.name})   
+        let root = d3.stratify().id(function(d) { return d.name})   
             .parentId(function(d){ return d.parent})(treemapData);
         root.sum(d => +d.value).sort((a, b) => b.value - a.value)  
         Sum_of_occ=Math.round(root.value*100000)/100000
 
-        d3new.treemap()
+        d3.treemap()
             .size([eCW, eCH])
             .padding(4)(root)
 
-        let ensContainer = d3new.select('#ensemblevis');
+        let ensContainer = d3.select('#ensemblevis');
         ensContainer.select("#treemapdiv").remove()
         let zoom = false;
         ensContainer.append("div").attr("id", "treemapdiv") 
@@ -591,24 +556,12 @@ function ensPlot(nestedData, realtime, eCW, eCH, seqlen, mostocc, sequence) {
             .each( d => {
                 let rectname="svg"+d.data.name
                 if ( d.data.str != '') {
-                    containers[rectname] = new FornaContainer('#' + rectname, {
-                        zoomable: false, 
-                        editable: false, 
-                        animation: false,
-                        displayNodeLabel: true,
-                        transitionDuration: 0});
-                    // Remove line if you don't want sequence info shown 
-                    containers[rectname].addRNA(d.data.str,{"sequence": sequence} )
-                    containers[rectname].transitionRNA(d.data.str);
-                    let colorStrings = d.data.colors.map(function(d, i) {
-                        return `${i+1}:${d}`;
-                    });
-                    let colorString = colorStrings.join(' ');
-                    containers[rectname].addCustomColorsText(colorString);              
+                    containers[rectname] = getFornaContainer(rectname, 
+                        sequence, d.data.str, d.data.colors)
                 }     
             });
 
-        let time = d3new.select("#timetableinfo")
+        let time = d3.select("#timetableinfo")
         time.selectAll("table").remove()
         let trow = time.append("table").attr("id", "timeinfo").append("tr")
         trow.append("td")
@@ -641,45 +594,7 @@ function makeTreemapData(data) {
                                  colors:formatColors(el.colors) }))
     ]
 }
-/**
- * Function which  determines the colors of each nucleotide according to the position of the stem that they're in
- ** get a pairtable and a list of the secondary structure elements
- ** store the colors of each nucleotide
- ** for each nucleotide in the stem assign it the stem's average nucleotide number
- ** and convert average nucleotide numbers to colors
- * @param {Array} data the parsed content of the input file
- */
-function calculateNucleotideColors(data, rScale, nScale) {
-    data.forEach(function(d) {
-        // determine the colors of each nucleotide according to the position
-        // of the stem that they're in
-        // each 'd' is a line in the dr transfomer output
-        d.time = +d.time;
-        d.occupancy = +d.occupancy;
 
-        // get a pairtable and a list of the secondary structure elements
-        let pt = rnaUtilities.dotbracketToPairtable(d.structure);
-        let pk = rnaUtilities.removePseudoknotsFromPairtable(pt);
-        let elements = rnaUtilities.ptToElements(pt, 0, 1, pt[0], []);
-        // store the colors of each nucleotide
-        let colors = Array(pt[0]).fill(d3.hsl("white"));
-        for (let i = 0; i < elements.length; i++) {
-            if (elements[i][0] != 's')
-                continue; // we're not interested in anything but stems
-            // for each nucleotide in the stem
-            // assign it the stem's average nucleotide number
-            let averageBpNum = elements[i][2].reduce(
-                (a,b) => { return a+b }, 0) / (elements[i][2].length);
-            // convert average nucleotide numbers to colors
-            elements[i][2].map((d) => {
-                let nucleotideNormPosition = nScale(+averageBpNum);
-                colors[d-1] = rScale(nucleotideNormPosition);
-            });
-            // each structure gets its own set of structures
-        }
-        d.colors = colors;
-    });
-}
 /**
  * Function for visulizing  a HTML element in  fullscreen mode, used on fullScreenContainer upon Fullscreen button click 
  ** thanks to https://developer.mozilla.org/en-US/docs/Web/Guide/API/DOM/Using_full_screen_mode
@@ -688,8 +603,10 @@ function calculateNucleotideColors(data, rScale, nScale) {
  */
 // 
 function toggleFullScreen(elem) {
-  if (!document.fullscreenElement &&    // alternative standard method
-    !document.mozFullScreenElement && !document.webkitFullscreenElement && !document.msFullscreenElement ) {  // current working methods
+    if (!document.fullscreenElement && 
+        !document.mozFullScreenElement && 
+        !document.webkitFullscreenElement && 
+        !document.msFullscreenElement) {
         if (elem.requestFullscreen) {
             elem.requestFullscreen();
         } else if (elem.msRequestFullscreen) {
@@ -702,8 +619,7 @@ function toggleFullScreen(elem) {
             console.log("Fullscreen not working: ", elem)
             return
         }
-    } else {
-        // exit fullScreen
+    } else { // exit fullScreen
         if (document.exitFullscreen) {
             document.exitFullscreen();
         } else if (document.msExitFullscreen) {
@@ -729,7 +645,7 @@ function ShowData(data, realtime, prevtime, seqname, sequence) {
     const [vCW, vCH, eCW, eCH, tSW] = initialize()
     const seqlen = data[data.length - 1].structure.length;
     strtoPlotprev = null
-    mouseactive = false
+    let mouseactive = false
 
     document.querySelectorAll('.occupancy').forEach((item) => {
         occupancyThreshold=item.value
@@ -742,23 +658,26 @@ function ShowData(data, realtime, prevtime, seqname, sequence) {
         ShowData(data, realtime, prevtime, seqname, sequence)
         })
     })
-    let container = d3new.select("#visualization");
-    container.select('#loadingNotification').remove();
+    d3.select("#visualization").select('#loadingNotification').remove();
 
     let filteredData = data.filter((d) => { return +d.occupancy > occupancyThreshold }) 
     // nested data by time points to extract the structures for every time step
-    let nestedData = Array.from(d3new.group(filteredData, d =>+d.time)) 
+    let nestedData = Array.from(d3.group(filteredData, d =>+d.time)) 
 
-    //            if (nd.length<dd.length) {
-    //              //  console.log("discarded time points")
-    //                alert("Some time points present in your file were discarded due to the presence of only low occupied structures ")
-    //            }
+    //if (nd.length<dd.length) {
+    //    alert("Some time points were discarded due to the presence of only low occupied structures ")
+    //}
     const [lintimes, logtimes, maxNoStr] = SplitTranscription(nestedData, seqlen)
 
     // all do edits to the svg
-    const [cScale, rScale, nScale, maxlintime] = CreateScales(vCW, tSW,
+    const [cScale, nScale, maxlintime] = CreateScales(vCW, tSW,
         lintimes, logtimes, seqlen);
-    calculateNucleotideColors(filteredData, rScale, nScale) 
+
+    // continue here: let's move this into a separate file?
+    filteredData.forEach(function(d) {
+        d.colors = calculateNucleotideColors(d.structure, nScale) 
+    })
+
     const mostocc = mostOccupiedperTime(nestedData)
     createScaleColors(tSW, seqlen, mostocc, cScale, nScale)  
     drawScales(vCW)
@@ -766,13 +685,12 @@ function ShowData(data, realtime, prevtime, seqname, sequence) {
     ShowEndOfTranscriptionLine(cScale, maxlintime)
 
     // this has not been necessary so far
-    mintime = d3new.min(filteredData, d => +d.time);
+    mintime = d3.min(filteredData, d => +d.time);
     if (realtime == null) {realtime = mintime}
     if (prevtime == null) {prevtime = mintime }
 
     let strToPlot = StructuresToPlot(nestedData, prevtime)
     strtoPlotprev = ensPlot(nestedData, prevtime, eCW, eCH, seqlen, mostocc, sequence)
-
 
     // continue here
     showLine(cScale(prevtime)) 
@@ -781,7 +699,7 @@ function ShowData(data, realtime, prevtime, seqname, sequence) {
     svg.on("mousemove", (event) => {
         if (playAnimation) return;
         if (!mouseactive) return;
-        let x = d3new.pointer(event)[0];
+        let x = d3.pointer(event)[0];
         //scale invert for combined scale
         (x <= linscale(maxlintime))
               ? mousetime = linscale.invert(x) 
@@ -794,24 +712,22 @@ function ShowData(data, realtime, prevtime, seqname, sequence) {
                 realtime = filteredData[t].time 
             }
         }
+        let delayPLOT = undefined;
         if (prevtime != realtime) {
             prevtime = realtime
             if (delayPLOT) clearTimeout(delayPLOT);
             delayPLOT = setTimeout(ensPlot, 5*maxNoStr, nestedData, realtime, eCW, eCH, seqlen, mostocc, sequence);
         }
     })
-
-
     svg.on("click", (event) => {
         if (playAnimation) { playAnimation = !playAnimation }
         mouseactive = !mouseactive;
         //scale invert for combined scale
-        (d3new.pointer(event)[0]<linscale(maxlintime))
-        ?mousetime = linscale.invert(d3new.pointer(event)[0]) 
-        :mousetime = logscale.invert(d3new.pointer(event)[0])
-        // TODO: redundant?
-        if (d3new.pointer(event)[0] >= 30 && d3new.pointer(event)[0] <= tSW) {
-            showLine(d3new.pointer(event)[0])
+        (d3.pointer(event)[0]<linscale(maxlintime))
+        ?mousetime = linscale.invert(d3.pointer(event)[0]) 
+        :mousetime = logscale.invert(d3.pointer(event)[0])
+        if (d3.pointer(event)[0] >= 30 && d3.pointer(event)[0] <= tSW) {
+            showLine(d3.pointer(event)[0])
         }
         for (let t in filteredData) {
             if (filteredData[t].time <= mousetime) { 
@@ -824,76 +740,64 @@ function ShowData(data, realtime, prevtime, seqname, sequence) {
         }
     })
     
-    let bfullscr = d3new.select("#toggleFullScreen")
-    bfullscr.on('click', function() {
-        playAnimation=false
-        toggleFullScreen(document.getElementById('fullscreen'));
-    })
-    let bd = d3new.select("#downloadButton")
-    bd.on("click", () => {
-        if (playAnimation) {playAnimation=false}
-        downloadSVG(seqname, realtime)
-        // downloadPng()
-        // downloadsSVG()
-    })
-    let play = d3new.select("#toggleAnimation");
-     
-    play.on("click", () => {playAnimation = !playAnimation    
+    let play = d3.select("#toggleAnimation");
+    play.on("click", () => {
+        playAnimation = !playAnimation    
         nestedData.forEach(element => {
-            if (+element[0] == +prevtime) {
-                elementIndex=nestedData.indexOf(element)
-                }
-            }) 
-            document.querySelectorAll('.playspeed').forEach((item) => {
-                item.addEventListener('change', () => {
-                    
-                    animationDelay=item.value
-                   //console.log( animationDelay)
-                })
-                   
+            if (+element[0] === +prevtime) {
+                elementIndex = nestedData.indexOf(element)
+            }
+        }) 
+        document.querySelectorAll('.playspeed').forEach((item) => {
+            item.addEventListener('change', () => {
+                animationDelay = item.value;
             })
-            
-            let ToogleAnimation= setInterval(() => {
-               // console.log(animationDelay)
-                if (!playAnimation) {//console.log("aici ");\\ ruleaza o data pe secunda, nu e foarte frumos...
-                    clearInterval(ToogleAnimation)
-                    return ;
-                }
-                if (elementIndex >= nestedData.length){            
-                    elementIndex = 0;
-                }
-                const element = nestedData[elementIndex];
-                //console.log(nestedData)
-                prevtime = +element[0]
-                ensPlot(nestedData, prevtime, eCW, eCH, seqlen, mostocc, sequence)
-                showLine(cScale(prevtime))
-                elementIndex += 1;
-                return prevtime
-            }, animationDelay);
-           
-            
+        })
+        let ToogleAnimation = setInterval(() => {
+            if (!playAnimation) {
+                clearInterval(ToogleAnimation);
+                return
+            }
+            if (elementIndex >= nestedData.length){            
+                elementIndex = 0;
+            }
+            const element = nestedData[elementIndex];
+            prevtime = +element[0]
+            ensPlot(nestedData, prevtime, eCW, eCH, seqlen, mostocc, sequence)
+            showLine(cScale(prevtime))
+            elementIndex += 1;
+            return prevtime
+        }, animationDelay);
+    })
+    
+    // Update Sequence TODO: ensPlot?
+    let bsload = d3.select("#seqload")
+    bsload.on('click', function() {
+        playAnimation = false;
+        let stext = document.getElementById("seqtext");
+        const [seqname, sequence] = parse_fasta(stext.value);
+        ShowData(data, realtime, prevtime, seqname, sequence);
+    });
+
+    let bdload = d3.select("#downloadButton")
+    bdload.on("click", () => {
+        playAnimation = false;
+        downloadSVG(seqname, realtime);
     })
 
-    const onResize = () => {
-        playAnimation = false      
-        ShowData(data, realtime, prevtime, seqname, sequence); // redraw plot
-    }
-    
+    let bfullscr = d3.select("#toggleFullScreen")
+    bfullscr.on('click', function() {
+        playAnimation = false; //TODO: why?
+        toggleFullScreen(document.getElementById('fullscreen'));
+    })
+
+    // Window resize, redraw everything!
+    let delayResize = undefined;
     window.onresize = function() {
         playAnimation = false;
         if (delayResize) clearTimeout(delayResize);
-        delayResize = setTimeout(onResize, 300)
+        delayResize = setTimeout(ShowData, 300, data, realtime, prevtime, seqname, sequence);
     };
-
-    let sload = d3new.select("#seqload")
-    let stext = document.getElementById("seqtext")
-    sload.on('click', function() {
-        playAnimation = false;
-        const [seqname, sequence] = parse_fasta(stext.value);
-        ShowData(data, realtime, prevtime, seqname, sequence);
-    })
-
-    return
 } 
 
 /**
@@ -932,7 +836,7 @@ function hidetab() {
 function load_examples(drffile, fafile) {
     let sload = document.getElementById("seqload")
     let stext = document.getElementById("seqtext")
-    const promise1 = d3new.text(fafile).then(data => {
+    const promise1 = d3.text(fafile).then(data => {
         stext.value = data
         return data
     }).then(data => {
@@ -948,7 +852,7 @@ function load_examples(drffile, fafile) {
         return ['drforna', '']
     })
 
-    const promise2 = d3new.text(drffile).then(data => {
+    const promise2 = d3.text(drffile).then(data => {
         return parse_drf(data)
     }).catch(error => {
         console.log("Error while loading " + drffile + ": " + error)
@@ -956,7 +860,7 @@ function load_examples(drffile, fafile) {
 
     Promise.all([promise1, promise2])
         .then(([[seqname, sequence], drfdata]) => {
-            ShowData(drfdata, null, null, '', '');
+            ShowData(drfdata, null, null, seqname, sequence);
     }).catch(error => {
         throw error
     });
