@@ -26,7 +26,7 @@ export function getFornaContainer(rid, sequence, structure, colors) {
  */
 export function calculateNucleotideColors(structure, nScale) {
     // uses an old d3 version!
-    let rainbowScale = (t) => { 
+    const rainbowScale = (t) => { 
         return d3.hcl(360*t, 100, 55);
     };
     // get a pairtable and a list of the secondary structure elements
