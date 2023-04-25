@@ -422,6 +422,7 @@ function ensPlot(strToPlot, eCW, eCH, seqlen, sequence) {
         .enter()
         .append("svg")
         .attr("class", "plot")
+        //.style('background-color', 'white')
         .style("z-index", 1)
         .attr("id", d => { return "svg" + d.data.name })
         .on("mouseover", (e, d) => { // show occupancy
@@ -525,7 +526,7 @@ function makeTreemapData(data) {
  * @param {string} elem the name of the container to be visualized in fullscreen
  * 
  */
-// 
+
 function toggleFullScreen(elem) {
     if (!document.fullscreenElement && 
         !document.mozFullScreenElement && 
