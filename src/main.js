@@ -35,7 +35,7 @@ function init_time_control_panel(filteredData, nestedData,
     const [timesvg, tScale, itScale, nScale] = CreateScales(vCW, tSW, t0, tlog, t8, seqlen, cotr);
     // adding colors to filteredData
     filteredData.forEach(function(d) {
-        d.colors = calculateNucleotideColors(d.structure, nScale) 
+        d.colors = calculateNucleotideColors(d.structure, seqlen) 
     })
     const mostocc = mostOccupiedperTime(nestedData)
     createScaleColors(timesvg, tSW, seqlen, mostocc, tScale, nScale)  
@@ -239,8 +239,8 @@ function drawCirclesForTimepoints(nestedData, tScale) {
             .append('circle')
                 .attr('class', 'timePoint')
                 .attr('cx', d => tScale(d))
-                .attr('cy', 90)
-                .attr('r', 2)
+                .attr('cy', 91)
+                .attr('r', 1)
                 .attr('fill', 'black')
                 .attr('stroke', 'black')
                 .attr('strokeWidth', 0);
@@ -588,13 +588,14 @@ function ShowData(data, timepoint, seqname, sequence) {
     //console.log('fdata', filteredData)
     const nestedData = Array.from(d3.group(filteredData, d => +d.time)) 
     //console.log('ndata', nestedData)
+
     const maxNoStr = findMaxNoStr(nestedData)
 
     const [timesvg, tScale, itScale, nScale, mostocc] = init_time_control_panel(
         filteredData, nestedData, vCW, tSW, t0, tlog, t8, seqlen, cotr);
 
     // now render the timepoint
-    if (timepoint == null) { 
+    if (timepoint == null) {
         timepoint = d3.min(filteredData, d => +d.time);
     }
     showLine(timesvg, tScale(timepoint)) 
@@ -693,7 +694,9 @@ function ShowData(data, timepoint, seqname, sequence) {
 
     const ochange = () => {
         console.log('New maximum occupancy value:', occ.value);
-        ShowData(data, timepoint, seqname, sequence)
+        // TODO: return time point fails if timepoint 
+        // does not exist in next filteredData!
+        ShowData(data, null, seqname, sequence)
     };
     occ.removeEventListener('change', ochange); 
     occ.addEventListener('change', ochange);

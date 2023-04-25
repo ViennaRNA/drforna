@@ -1,4 +1,5 @@
 import { FornaContainer, RNAUtilities } from 'fornac';
+import * as d3new from "d3"
 
 /**
  * Function to set up the FornaContainer for visualization.
@@ -24,10 +25,14 @@ export function getFornaContainer(rid, sequence, structure, colors) {
 /**
  * Function to determine the color of each nucleotide.
  */
-export function calculateNucleotideColors(structure, nScale) {
+export function calculateNucleotideColors(structure, sequenceLength) {
     // uses an old d3 version!
-    const rainbowScale = (t) => { 
-        return d3.hcl(360*t, 100, 55);
+    const rainbowScale = (h) => { 
+        // TODO: cp is a parameter to adjust the color scale (the full range
+        // will not be used as stem centers define the color). Maybe we make cp
+        // adjustable at some point?
+        let cp = 2
+        return d3.hcl(cp*h, 100, 55);
     };
     // get a pairtable and a list of the secondary structure elements
     const rnaUtilities = new RNAUtilities();
@@ -45,8 +50,13 @@ export function calculateNucleotideColors(structure, nScale) {
             (a,b) => { return a+b }, 0) / (elements[i][2].length);
         // convert center to color
         elements[i][2].map((d) => {
-            let nucleotideNormPosition = nScale(+averageBpNum);
-            colors[d-1] = rainbowScale(nucleotideNormPosition);
+            let colorScale = d3new.scaleLinear()
+                .range([0, 360])
+                .domain([0, sequenceLength]);
+            let nucleotideNormPosition = colorScale(+averageBpNum);
+                colors[d-1] = rainbowScale(nucleotideNormPosition);
+            //let nucleotideNormPosition = nScale(+averageBpNum);
+            //colors[d-1] = rainbowScale(nucleotideNormPosition);
         });
     }
     return colors;
