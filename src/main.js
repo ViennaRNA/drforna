@@ -667,24 +667,23 @@ function ShowData(data, timepoint, seqname, sequence) {
     // the animation, such that all time points in the data are considered
     let elementIndex = 0;
     const speed = document.getElementById("playspeed")
-    let animationDelay = speed.value;
-    console.log('ad', animationDelay);
-    
     let play = d3.select("#toggleAnimation");
     play.on("click", () => {
-        playAnimation = !playAnimation    
+        playAnimation = !playAnimation
         nestedData.forEach(element => {
             if (+element[0] === +timepoint) {
                 elementIndex = nestedData.indexOf(element) + 1
             }
         }) 
-       let ToogleAnimation = setInterval(() => {
+        let ToogleAnimation = setInterval(() => {
             if (!playAnimation) {
                 clearInterval(ToogleAnimation);
                 return
             }
-            if (elementIndex >= nestedData.length){            
+            if (elementIndex >= nestedData.length) {
                 elementIndex = 0;
+                playAnimation = false;
+                return
             }
             const element = nestedData[elementIndex];
             timepoint = +element[0]
@@ -696,63 +695,54 @@ function ShowData(data, timepoint, seqname, sequence) {
             }
             showLine(timesvg, tScale(timepoint))
             elementIndex += 1;
-            timeprev = timepoint
-        }, animationDelay);
+            timeprev = timepoint;
+        }, speed.value);
     })
     let next = d3.select("#NextTime");
     next.on("click", () => {    
         nestedData.forEach(element => {
             if (+element[0] === +timepoint) {
-                elementIndex = nestedData.indexOf(element)
+                elementIndex = nestedData.indexOf(element) + 1
             }
         }) 
-        elementIndex += 1
-        if (elementIndex >= nestedData.length){            
-                elementIndex = 0;
+        if (elementIndex >= nestedData.length) {
+            elementIndex = 0;
         }
         const element = nestedData[elementIndex];
         timepoint = +element[0]
         strToPlot = StructuresToPlot(nestedData, timepoint);
         if (strToPlot != strToPlotprev) {
-                ensPlot(strToPlot, eCW, eCH, seqlen, sequence)
-                WriteTable(strToPlot, mostocc, sequence) 
-                strToPlotprev = strToPlot
+            ensPlot(strToPlot, eCW, eCH, seqlen, sequence)
+            WriteTable(strToPlot, mostocc, sequence) 
+            strToPlotprev = strToPlot
         }
         showLine(timesvg, tScale(timepoint))
-            
         timeprev = timepoint
-           
     })
     let prev = d3.select("#PrevTime");
     prev.on("click", () => {    
         nestedData.forEach(element => {
             if (+element[0] === +timepoint) {
-                elementIndex = nestedData.indexOf(element)
+                elementIndex = nestedData.indexOf(element) - 1
             }
         }) 
-        console.log(elementIndex, nestedData[elementIndex][0])
-        if (elementIndex ==0){            
-                elementIndex = nestedData.length-1;
-        }
-        else{elementIndex -= 1}
-        console.log(elementIndex,  nestedData[elementIndex][0])
+        if (elementIndex == -1) {
+            elementIndex = nestedData.length-1;
+        } 
         const element = nestedData[elementIndex];
         timepoint = +element[0]
-        console.log(timepoint)
         strToPlot = StructuresToPlot(nestedData, timepoint);
-        ensPlot(strToPlot, eCW, eCH, seqlen, sequence)
-        WriteTable(strToPlot, mostocc, sequence) 
-        strToPlotprev = strToPlot
-       
+        if (strToPlot != strToPlotprev) {
+            ensPlot(strToPlot, eCW, eCH, seqlen, sequence)
+            WriteTable(strToPlot, mostocc, sequence) 
+            strToPlotprev = strToPlot
+        }
         showLine(timesvg, tScale(timepoint))
-            
         timeprev = timepoint
-           
     })
 
     const schange = () => {
         console.log('New ms/frame value:', speed.value);
-        animationDelay = speed.value;
     };
     speed.removeEventListener('change', schange); 
     speed.addEventListener('change', schange);
