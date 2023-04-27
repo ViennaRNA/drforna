@@ -1250,6 +1250,50 @@ function ShowData(data) {
         // downloadPng()
         // downloadsSVG()
     })
+    let next = d3new.select("#NextTime");
+    next.on("click", () => {
+        nestedData.forEach(element => {
+            if (+element[0] == +prevtime) {
+                elementIndex=nestedData.indexOf(element)
+                }
+            }) 
+            elementIndex += 1;
+            if (elementIndex >= nestedData.length){            
+                elementIndex = 0;
+            }
+            const element = nestedData[elementIndex];
+            //console.log(nestedData)
+            
+            prevtime = +element[0]
+         
+            PLOT(prevtime)
+            showLine(combinedScale(prevtime))
+      
+
+    })
+    let prev = d3new.select("#PrevTime");
+    prev.on("click", () => {
+        nestedData.forEach(element => {
+            if (+element[0] == +prevtime) {
+                elementIndex=nestedData.indexOf(element)
+                }
+            }) 
+            
+            if (elementIndex == 0){            
+                elementIndex = nestedData.length-1;
+            }
+            else {elementIndex -= 1;}
+            
+            const element = nestedData[elementIndex];
+            console.log(element)
+            
+            prevtime = +element[0]
+         
+            PLOT(prevtime)
+            showLine(combinedScale(prevtime))
+      
+
+    })
     let play = d3new.select("#toggleAnimation");
     //
      
