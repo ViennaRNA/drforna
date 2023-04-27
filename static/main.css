@@ -8,30 +8,28 @@ body {
     background-color: rgb(0, 69, 148);
     color: white;
     padding: 7px;
+    min-width: 900px;
     font-size: 1.75rem;
     font-weight: 600;
-    line-height: 1.25rem;
 }
 #root{
-    max-width: 2500px;
-    min-width: 1000px;
     margin: auto;
     width: 90%; 
+    min-width: 900px;
 }
 #fullscreen{
     background: white;
-    height: 100%;
+    height: 90vh;
     width: 100%;
-    padding-bottom: 1rem;
+}
+#controls{
+    margin: auto;
+    width: 100%;
 }
 .alignleft {
     float: left;
     width: 33%;
     min-width: 400px;
-    text-align: left;
-}
-.aleft {
-    float: left;
     text-align: left;
 }
 .aligncenter {
@@ -41,54 +39,20 @@ body {
 }
 .alignright {
     float: right;
-    /*width: 33.33333%;*/
     text-align: right;
 }
-#sequence{
+#seqtext{
     text-align: left;
     width: 100%;
     padding: 0px;
 }
-
 #visualization{
-    height: auto;
     width: 100%;
-    text-align: center;
     background-color: white;
-    padding:0rem
-}
-#datatable{
-    overflow: hidden;
-    font-family: 'Courier New', Courier, monospace;
-    padding:0rem
+    padding: 0rem;
 }
 #treemapdiv{
-    width: 100%;
-    height: 700px;
     position: relative;
-}
-#timesvg {
-    height:110px
-}
-#time{
-  text-align: center;
-  margin: auto;
-  width: 30%;
-  font-size: 1rem;
-}
-#ttime{
-  margin: auto;
-  width: 90%;
-}
-.transcriplengthLine{
-    stroke-width:  1;
-    stroke: black;
-    fill: none;
-}
-.currenttimeLine{
-    stroke-width: 1;
-    /* stroke: color; */
-    fill: none;
 }
 .fornac-nodeLabel {
    /* font-weight:0.5rem ; */
@@ -105,7 +69,6 @@ body {
   -webkit-touch-callout: none;
   -webkit-user-select: none;
   -khtml-user-select: none;
-  
   -moz-user-select: none;
   -ms-user-select: none;
   user-select: none;
@@ -113,8 +76,7 @@ body {
 .infodiv{
     position: relative;
     width: 40px;
-    height: 10px;
-  
+    height: 15px;
     text-align: center;
     padding: .1rem;
     background: #FFFFFF;
@@ -122,6 +84,34 @@ body {
     border: 1px solid #313639;
     border-radius: 8px;
     pointer-events: none;
-    font-size: 0.6rem;
+    font-size: 0.8rem;
 }
-
+.help{
+  text-align: center;
+}
+#timesvg {
+    height: 110px;
+}
+.transcriplengthLine{
+    stroke-width: 1;
+    stroke: black;
+    fill: none;
+}
+.currenttimeLine{
+    stroke-width: 1;
+    fill: none;
+}
+#timeinfo{
+    text-align: center;
+    width: 100%;
+    margin: auto;
+}
+#datatable{
+    overflow: hidden;
+    font-family: 'Courier New', Courier, monospace;
+    padding: 0rem;
+}
+button:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
