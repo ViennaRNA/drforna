@@ -232,7 +232,7 @@ function createScaleColors(timesvg, tSW, seqlen, mostocc, tScale, nScale){
  */   
 function drawCirclesForTimepoints(nestedData, tScale) {
     const timePoints = nestedData.map(d => +d[0]);
-    console.log(timePoints)
+    // console.log(timePoints)
     d3.select("#timesvg").selectAll('.timePoint').remove();
     d3.select("#timesvg").selectAll('.timePoint').data(timePoints)
         .enter()
@@ -573,7 +573,7 @@ function findMaxNoStr(nestedData) {
  * @param {Array} data the parsed content of the input file
  */
 function ShowData(data, timepoint, seqname, sequence) {
-    console.log('calling ShowData', timepoint, seqname, sequence)
+    // console.log('calling ShowData', timepoint, seqname, sequence)
     //console.log('data', data)
 
     // shall we also initialize the treemap, etc?
@@ -658,6 +658,7 @@ function ShowData(data, timepoint, seqname, sequence) {
     // the animation, such that all time points in the data are considered
     let elementIndex = 0;
     let animationDelay; // play speed
+    
     let play = d3.select("#toggleAnimation");
     play.on("click", () => {
         playAnimation = !playAnimation    
@@ -692,9 +693,59 @@ function ShowData(data, timepoint, seqname, sequence) {
             timeprev = timepoint
         }, animationDelay);
     })
+    let next = d3.select("#NextTime");
+    next.on("click", () => {    
+        nestedData.forEach(element => {
+            if (+element[0] === +timepoint) {
+                elementIndex = nestedData.indexOf(element)
+            }
+        }) 
+        elementIndex += 1
+        if (elementIndex >= nestedData.length){            
+                elementIndex = 0;
+        }
+        const element = nestedData[elementIndex];
+        timepoint = +element[0]
+        strToPlot = StructuresToPlot(nestedData, timepoint);
+        if (strToPlot != strToPlotprev) {
+                ensPlot(strToPlot, eCW, eCH, seqlen, sequence)
+                WriteTable(strToPlot, mostocc, sequence) 
+                strToPlotprev = strToPlot
+        }
+        showLine(timesvg, tScale(timepoint))
+            
+        timeprev = timepoint
+           
+    })
+    let prev = d3.select("#PrevTime");
+    prev.on("click", () => {    
+        nestedData.forEach(element => {
+            if (+element[0] === +timepoint) {
+                elementIndex = nestedData.indexOf(element)
+            }
+        }) 
+        console.log(elementIndex, nestedData[elementIndex][0])
+        if (elementIndex ==0){            
+                elementIndex = nestedData.length-1;
+        }
+        else{elementIndex -= 1}
+        console.log(elementIndex,  nestedData[elementIndex][0])
+        const element = nestedData[elementIndex];
+        timepoint = +element[0]
+        console.log(timepoint)
+        strToPlot = StructuresToPlot(nestedData, timepoint);
+        ensPlot(strToPlot, eCW, eCH, seqlen, sequence)
+        WriteTable(strToPlot, mostocc, sequence) 
+        strToPlotprev = strToPlot
+       
+        showLine(timesvg, tScale(timepoint))
+            
+        timeprev = timepoint
+           
+    })
 
     const ochange = () => {
-        console.log('New maximum occupancy value:', occ.value);
+        // console.log('New maximum occupancy value:', occ.value);
         // TODO: return time point fails if timepoint 
         // does not exist in next filteredData!
         ShowData(data, null, seqname, sequence)
