@@ -607,6 +607,7 @@ function ShowData(data, timepoint, seqname, sequence) {
 
     let mousetime = 30; // the beginning of the plot
     let mouseactive = false;
+    let delayPLOT = undefined;
     timesvg.on("mousemove", (event) => {
         if (playAnimation) return;
         if (!mouseactive) return;
@@ -620,13 +621,13 @@ function ShowData(data, timepoint, seqname, sequence) {
             timepoint = d.time;
           }
         }
-        let delayPLOT = undefined;
         if (timepoint != timeprev) {
-            if (delayPLOT) clearTimeout(delayPLOT);
             strToPlot = StructuresToPlot(nestedData, timepoint);
             if (strToPlot != strToPlotprev) {
+                if (delayPLOT) clearTimeout(delayPLOT);
                 delayPLOT = setTimeout(ensPlot, 5*maxNoStr, strToPlot, eCW, eCH, seqlen, sequence);
                 WriteTable(strToPlot, mostocc, sequence) 
+                strToPlotprev = strToPlot
             }
         }
     })
