@@ -252,13 +252,8 @@ function drawCirclesForTimepoints(nestedData, tScale) {
  * @returns {Array} List of structures to plot for the selected time point
  */  
 function StructuresToPlot(nestedData, time){
-    let strToPlot = []
-    nestedData.forEach(element => {
-        if (+element[0] == +time) {
-            strToPlot = element[1] 
-        } 
-    })
-    return strToPlot
+    const foundElement = nestedData.find(element => +element[0] === +time);
+    return foundElement ? foundElement[1] : null;
 }
 
 /**
@@ -573,7 +568,7 @@ function findMaxNoStr(nestedData) {
  * @param {Array} data the parsed content of the input file
  */
 function ShowData(data, timepoint, seqname, sequence) {
-    // console.log('calling ShowData', timepoint, seqname, sequence)
+    console.log('calling ShowData', timepoint, seqname, sequence)
     //console.log('data', data)
 
     // shall we also initialize the treemap, etc?
@@ -598,7 +593,20 @@ function ShowData(data, timepoint, seqname, sequence) {
     // now render the timepoint
     if (timepoint == null) {
         timepoint = d3.min(filteredData, d => +d.time);
+    } else if (StructuresToPlot(nestedData, timepoint) === null) {
+        // jump to the previous timepoint
+        let newtimepoint = null;
+        for (let i = 0; i < nestedData.length; i++) {
+            const currentTime = +nestedData[i][0];
+            if (currentTime <= +timepoint) {
+                newtimepoint = currentTime;
+            } else {
+                break;
+            }
+        }
+        timepoint = newtimepoint
     }
+
     showLine(timesvg, tScale(timepoint)) 
     let strToPlot = StructuresToPlot(nestedData, timepoint);
     ensPlot(strToPlot, eCW, eCH, seqlen, sequence)
@@ -658,7 +666,9 @@ function ShowData(data, timepoint, seqname, sequence) {
     // index of the element with current time point in nested data, used for
     // the animation, such that all time points in the data are considered
     let elementIndex = 0;
-    let animationDelay; // play speed
+    const speed = document.getElementById("playspeed")
+    let animationDelay = speed.value;
+    console.log('ad', animationDelay);
     
     let play = d3.select("#toggleAnimation");
     play.on("click", () => {
@@ -668,12 +678,7 @@ function ShowData(data, timepoint, seqname, sequence) {
                 elementIndex = nestedData.indexOf(element) + 1
             }
         }) 
-        document.querySelectorAll('.playspeed').forEach((item) => {
-            item.addEventListener('change', () => {
-                animationDelay = item.value;
-            })
-        })
-        let ToogleAnimation = setInterval(() => {
+       let ToogleAnimation = setInterval(() => {
             if (!playAnimation) {
                 clearInterval(ToogleAnimation);
                 return
@@ -745,11 +750,16 @@ function ShowData(data, timepoint, seqname, sequence) {
            
     })
 
+    const schange = () => {
+        console.log('New ms/frame value:', speed.value);
+        animationDelay = speed.value;
+    };
+    speed.removeEventListener('change', schange); 
+    speed.addEventListener('change', schange);
+
     const ochange = () => {
-        // console.log('New maximum occupancy value:', occ.value);
-        // TODO: return time point fails if timepoint 
-        // does not exist in next filteredData!
-        ShowData(data, null, seqname, sequence)
+        console.log('New maximum occupancy value:', occ.value);
+        ShowData(data, timepoint, seqname, sequence)
     };
     occ.removeEventListener('change', ochange); 
     occ.addEventListener('change', ochange);
