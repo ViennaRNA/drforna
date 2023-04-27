@@ -10,6 +10,7 @@ export function getFornaContainer(rid, sequence, structure, colors) {
         editable: false, 
         animation: false,
         displayNodeLabel: true,
+        labelInterval: 10,
         transitionDuration: 0
     });
     fc.addRNA(structure, { "sequence": sequence })
