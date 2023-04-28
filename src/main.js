@@ -678,6 +678,9 @@ function ShowData(data, timepoint, seqname, sequence) {
             if (+element[0] === +timepoint) {
                 elementIndex = nestedData.indexOf(element) + 1
             }
+        if (elementIndex==nestedData.length){
+            elementIndex = 0;
+        }
         }) 
         let ToogleAnimation = setInterval(() => {
             if (!playAnimation) {
