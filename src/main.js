@@ -596,14 +596,18 @@ function ShowData(data, timepoint, seqname, sequence) {
     } else if (StructuresToPlot(nestedData, timepoint) === null) {
         // jump to the previous timepoint
         let newtimepoint = null;
-        for (let i = 0; i < nestedData.length; i++) {
-            const currentTime = +nestedData[i][0];
-            if (currentTime <= +timepoint) {
-                newtimepoint = currentTime;
-            } else {
-                break;
-            }
-        }
+        nestedData.forEach(d=> {
+            if (+d[0] <= +timepoint) {
+                newtimepoint = +d[0];}
+        })
+        // for (let i = 0; i < nestedData.length; i++) {
+        //     const currentTime = +nestedData[i][0];
+        //     if (currentTime <= +timepoint) {
+        //         newtimepoint = currentTime;
+        //     } else {
+        //         break;
+        //     }
+        // }
         timepoint = newtimepoint
     }
 
