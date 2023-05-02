@@ -1,43 +1,90 @@
 <!DOCTYPE html>
 <html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta http-equiv="X-UA-Compatible" content="IE=edge">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>DrForna</title>
-    <link rel="stylesheet" href="main.css" />
-    <link rel="shortcut icon" href="#" />
-</head>
-<body id="tot"> 
-    <div id="title">DrForna</div>
-    <div id="subtitle">Visualization of changing structure ensembles during cotranscriptional folding</div>
-    <div id='result'>
-        <div class="form">
-            <div class="fileinput">
-                Upload input <input class="fileinp" type="file" id="files" name="files" title="Enter an input file">
+    <head>
+        <meta charset="UTF-8">
+        <meta http-equiv="X-UA-Compatible" content="IE=edge">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <title>DrForna</title>
+        <link rel="stylesheet" href="main.css" />
+        <link rel="shortcut icon" href="#" />
+    </head>
+    <body> 
+        <div id="title">DrForna: visualization of cotranscriptional folding</div>
+        <div id="root">
+            <div id="fullscreen">
+                <table id='controls'> <tr>
+                    <td align='left'> <table> <tr> 
+                        <td>
+                            <input type="file"
+                                   id="drfinput"
+                                   title="Provide an DrForna input file"
+                                   style="width: 140pt;">
+                        </td>
+                        <td>
+                            @ min-occupancy: 
+                            <input type="text" 
+                                   id="occupancy"
+                                   title="Occupancy threshold" 
+                                   value="0.01" style="width: 30pt;">
+                        </td>
+                    </tr> </table> </td>
+                    <td> <table> <tr> 
+                        <td>
+                            <button id="PrevTime"
+                            title="PrevTime">&#x23F4</button>    
+                        <button id="toggleAnimation"
+                                title="Play/Pause animation">&#x23EF</button>
+                        <button id="NextTime"
+                        title="NextTime">&#x23F5</button>
+                        
+                        </td>
+                        <td>
+                            @ speed: 
+                            <input type="text" 
+                                   id="playspeed" 
+                                   title="Play speed" 
+                                   value="100" style="width: 30pt;">
+                            ms/frame
+                        </td>
+                    </tr> </table> </td>
+                    <td align='right'>
+                        <button id="toggleSequence">Sequence</button>
+                        <button id="downloadButton" 
+                                title="Download plotting area as SVG">Download</button>
+                        <button id="toggleFullScreen"
+                                title="Fullscreen view">Fullscreen</button>
+                    </td> </tr>
+                </table>
+                <div id="seqfield" id="seqform"> 
+                    <textarea id="seqtext" title = "Provide sequence input in fasta format." rows="2"></textarea>
+                    <div class="alignleft">
+                        <input type="file" 
+                               id="seqfile"
+                               title="Provide an sequence input file in fasta format."
+                               style="width: 140pt;">
+                    </div>
+                    <div class="alignright">
+                        <button id="seqload">Load Sequence</button>
+                    </div>
+                    <div style="clear: both;"></div>
+                    <p></p>
+                </div>
+                <div id="visualization">
+                    <div id="ensemblevis"></div>
+                    <div id="timetablevis"></div>
+                    <div id="timetableinfo"></div>
+                </div>
             </div>
-            <div class="seqfileinp">  
-                Import sequence <input class="seqfileinpc" type="file" id="files" name="files" title="Enter an input file">
-            </div>
+            <div id="datatable"></div>
+            <p class="alignleft">
+                <button id="toggleTable">Toggle summary table</button>
+            </p>
+            <p class="alignright">
+                <a href=https://github.com/ViennaRNA/drforna#visual-output-description>Help</a>
+                <a href=https://github.com/ViennaRNA/drforna>Github</a>
+            </p>
+            <div style="clear: both;"></div>
         </div>
-        <div class="seqform"> 
-            <a id="sinp">(Optional) Sequence:</a>
-            <textarea id="sequence" name="sequence" cols="80" rows="2">-</textarea>
-            <div class="sb" > 
-                <button id="SeqReload">Load Sequence </button>    
-            </div>  
-        </div>
-        <div id="fullScreenContainer">
-            <div id="controlContainer" >
-                <button class="bform" id="toggleAnimation">Play/Pause</button>
-                <button class="bform" id="downloadButton" title="Download plot as SVG">Download</button>
-                <button class="bform" id="toggleFullScreen">Fullscreen</button>
-            </div>
-            <div id="drTrafoContainer">
-                <div id="visContainer">See the results here</div>
-            </div>
-        </div>
-    </div>
-    <script language="JavaScript" src="drforna.js"></script>
-</body>
+        <script language="JavaScript" src="drforna.js"></script>
+    </body>
 </html>
