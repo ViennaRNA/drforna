@@ -29,10 +29,9 @@ export function getFornaContainer(rid, sequence, structure, colors) {
 export function calculateNucleotideColors(structure, sequenceLength) {
     // uses an old d3 version!
     const rainbowScale = (h) => { 
-        // TODO: cp is a parameter to adjust the color scale (the full range
-        // will not be used as stem centers define the color). Maybe we make cp
-        // adjustable at some point?
-        let cp = 2
+        // TODO: cp is a parameter to adjust the color scale. 
+        // Maybe we make cp adjustable at some point?
+        let cp = 4
         return d3.hcl(cp*h, 100, 55);
     };
     // get a pairtable and a list of the secondary structure elements
@@ -56,8 +55,6 @@ export function calculateNucleotideColors(structure, sequenceLength) {
                 .domain([0, sequenceLength]);
             let nucleotideNormPosition = colorScale(+averageBpNum);
                 colors[d-1] = rainbowScale(nucleotideNormPosition);
-            //let nucleotideNormPosition = nScale(+averageBpNum);
-            //colors[d-1] = rainbowScale(nucleotideNormPosition);
         });
     }
     return colors;

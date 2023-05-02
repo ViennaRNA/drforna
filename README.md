@@ -1,20 +1,17 @@
 # DrForna: visualization of cotranscriptional folding
 
-<!-- extra wide to fill the page ... -->
-
 Visit [gh-pages] for a life demonstration of the app, e.g., view the example
 simulation or upload your own input file.  The default input examples are part
 of this repository: 
 [./static/grow.drf](./static/grow.drf) and [./static/grow.fa](./static/grow.fa).
 
-The DrForna input format is currently natively supported as output of:
- - [DrTransformer]
+The DrForna input format is currently supported by the cotranscriptional
+folding software [DrTransformer], and there exist various wrappers to generate
+the DrForna input format from other cotranscriptional folding software at
+[drconverters].
 
-and there exist various wrappers to generate the DrForna input format from other
-cotranscriptional folding software at [drconverters].
 
-
-## Visual output description:
+## Visual output description: <!-- Referred to by static/index.html! -->
 
 <img width='2000px' src="./static/docu.svg"> 
 
@@ -53,9 +50,12 @@ cotranscriptional folding software at [drconverters].
     - The Play/Pause button in the top control panel starts an animation, which
       can also be deactivated by a mouse click on the scale area.
 
+
 ## Main input format:
+
 The *DrFrona input file* should be a white-space separated value ("csv-like")
 file as shown in the example below: 
+
 ```
 id time occupancy structure energy
 6 1.47 1.0000 .((((....((((....))))....))))........  -9.30
@@ -92,13 +92,14 @@ The header must have the form *id time occupancy structure energy*.
 - *energy* is the free energy of the structure.  (The value in this field is
   not used for visualization.)
 
+
 ## Sequence input format (fasta, optional):
+
  - The _sequence_ is optional and can be either uploaded using a fasta file or
    written in the provided text box. Lines starting with the symbol ">" do not
    count as sequence, but can be used to specify the name for downloads.  Note
    that providing a sequence may cause the colors of nucleotides be perceived
    darker than corresponding colors in the time point selection panel.
-
 
 
 ## DrForna parameters:
@@ -114,25 +115,47 @@ The header must have the form *id time occupancy structure energy*.
    can limit the frame rate.
 
 ## The summary table:
+
 We also provide a summary table that displays the currently visualized part
 of the DrForna input file. The order of structures is determined by the order
 in the input file. (Typically, the order is by free energy, which correlates
 with the probability of a structure in the equilibrated ensemble.) The dot-bracket notation
 is colored to match the color scheme of helices in the main visualization area.
+
 <img src="./static/table.png"> 
+
+
+## Default color scheme:
+
+Nucleotides engaged in base-pairs (i paired with j) are colored using the "hue"
+value h=(i+j)/2 on a continuous color scale -- scaled to the full length
+sequence. In principle, this ensures that colors are never repeated, unless
+base-pairs are perfectly aligned.  However, as can be seen in the example
+below, we chose to repeat the continuous scale four times per full-length
+sequence, as this makes helices which have nearby imaginary centers better
+distinguishable. 
+
+<img width='2000px' src="./static/colorrange.svg"> 
+
+The file to produce the image above is part of this repository: 
+[./static/colors.drf](./static/colors.drf).
+
 
 ## Installation, development, and build: 
 
   - `npm install`
+
   - `npm run serve`
+
   - `npm run build`
 
 For documentation, and/or testing, run:
+
   - `npm run jsdoc`
+
   - `npm run test`
 
 All commands are defined in [package.json](package.json).
-
 
 
 ## Version

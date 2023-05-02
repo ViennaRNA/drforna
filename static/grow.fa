@@ -1,2 +1,2 @@
->grow # DrTransformer --k0 1e6 --t-lin 5 --t-log 30 --t-end 1e5
+>grow # DrTransformer --k0 1e5 --t-lin 5 --t-log 30 --t-end 1e5 --o-prune 0.001
 ACUGUCAAUGCGGAAAACCGCUCAAGCGGAAAACCGUAAACGCGGAAACUCGCACACGCGGAACGUCGCACACGCGGGAAACCGCCAAAGCGGAAACUUGUC

@@ -157,7 +157,7 @@ function CreateScales(vCW, tSW, t0, tlog, t8, seqlen, cotr) {
         .domain([t0, tlog]) 
         .range([30, tSW * blackL]) 
     const logscale = d3.scaleLog() 
-        .domain([tlog, t8+0.001])
+        .domain([tlog, t8+(t8-tlog)/10]) // hmmm ...
         .range([tSW * blackL, tSW])
     // map time to coordinates on the lin or log scale
     const combinedScale = time => (time < tlog) 
@@ -232,7 +232,6 @@ function createScaleColors(timesvg, tSW, seqlen, mostocc, tScale, nScale){
  */   
 function drawCirclesForTimepoints(nestedData, tScale) {
     const timePoints = nestedData.map(d => +d[0]);
-    // console.log(timePoints)
     d3.select("#timesvg").selectAll('.timePoint').remove();
     d3.select("#timesvg").selectAll('.timePoint').data(timePoints)
         .enter()
@@ -569,7 +568,6 @@ function findMaxNoStr(nestedData) {
  */
 function ShowData(data, timepoint, seqname, sequence) {
     console.log('calling ShowData', timepoint, seqname, sequence)
-    //console.log('data', data)
 
     // shall we also initialize the treemap, etc?
     const [vCW, vCH, eCW, eCH, tSW] = initialize()
@@ -581,9 +579,7 @@ function ShowData(data, timepoint, seqname, sequence) {
     // Set occupancy threshold and filter data, ...
     const occ = document.getElementById("occupancy")
     const filteredData = data.filter((d) => { return +d.occupancy > +occ.value}) 
-    //console.log('fdata', filteredData)
     const nestedData = Array.from(d3.group(filteredData, d => +d.time)) 
-    //console.log('ndata', nestedData)
 
     const maxNoStr = findMaxNoStr(nestedData)
 
@@ -641,6 +637,7 @@ function ShowData(data, timepoint, seqname, sequence) {
                 WriteTable(strToPlot, mostocc, sequence) 
                 strToPlotprev = strToPlot
             }
+            timeprev = timepoint
         }
     })
 
@@ -651,10 +648,10 @@ function ShowData(data, timepoint, seqname, sequence) {
         if (d3.pointer(event)[0] >= 30 && d3.pointer(event)[0] <= tSW) {
             showLine(timesvg, d3.pointer(event)[0])
         }
-        for (let t in filteredData) {
-            if (filteredData[t].time <= mousetime) { 
-                timepoint = filteredData[t].time 
-            }
+        for (let d of filteredData) {
+          if (d.time <= mousetime) {
+            timepoint = d.time;
+          }
         }
         if (timepoint != timeprev) {
             strToPlot = StructuresToPlot(nestedData, timepoint);
