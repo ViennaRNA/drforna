@@ -1,7 +1,7 @@
 # DrForna
 An interactive viewer for cotranscriptional RNA folding simulations.
 
-<img src="/static/anot.svg"> 
+<img src="/static/docu.svg"> 
 
 ## For installation, development, build, documentation, run:
 
@@ -69,10 +69,10 @@ Note: Providing a sequence may cause the colors of nucleotides be perceived dark
     - For each time point, the vertical section of the colors shown on the scale correspond to the nucleotide colors of the most occupied structure present at the selected time point.
     - A mouse click on the time scale freezes the visualization at a specific time point. A second click makes the time point selection panel responsive to mouse over events again.
     - The Play/Pause button in the top control panel starts an animation, which can also be deactivated by a mouse click on the scale area.
+        <img src="/static/anot.svg"> 
 3. The summary table
    - A summary of the input file for the selected time point can be seen in the summary table. The dot bracket notation is colored to match the color scheme of helices in the main visualization area.
-
-<img src="/static/table.png"> 
+      <img src="/static/table.png"> 
 
 
 
