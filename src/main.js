@@ -35,7 +35,7 @@ function init_time_control_panel(filteredData, nestedData,
     const [timesvg, tScale, itScale, nScale] = CreateScales(vCW, tSW, t0, tlog, t8, seqlen, cotr);
     // adding colors to filteredData
     filteredData.forEach(function(d) {
-        d.colors = calculateNucleotideColors(d.structure, seqlen) 
+        d.colors = calculateNucleotideColors(d.structure, nScale) 
     })
     const mostocc = mostOccupiedperTime(nestedData)
     createScaleColors(timesvg, tSW, seqlen, mostocc, tScale, nScale)  
