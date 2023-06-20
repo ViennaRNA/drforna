@@ -10,8 +10,8 @@ folding software [DrTransformer], and there exist various wrappers to generate
 the DrForna input format from other cotranscriptional folding software at
 [drconverters].
 
-
-## Visual output description: <!-- Referred to by static/index.html! -->
+## Visual output description:
+<!-- Referred to by static/index.html! -->
 
 <img width='2000px' src="./static/docu.svg"> 
 
