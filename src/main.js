@@ -813,6 +813,8 @@ function start() {
     hidetab()
     document.getElementById("toggleTable")
         .addEventListener("click", function() {hidetab();}, false);
+    document.getElementById("tabTable")
+    .addEventListener("click", function() {opennewtab();}, false);
     load_examples("grow.drf", "grow.fa");
     read_drf_file();
     read_seq_file();
@@ -826,6 +828,15 @@ function hideseq() {
 function hidetab() { 
     const x = document.getElementById("datatable");
     x.style.display = x.style.display === "none" ? "block" : "none"; 
+}
+
+function opennewtab() { 
+    const x = document.getElementById("datatable").outerHTML;
+    const newTab = window.open();
+    newTab.document.write(x);
+    const y =  newTab.document.getElementById("datatable")
+    y.style.display = "block"; 
+  
 }
 
 /**
