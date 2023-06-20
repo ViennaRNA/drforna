@@ -786,6 +786,18 @@ function ShowData(data, timepoint, seqname, sequence) {
         if (delayResize) clearTimeout(delayResize);
         delayResize = setTimeout(ShowData, 300, data, timepoint, seqname, sequence);
     };
+    let  hlink = document.getElementById('helplink');
+    hlink.addEventListener('click', (event) => {
+      event.preventDefault(); // Prevent the default link behavior
+      const url = hlink.href;
+      window.open(url, '_blank');
+    });
+    let gitlink = document.getElementById('githublink');
+    gitlink.addEventListener('click', (event) => {
+      event.preventDefault(); // Prevent the default link behavior
+      const url = gitlink.href;
+      window.open(url, '_blank');
+    });
 } 
 
 /**
