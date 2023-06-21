@@ -289,7 +289,7 @@ function formatColors (colors) {
  * @param {Array} strToPlot The list of structures selected for the currently selected time point
  */           
 function WriteTable(strToPlot, mostocc, sequence) {
-    var colnames = ['ID', 'Occupancy', 'Structure' , 'Energy'];    
+    let colnames = ['ID', 'Occupancy', 'Structure' , 'Energy'];    
 
     d3.select("#datatable")
         .selectAll("table").remove()
@@ -831,13 +831,41 @@ function hidetab() {
 }
 
 function opennewtab() { 
-    const x = document.getElementById("datatable").outerHTML;
-    const newTab = window.open();
-    newTab.document.write(x);
-    const y =  newTab.document.getElementById("datatable")
+
+    let x = document.getElementById("datatable").outerHTML
+    // Regular expression pattern and replacement text
+    const pattern = /<th style=\"text-align: right;\"> <\/th>/g
+    const replacement = ' ';
+
+// Use the replace() method with the regular expression to modify the text
+    x = x.replace(pattern, replacement);
+    x = x.replace(/<th>Structure/, replacement)
+
+    // console.log(x)
+    let newTab = window.open();
+    newTab.document.write(`
+        <head>
+          <link rel="stylesheet" href="main.css" />         
+          
+        </head>
+      `);
+      newTab.document.write(x)
+      newTab.focus()
+ 
+    let y =  newTab.document.getElementById("datatable")
     y.style.display = "block"; 
-  
+
+    let z = newTab.document.getElementsByTagName("thead")[0]
+    // z.style.display="none"
+    
+    
+    // y.style.overflow="hidden";
+    // y.style.fontFamily="'Courier New', Courier, monospace "
+    // y.style.padding="0rem";
 }
+    
+  
+
 
 /**
  * Function that loads an example for the visualization. 
