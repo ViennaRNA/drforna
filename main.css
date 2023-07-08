@@ -110,3 +110,12 @@ button:disabled {
   opacity: 0.5;
   cursor: not-allowed;
 }
+#PrevTime {
+    font-size: larger;
+}
+#NextTime {
+    font-size: larger;
+}
+#toggleAnimation {
+    font-size: larger;
+}
