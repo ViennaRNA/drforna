@@ -80,7 +80,7 @@ function get_critical_timepoints(data, seqlen) {
  * Prepares the visualization area from scratch (new visualization div setup).
  */
 function preparePlotArea() {  
-    //remove the previous content
+    // remove the previous content
     let container = d3.select("#visualization")
     container.selectAll('div').remove()
     // create the ensemble visualization area (treemap)
@@ -111,6 +111,7 @@ function initialize(){
     const visContainerWidth = visContainer.getBoundingClientRect().width; 
     const visContainerHeight = visContainer.getBoundingClientRect().height;
 
+
     const cH = document.getElementById("controls").clientHeight;
     const sH = document.getElementById("seqfield").getBoundingClientRect().height; 
     const tH = 110 // timetablevis is generated later, but at fixed height
@@ -118,8 +119,7 @@ function initialize(){
     const subH = cH + sH + tH + iH + 10
 
     const ensContainerWidth = visContainerWidth;
-    const ensContainerHeight = Math.max(200, //TODO: this still causes trouble
-                                        visContainerHeight - subH);
+    const ensContainerHeight = visContainerHeight - subH;
     const timeScaleWidth = visContainerWidth - 30;
 
     return [visContainerWidth,
@@ -186,7 +186,7 @@ function CreateScales(vCW, tSW, t0, tlog, t8, seqlen, cotr) {
     let timesvg = timeContainer
         .append("svg")
         .attr("width", vCW)
-        .attr("id", "timesvg"); //create the svg containing the scales
+        .attr("id", "timesvg"); // create the svg containing the scales
     timesvg.append("g")
         .attr("width", vCW)
         .attr("height", 110)
@@ -579,7 +579,6 @@ function ShowData(data, timepoint, seqname, sequence) {
 
     // shall we also initialize the treemap, etc?
     const [vCW, vCH, eCW, eCH, tSW] = initialize()
-    //console.log('new dimensions:', vCW, vCH, eCW, eCH)
 
     // get some basic properties from the full data.
     const seqlen = data[data.length - 1].structure.length;
@@ -754,6 +753,7 @@ function ShowData(data, timepoint, seqname, sequence) {
     const toggleseq = document.getElementById("toggleSequence");
     toggleseq.onclick = function() {
         hideseq().then(function() {
+            console.log('Resizing ...');
             ShowData(data, timepoint, seqname, sequence);
         });
     };

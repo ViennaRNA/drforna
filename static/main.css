@@ -20,6 +20,7 @@ body {
 #fullscreen{
     background: white;
     height: 90vh;
+    min-height: 400px;
     width: 100%;
 }
 #controls{
