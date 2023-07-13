@@ -13,7 +13,7 @@ the DrForna input format from other cotranscriptional folding software at
 ## Visual output description:
 <!-- Referred to by static/index.html! -->
 
-<img width='2000px' src="./static/docu.svg"> 
+<img width='2000px' src="./img/docu.svg"> 
 
 - The ensemble visualization area (top) presents the structure plots for a selected
   time point (the time point is marked with a vertical red line on the time
@@ -122,7 +122,7 @@ in the input file. (Typically, the order is by free energy, which correlates
 with the probability of a structure in the equilibrated ensemble.) The dot-bracket notation
 is colored to match the color scheme of helices in the main visualization area.
 
-<img src="./static/table.png"> 
+<img src="./img/table.png"> 
 
 
 ## Default color scheme:
@@ -135,10 +135,10 @@ below, we chose to repeat the continuous scale four times per full-length
 sequence, as this makes helices which have nearby imaginary centers better
 distinguishable. 
 
-<img width='2000px' src="./static/colorrange.svg"> 
+<img width='2000px' src="./img/colorrange.svg"> 
 
 The file to produce the image above is part of this repository: 
-[./static/colors.drf](./static/colors.drf).
+[./img/colors.drf](./img/colors.drf).
 
 
 ## Installation, development, and build: 
