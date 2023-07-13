@@ -296,6 +296,7 @@ function createTable(strToPlot, sequence) {
 
         const table = document.createElement('table');
         table.id = 'dtab'
+        table.style.fontFamily = "'Courier New', Courier, monospace";
 
         // Add the header.
         const thead = document.createElement('thead');
@@ -869,6 +870,7 @@ function load_examples(drffile, fafile) {
     Promise.all([promise1, promise2])
         .then(([[seqname, sequence], drfdata]) => {
             ShowData(drfdata, null, seqname, sequence);
+            alert('A default simulation example has been loaded. Visit the Help page to find the corresponding file, or to learn how to upload your own simulation results.')
     }).catch(error => {
         throw error
     });
