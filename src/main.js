@@ -1,19 +1,24 @@
+/**
+ * @file main.js
+ * @author Anda Latif, Peter Kerpediev, Stefan Hammer, Stefan Badelt
+ * @see <a href="https://github.com/ViennaRNA/drforna">DrForna</a>
+ * @description Visualization of cotranscriptional folding.
+ */  
+
 import * as d3 from "d3"
 import { saveAs } from 'file-saver';
 import { elementToSVG } from 'dom-to-svg'
 
-const { parseFasta } = require('./utils');
+const { parseFasta, 
+        writeRuler } = require('./utils');
 import { getFornaContainer, 
          calculateNucleotideColors } from './myforna';
 
-let playAnimation = false;
+// A global pointer to update the DataTable within a popup.
+let popupWindow; 
 
-/**
- * @file main.js
- * @author Anda Latif, Stefan Hammer, Peter Kerpediev, Stefan Badelt
- * @see <a href="https://github.com/ViennaRNA/drforna">DrForna</a>
- * @description Visualization of cotranscriptional folding.
- */  
+// A global variable to control the animation. 
+let playAnimation = false;
 
 function parse_fasta(text) {
     let data = parseFasta(text)
@@ -35,14 +40,13 @@ function init_time_control_panel(filteredData, nestedData,
     const [timesvg, tScale, itScale, nScale] = CreateScales(vCW, tSW, t0, tlog, t8, seqlen, cotr);
     // adding colors to filteredData
     filteredData.forEach(function(d) {
-        d.colors = calculateNucleotideColors(d.structure, seqlen) 
+        d.colors = calculateNucleotideColors(d.structure, nScale) 
     })
     const mostocc = mostOccupiedperTime(nestedData)
     createScaleColors(timesvg, tSW, seqlen, mostocc, tScale, nScale)  
     drawCirclesForTimepoints(nestedData, tScale)
     return [timesvg, tScale, itScale, nScale, mostocc]
 }
-
 
 /**
  * Function for downloading the content of the visualization area.
@@ -76,7 +80,7 @@ function get_critical_timepoints(data, seqlen) {
  * Prepares the visualization area from scratch (new visualization div setup).
  */
 function preparePlotArea() {  
-    //remove the previous content
+    // remove the previous content
     let container = d3.select("#visualization")
     container.selectAll('div').remove()
     // create the ensemble visualization area (treemap)
@@ -107,6 +111,7 @@ function initialize(){
     const visContainerWidth = visContainer.getBoundingClientRect().width; 
     const visContainerHeight = visContainer.getBoundingClientRect().height;
 
+
     const cH = document.getElementById("controls").clientHeight;
     const sH = document.getElementById("seqfield").getBoundingClientRect().height; 
     const tH = 110 // timetablevis is generated later, but at fixed height
@@ -114,8 +119,7 @@ function initialize(){
     const subH = cH + sH + tH + iH + 10
 
     const ensContainerWidth = visContainerWidth;
-    const ensContainerHeight = Math.max(200, //TODO: this still causes trouble
-                                        visContainerHeight - subH);
+    const ensContainerHeight = visContainerHeight - subH;
     const timeScaleWidth = visContainerWidth - 30;
 
     return [visContainerWidth,
@@ -182,7 +186,7 @@ function CreateScales(vCW, tSW, t0, tlog, t8, seqlen, cotr) {
     let timesvg = timeContainer
         .append("svg")
         .attr("width", vCW)
-        .attr("id", "timesvg"); //create the svg containing the scales
+        .attr("id", "timesvg"); // create the svg containing the scales
     timesvg.append("g")
         .attr("width", vCW)
         .attr("height", 110)
@@ -282,103 +286,108 @@ function formatColors (colors) {
 }
 
 /**
- * Function for generating the table containing the summary of the file, corresponding to the selected time point
- 
- ** The first line contains the currently selected time point
- ** A table containing the structures, with 'ID', 'Occupancy', 'Structure' and  'Energy', where the parantheses in dot bracket notation are collored according to the helix they are part of
- * @param {Array} strToPlot The list of structures selected for the currently selected time point
+ * Generates a table from a slice of the input file.
+ * The parantheses in dot bracket notation are collored according to the helix they are part of.
+ * @param {Array} strToPlot The list of structures selected for the currently selected time point.
  */           
-function WriteTable(strToPlot, mostocc, sequence) {
-    var colnames = ['ID', 'Occupancy', 'Structure' , 'Energy'];    
+function createTable(strToPlot, sequence) {
+    return new Promise((resolve, reject) => {
+        const maxOcc = d3.max(strToPlot, entry => entry.occupancy);
 
-    d3.select("#datatable")
-        .selectAll("table").remove()
-    let structures = d3.select("#datatable").append("table")
-    let th = structures.append("thead")
-    th.append('tr').selectAll('th')
-        .data(colnames).enter()
-        .append('th')
-        .text(function (column) { return column; })
-        .append('th').style("text-align", "right")
-        .text(function (column) { 
-            if (column=="Structure"){
-                return sequence.slice(0, strToPlot[0].structure.length) //
+        const table = document.createElement('table');
+        table.id = 'dtab'
+
+        // Add the header.
+        const thead = document.createElement('thead');
+        const headerRow = document.createElement('tr');
+        const headerColumns = ['ID', 'Occupancy', 'Structure', 'Energy'];
+        for (const column of headerColumns) {
+            const headerCell = document.createElement('th');
+            if (column === "Structure" && sequence.length >= 1) {
+                headerCell.textContent = sequence.slice(0, strToPlot[0].structure.length);
+                headerCell.style.textAlign = 'left'
+            } else {
+                headerCell.textContent = column;
             }
-            else
-                return " "
-        }).style("text-align", "right")
+            headerRow.appendChild(headerCell);
+        }
+        table.appendChild(thead).appendChild(headerRow);
 
-    let tbody = structures.append('tbody').style("text-align", "left")
-    let tr = tbody.selectAll("tr")
-        .data(strToPlot)
-        .enter()
-        .append("tr").attr("class", "tableData")                      
-        .selectAll("td")
-        .data(d => {
-            return [{column:"id", value:d.id},//{column:"time", value: d.time},
-                {column:"oc", value:d.occupancy},
-                {column:"str", value:d.structure, col:d.colors},{column:"en", value: d.energy}]//, {column:"col", value:d.colors}]
+        // Create data rows 
+        const tbody = document.createElement('tbody');
+        table.appendChild(tbody);
+
+        const rows = tbody.querySelectorAll('tr');
+        strToPlot.forEach(data => {
+            const row = document.createElement('tr');
+            const columns = [
+                { column: 'id', value: data.id, bgc: (data.occupancy === maxOcc) },
+                { column: 'oc', value: data.occupancy },
+                { column: 'str', value: data.structure, col: data.colors },
+                { column: 'en', value: data.energy }
+            ];
+            columns.forEach(column => {
+                const cell = document.createElement('td');
+                if (column.column === 'str') {
+                    const coloredString = column.value.split('')
+                        .map((char, index) => {
+                            const color = column.col[index] || 'transparent';
+                            return `<span style="background-color: ${color};">${char}</span>`;
+                        })
+                        .join('');
+                    cell.innerHTML = coloredString;
+                } else if (column.column === 'id' && column.bgc) {
+                    cell.innerHTML = `<span style="background-color: rgb(247, 200, 194);">${column.value}</span>`;
+                } else {
+                    cell.textContent = column.value;
+                }
+                cell.style.paddingLeft = '5px';
+                cell.style.paddingRight = '5px';
+                row.appendChild(cell);
+            });
+            tbody.appendChild(row);
+        });
+
+        const lastrow = document.createElement('tr');
+        const ruler = document.createElement('td')
+        ruler.textContent = writeRuler(strToPlot[0].structure.length)
+        ruler.style.paddingLeft = '5px';
+        ruler.style.paddingRight = '5px';
+
+        lastrow.appendChild(document.createElement('td'));
+        lastrow.appendChild(document.createElement('td'));
+        lastrow.appendChild(ruler);
+        lastrow.appendChild(document.createElement('td'));
+        tbody.appendChild(lastrow);
+
+        // Check if the table was successfully created
+        if (table) {
+            resolve(table); // Resolve the promise with the table element
+        } else {
+            reject(new Error('Table creation failed')); // Reject the promise with an error
+        }
+    });
+}
+
+function WriteTable(strToPlot, sequence) {
+    createTable(strToPlot, sequence)
+        .then(table => {
+            // Promise resolved, table is available
+            const parentElement = document.getElementById('datatable');
+            while (parentElement.firstChild) {
+                parentElement.removeChild(parentElement.firstChild);
+            }
+            parentElement.appendChild(table); 
+            if (popupWindow && !popupWindow.closed) {
+                const pdt = popupWindow.document.getElementById('dtab')
+                pdt.innerHTML = table.innerHTML;
+                // Let's not resize automatically by default.
+                //popupWindow.resizeTo(pdt.clientWidth+25, pdt.clientHeight+60);
+            }
         })
-        .enter()
-    tr.each((dd) =>{
-        if (dd.column == "id") {
-            tbody.append("tr")
-
-        }                
-        if (dd.column=="str") {                   
-            let tb=tbody.append("td")
-                .style( "white-space", "nowrap").attr("text-align", "center")
-            tb.selectAll('span').remove()
-            for (let i = 0; i < dd.value.length; i++) {
-                tb.append('span')
-                    .style('background-color',dd.col[i])
-                    .text(dd.value[i])
-            }
-        }
-        else  if (dd.column!="str") {
-            if(dd.column=="id"){
-                let bestid
-                mostocc.forEach(e=>{
-                    if (+e[0]<=+strToPlot[0].time){
-                        bestid=e[1].id
-                    }
-                })
-                if( dd.value==bestid){
-                    tbody.append("td").text(dd.value).style('background-color',"rgb(247, 200, 194)")
-                }
-                else {
-                    tbody.append("td").text(dd.value)
-
-                }
-            } else
-                tbody.append("td").text(dd.value)
-        }
-
-    })  
-    function writeLabels(length){
-        let j=10
-        let res=""
-        for (let i = 0; i < length; i++) {
-            if ((res.length)==i){
-                if ((res.length+1)%10==0){
-                    res+=j
-                    j+=10
-                }
-                else if((res.length+1)%5==0){res+=","}
-                else {res+="."}}}
-        return res
-
-    }
-    let lastrow=tbody.append("tr") 
-    lastrow.append('td')
-        .text(" ")
-    lastrow.append('td')
-        .text(" ")
-    lastrow.append('td')
-        .text(writeLabels(strToPlot[0].structure.length))
-        .style("text-align", "left") 
-    lastrow.append('td')
-        .text(" ")               
+        .catch(error => {
+            console.error(error);
+        });
 }
 
 /**
@@ -561,7 +570,6 @@ function findMaxNoStr(nestedData) {
     }, 0);
 }
 
-
 /**
  * Function for showing the data, which consists mostly of calls of previously defined functions and the mouse events
  * @param {Array} data the parsed content of the input file
@@ -596,21 +604,13 @@ function ShowData(data, timepoint, seqname, sequence) {
             if (+d[0] <= +timepoint) {
                 newtimepoint = +d[0];}
         })
-        // for (let i = 0; i < nestedData.length; i++) {
-        //     const currentTime = +nestedData[i][0];
-        //     if (currentTime <= +timepoint) {
-        //         newtimepoint = currentTime;
-        //     } else {
-        //         break;
-        //     }
-        // }
         timepoint = newtimepoint
     }
 
     showLine(timesvg, tScale(timepoint)) 
     let strToPlot = StructuresToPlot(nestedData, timepoint);
     ensPlot(strToPlot, eCW, eCH, seqlen, sequence)
-    WriteTable(strToPlot, mostocc, sequence) 
+    WriteTable(strToPlot, sequence) 
     let [strToPlotprev, timeprev] = [strToPlot, timepoint]
 
     let mousetime = 30; // the beginning of the plot
@@ -634,7 +634,7 @@ function ShowData(data, timepoint, seqname, sequence) {
             if (strToPlot != strToPlotprev) {
                 if (delayPLOT) clearTimeout(delayPLOT);
                 delayPLOT = setTimeout(ensPlot, 5*maxNoStr, strToPlot, eCW, eCH, seqlen, sequence);
-                WriteTable(strToPlot, mostocc, sequence) 
+                WriteTable(strToPlot, sequence) 
                 strToPlotprev = strToPlot
             }
             timeprev = timepoint
@@ -657,7 +657,7 @@ function ShowData(data, timepoint, seqname, sequence) {
             strToPlot = StructuresToPlot(nestedData, timepoint);
             if (strToPlot != strToPlotprev) {
                 ensPlot(strToPlot, eCW, eCH, seqlen, sequence)
-                WriteTable(strToPlot, mostocc, sequence) 
+                WriteTable(strToPlot, sequence) 
                 strToPlotprev = strToPlot
             }
             timeprev = timepoint
@@ -694,7 +694,7 @@ function ShowData(data, timepoint, seqname, sequence) {
             strToPlot = StructuresToPlot(nestedData, timepoint);
             if (strToPlot != strToPlotprev) {
                 ensPlot(strToPlot, eCW, eCH, seqlen, sequence)
-                WriteTable(strToPlot, mostocc, sequence) 
+                WriteTable(strToPlot, sequence) 
                 strToPlotprev = strToPlot
             }
             showLine(timesvg, tScale(timepoint))
@@ -717,7 +717,7 @@ function ShowData(data, timepoint, seqname, sequence) {
         strToPlot = StructuresToPlot(nestedData, timepoint);
         if (strToPlot != strToPlotprev) {
             ensPlot(strToPlot, eCW, eCH, seqlen, sequence)
-            WriteTable(strToPlot, mostocc, sequence) 
+            WriteTable(strToPlot, sequence) 
             strToPlotprev = strToPlot
         }
         showLine(timesvg, tScale(timepoint))
@@ -738,25 +738,25 @@ function ShowData(data, timepoint, seqname, sequence) {
         strToPlot = StructuresToPlot(nestedData, timepoint);
         if (strToPlot != strToPlotprev) {
             ensPlot(strToPlot, eCW, eCH, seqlen, sequence)
-            WriteTable(strToPlot, mostocc, sequence) 
+            WriteTable(strToPlot, sequence) 
             strToPlotprev = strToPlot
         }
         showLine(timesvg, tScale(timepoint))
         timeprev = timepoint
     })
 
-    const schange = () => {
-        console.log('New ms/frame value:', speed.value);
-    };
-    speed.removeEventListener('change', schange); 
-    speed.addEventListener('change', schange);
-
-    const ochange = () => {
+    occ.onchange = function() {
         console.log('New maximum occupancy value:', occ.value);
         ShowData(data, timepoint, seqname, sequence)
+    }
+
+    const toggleseq = document.getElementById("toggleSequence");
+    toggleseq.onclick = function() {
+        hideseq().then(function() {
+            console.log('Resizing ...');
+            ShowData(data, timepoint, seqname, sequence);
+        });
     };
-    occ.removeEventListener('change', ochange); 
-    occ.addEventListener('change', ochange);
 
     // Update Sequence TODO: ensPlot?
     let bsload = d3.select("#seqload")
@@ -796,11 +796,12 @@ function ShowData(data, timepoint, seqname, sequence) {
  */
 function start() {
     hideseq()
-    document.getElementById("toggleSequence")
-        .addEventListener("click", function() {hideseq();}, false);
     hidetab()
-    document.getElementById("toggleTable")
-        .addEventListener("click", function() {hidetab();}, false);
+    // As alternative, the table below can also be displayed on the
+    // same page. Replace the function openPopup() with hidetab().
+    document.getElementById("toggleTable").onclick = function() {
+        openPopup();
+    };
     load_examples("grow.drf", "grow.fa");
     read_drf_file();
     read_seq_file();
@@ -809,11 +810,30 @@ function start() {
 function hideseq() { 
     const x = document.getElementById("seqfield");
     x.style.display = x.style.display === "none" ? "block" : "none"; 
+    return Promise.resolve();
 }
 
 function hidetab() { 
     const x = document.getElementById("datatable");
     x.style.display = x.style.display === "none" ? "block" : "none"; 
+}
+
+function openPopup() {
+    // Check if the popup window is already open or blocked by the browser
+    if (popupWindow && !popupWindow.closed) {
+        // Update the size of in the popup window.
+        const pdt = popupWindow.document.getElementById('dtab')
+        popupWindow.resizeTo(pdt.clientWidth+25, pdt.clientHeight+60);
+    } else {
+        popupWindow = window.open('', '_blank', `width=500,height=200`);
+        const datadiv = document.getElementById("datatable")
+        popupWindow.document.write(datadiv.innerHTML);
+        const pdt = popupWindow.document.getElementById('dtab')
+        popupWindow.resizeTo(pdt.clientWidth+25, pdt.clientHeight+60);
+    }
+    if (!popupWindow) {
+        alert('The popup window was blocked or could not be opened.');
+    }
 }
 
 /**
@@ -848,7 +868,6 @@ function load_examples(drffile, fafile) {
 
     Promise.all([promise1, promise2])
         .then(([[seqname, sequence], drfdata]) => {
-
             ShowData(drfdata, null, seqname, sequence);
     }).catch(error => {
         throw error
@@ -880,7 +899,7 @@ function read_drf_file() {
 }
 
 /**
-  * method for reading the sequence, from the text field or from the file. 
+  * Method for reading the sequence, from the text field or from the file. 
   *  
   */  
 function read_seq_file() {

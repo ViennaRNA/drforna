@@ -20,6 +20,7 @@ body {
 #fullscreen{
     background: white;
     height: 90vh;
+    min-height: 400px;
     width: 100%;
 }
 #controls{
@@ -109,4 +110,13 @@ body {
 button:disabled {
   opacity: 0.5;
   cursor: not-allowed;
+}
+#PrevTime {
+    font-size: larger;
+}
+#NextTime {
+    font-size: larger;
+}
+#toggleAnimation {
+    font-size: larger;
 }

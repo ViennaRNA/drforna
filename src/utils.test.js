@@ -1,5 +1,6 @@
 import {describe, expect, test} from '@jest/globals';
-const { parseFasta } = require('./utils');
+const { parseFasta,
+        writeRuler } = require('./utils');
 
 // Unit tests using Jest
 describe('parseFasta', () => {
@@ -43,5 +44,20 @@ describe('parseFasta', () => {
     expect(() => { parseFasta(fasta); }).toThrow('Sequences must contain only letters.');
   });
 
+});
+
+// Unit tests using Jest
+describe('writeRuler', () => {
+  test('should generate ruler string for length 20', () => {
+    expect(writeRuler(20)).toBe("....,....10...,....20");
+  });
+
+  test('should generate ruler string for length 21', () => {
+    expect(writeRuler(21)).toBe("....,....10...,....20");
+  });
+
+  test('should generate ruler string for length 5', () => {
+    expect(writeRuler(5)).toBe("....,");
+  });
 });
 
