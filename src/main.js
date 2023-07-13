@@ -570,7 +570,6 @@ function findMaxNoStr(nestedData) {
     }, 0);
 }
 
-
 /**
  * Function for showing the data, which consists mostly of calls of previously defined functions and the mouse events
  * @param {Array} data the parsed content of the input file
@@ -580,6 +579,7 @@ function ShowData(data, timepoint, seqname, sequence) {
 
     // shall we also initialize the treemap, etc?
     const [vCW, vCH, eCW, eCH, tSW] = initialize()
+    //console.log('new dimensions:', vCW, vCH, eCW, eCH)
 
     // get some basic properties from the full data.
     const seqlen = data[data.length - 1].structure.length;
@@ -746,18 +746,17 @@ function ShowData(data, timepoint, seqname, sequence) {
         timeprev = timepoint
     })
 
-    const schange = () => {
-        console.log('New ms/frame value:', speed.value);
-    };
-    speed.removeEventListener('change', schange); 
-    speed.addEventListener('change', schange);
-
-    const ochange = () => {
+    occ.onchange = function() {
         console.log('New maximum occupancy value:', occ.value);
         ShowData(data, timepoint, seqname, sequence)
+    }
+
+    const toggleseq = document.getElementById("toggleSequence");
+    toggleseq.onclick = function() {
+        hideseq().then(function() {
+            ShowData(data, timepoint, seqname, sequence);
+        });
     };
-    occ.removeEventListener('change', ochange); 
-    occ.addEventListener('change', ochange);
 
     // Update Sequence TODO: ensPlot?
     let bsload = d3.select("#seqload")
@@ -787,18 +786,6 @@ function ShowData(data, timepoint, seqname, sequence) {
         if (delayResize) clearTimeout(delayResize);
         delayResize = setTimeout(ShowData, 300, data, timepoint, seqname, sequence);
     };
-    let  hlink = document.getElementById('helplink');
-    hlink.addEventListener('click', (event) => {
-      event.preventDefault(); // Prevent the default link behavior
-      const url = hlink.href;
-      window.open(url, '_blank');
-    });
-    let gitlink = document.getElementById('githublink');
-    gitlink.addEventListener('click', (event) => {
-      event.preventDefault(); // Prevent the default link behavior
-      const url = gitlink.href;
-      window.open(url, '_blank');
-    });
 } 
 
 /**
@@ -809,13 +796,12 @@ function ShowData(data, timepoint, seqname, sequence) {
  */
 function start() {
     hideseq()
-    document.getElementById("toggleSequence")
-        .addEventListener("click", function() {hideseq();}, false);
     hidetab()
     // As alternative, the table below can also be displayed on the
     // same page. Replace the function openPopup() with hidetab().
-    document.getElementById("toggleTable")
-        .addEventListener("click", function() {openPopup();}, false);
+    document.getElementById("toggleTable").onclick = function() {
+        openPopup();
+    };
     load_examples("grow.drf", "grow.fa");
     read_drf_file();
     read_seq_file();
@@ -824,6 +810,7 @@ function start() {
 function hideseq() { 
     const x = document.getElementById("seqfield");
     x.style.display = x.style.display === "none" ? "block" : "none"; 
+    return Promise.resolve();
 }
 
 function hidetab() { 
