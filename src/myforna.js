@@ -24,10 +24,16 @@ export function getFornaContainer(rid, sequence, structure, colors) {
 /**
  * Function to determine the color of each nucleotide.
  */
-export function calculateNucleotideColors(structure, nScale) {
+export function calculateNucleotideColors(structure) {
     // uses an old d3 version!
-    const rainbowScale = (h) => { 
-        return d3.hcl(360*h, 100-h/4, 80-h/2);
+    const rainbowScale = (i) => { 
+        // minimum distance between i's is 0.5 (a bulge loop).
+        // Thus two consequtive i's make steps of 80 through the
+        // 360 color cycle. In total, we have 9 distinguishalbe 
+        // colors, but we add the Math.floor(i/9) to ensure that 
+        // color codes can only repeat after sequence lengths > 360.
+        const h = Math.floor(i/9) + (i*160) % 360
+        return d3.hcl(h, 100, 55);
     };
     // get a pairtable and a list of the secondary structure elements
     const rnaUtilities = new RNAUtilities();
@@ -45,8 +51,7 @@ export function calculateNucleotideColors(structure, nScale) {
             (a,b) => { return a+b }, 0) / (elements[i][2].length);
         // convert center to color
         elements[i][2].map((d) => {
-            let nucleotideNormPosition = nScale(+averageBpNum);
-            colors[d-1] = rainbowScale(nucleotideNormPosition);
+            colors[d-1] = rainbowScale(+averageBpNum);
         });
     }
     return colors;
