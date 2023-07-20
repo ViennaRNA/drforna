@@ -1,5 +1,12 @@
 # DrForna: visualization of cotranscriptional folding
 
+Understanding RNA folding at the level of secondary structures can give
+important insights concerning the function of a molecule.  DrForna is an
+interactive visualization app for viewing the time course of a
+cotranscriptional RNA folding simulation. Users can scroll along the time axis
+and see the population of structures that are present at any particular time
+point. 
+
 Visit [gh-pages] for a life demonstration of the app, e.g., view the example
 simulation or upload your own input file.  The default input examples are part
 of this repository: 
