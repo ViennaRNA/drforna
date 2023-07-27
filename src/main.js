@@ -400,7 +400,7 @@ function WriteTable(strToPlot, sequence) {
   */   
 function ensPlot(strToPlot, eCW, eCH, seqlen, sequence) { 
     const treemapData = makeTreemapData(strToPlot);
-    let root = d3.stratify()
+    const root = d3.stratify()
         .id(function(d) { return d.name })   
         .parentId(function(d) { return d.parent })
         (treemapData)
@@ -411,85 +411,106 @@ function ensPlot(strToPlot, eCW, eCH, seqlen, sequence) {
         .size([eCW, eCH])
         .padding(4)(root)
 
-    let containers = {}
-
-    let ensContainer = d3.select('#ensemblevis');
+    const ensContainer = d3.select('#ensemblevis');
     ensContainer.select("#treemapdiv").remove()
-    let zoom = false;
-    ensContainer.append("div")
-        .attr("id", "treemapdiv") 
+
+    const treemapContainer = ensContainer.append("div").attr("id", "treemapdiv")
         .style("width", `${eCW}px`)
-        .style("height", `${eCH}px`)
-        .selectAll(".svg")
-        .remove()
-        .data(root.leaves())
-        .enter()
-        .append("svg")
-        .attr("class", "plot")
-        //.style('background-color', 'white')
-        .style("z-index", 1)
-        .attr("id", d => { return "svg" + d.data.name })
-        .on("mouseover", (e, d) => { // show occupancy
+        .style("height", `${eCH}px`);
+
+    // Bind data and create SVG elements for each leaf node
+    const treemapRectangles = treemapContainer.selectAll(".plot")
+      .data(root.leaves())
+      .enter()
+      .append("svg")
+      .attr("class", "plot")
+      .attr("id", d => "svg" + d.data.name)
+      .style("position", "absolute")
+      .style("left", d => `${d.x0}px`)
+      .style("top", d => `${d.y0}px`)
+      .style("width", d => `${d.x1 - d.x0}px`)
+      .style("height", d => `${d.y1 - d.y0}px`)
+      .style("stroke", "black")
+      .style("border", "thin solid black")
+      .style("background-color", "white")
+      .style("z-index", 1);
+
+    // Add text label for each rectangle
+    treemapRectangles.append("text")
+      .attr("x", 2) // move to the right
+      .attr("y", 12) // move lower
+      .text(d => d.data.name)
+      .attr("font-size", "0.8rem");
+
+    // Render SVG plots returned by getFornaContainer() for each rectangle
+    let containers = {}
+    treemapRectangles.each((d) => {
+        const rectname = "svg" + d.data.name;
+        if ( d.data.str != '' ) {
+            containers[rectname] = getFornaContainer(rectname, 
+                sequence, d.data.str, d.data.colors)
+        }
+    });
+
+    let zoom = false;
+    treemapRectangles.on("mouseover", (e, d) => { // show occupancy
+        if (!zoom) {
             d3.select("#treemapdiv").append("div")
                 .attr("class", "infodiv")
                 .html(d.data.value)
                 .style('left', () => { return `${d.x0+30}px`; })
                 .style('top', () => { return `${d.y0}px`; })
                 .style("z-index", 3); 
-        })    
+        }})    
         .on('mouseout', (e, d) => {  
             d3.select(".infodiv").remove()
         }) 
-        .on("click", (e, d) => {
-            let rectname = "svg" + d.data.name
-            let c = d3.select('#' + rectname)
-            if (zoom == false) {
-                zoom = true 
-                d3.select(".infodiv").remove()
-                d3.select("#treemapdiv").append("div")
-                    .attr("class", "help")
-                    .style("width", `${eCW}px`)
-                    .style("height", `${eCH}px`)
-                    .style('position', 'relative')
-                    .style("z-index", 2)
-                    .style("background-color", "azure")
-                    .style("text-align", "center")
-                    .text("Selected structure, occupancy "+d.data.value); 
-                c.style("width", `${eCW}px`)
-                    .style("height", `${eCH}px`)
-                    .style('left', d => { return `${0}px`; })
-                    .style('top', d => { return `${0}px`; })
-                    .style("z-index", 3)
-            } else {
-                zoom = false
-                d3.select(".help").remove()
-                return c.style('left', d => { return `${d.x0}px`; })
-                    .style('top', d => { return `${d.y0}px`; })
-                    .style("z-index", 1)
-                    .style('width', d => { return `${(d.x1 - d.x0)}px`; })
-                    .style('height', d => { return `${(d.y1 - d.y0)}px`; })
-            }
-        })
-        .style('position', 'absolute')
-        .style('left', d => { return `${d.x0}px`; })
-        .style('top', d => { return `${d.y0}px`; })
-        .style('width', d => { return `${(d.x1 - d.x0)}px`; })
-        .style('height', d => { return `${(d.y1 - d.y0)}px`; })
-        .style("stroke", "black")
-        .style("fill", "#62b6a2")
-        .style("border", "thin solid black")
-        .append("text")
-        .attr("x", 2) // move to the right
-        .attr("y", 12) // move lower
-        .text( d => { return d.data.name })
-        .attr("font-size", "0.8rem")                            
-        .each( d => {
-            let rectname = "svg" + d.data.name
-            if ( d.data.str != '' ) {
-                containers[rectname] = getFornaContainer(rectname, 
-                    sequence, d.data.str, d.data.colors)
-            }     
-        });
+
+    // Handle click event on treemap rectangles
+    treemapRectangles.on("click", (event, d) => {
+      const rectname = "svg" + d.data.name;
+      const clickedRect = d3.select(`#${rectname}`);
+      const helpDiv = d3.select("#treemapdiv .help");
+    
+      if (!zoom) {
+        // Zoom in behavior
+        zoom = true;
+        helpDiv.remove();
+        d3.select(".infodiv").remove()
+    
+        // Create a help div for zoomed content
+        d3.select("#treemapdiv").append("div")
+          .attr("class", "help")
+          .style("width", `${eCW}px`)
+          .style("height", `${1}px`)
+          .style("position", "relative")
+          .style("text-align", "center")
+          .style("z-index", 2)
+          .text(`Selected structure, occupancy ${d.data.value}`);
+    
+        // Resize and reposition clicked rectangle
+        clickedRect
+          .style("background-color", "azure")
+          .style("width", `${eCW}px`)
+          .style("height", `${eCH}px`)
+          .style("left", "0px")
+          .style("top", "0px")
+          .style("z-index", 2);
+      } else {
+        // Zoom out behavior
+        zoom = false;
+        helpDiv.remove();
+    
+        // Restore the original position and size of the clicked rectangle
+        clickedRect
+          .style("left", d => `${d.x0}px`)
+          .style("top", d => `${d.y0}px`)
+          .style("width", d => `${d.x1 - d.x0}px`)
+          .style("height", d => `${d.y1 - d.y0}px`)
+          .style("background-color", "white")
+          .style("z-index", 1);
+      }
+    });
 
     let Sum_of_occ = Math.round(root.value*100000)/100000
     let time = d3.select("#timetableinfo")
