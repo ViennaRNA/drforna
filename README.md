@@ -134,13 +134,14 @@ is colored to match the color scheme of helices in the main visualization area.
 
 ## Default color scheme:
 
-Nucleotides engaged in base-pairs (i paired with j) are colored using the "hue"
-value h=(i+j)/2 on a continuous color scale -- scaled to the full length
-sequence. In principle, this ensures that colors are never repeated, unless
-base-pairs are perfectly aligned.  However, as can be seen in the example
-below, we chose to repeat the continuous scale four times per full-length
-sequence, as this makes helices which have nearby imaginary centers better
-distinguishable. 
+Nucleotides engaged in base-pairs (i paired with j) are colored depending on
+the ``imaginary center'' $c = \frac{i+j}{2}$.  We repeat nine colors from the
+hue color circle, with the objective that small changes in the imaginary center
+result in clearly distinguishable colors. Specifically, we chose to traverse
+the color cycle in steps of $80^\circ$. As the smallest shift in imaginary
+centers is $0.5$, \eg, a 1-nt bulge, this yields $h = \lfloor c/9 \rfloor + 160
+c \mod 360$, where the first term $\lfloor c/9 \rfloor$ is added to ensure that
+color codes cannot repeat for sequences shorter than 360 nucleotides. 
 
 <img width='2000px' src="./img/colorrange.svg"> 
 
