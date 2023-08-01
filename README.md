@@ -138,10 +138,9 @@ Nucleotides engaged in base-pairs (i paired with j) are colored depending on
 the ``imaginary center'' $c = \frac{i+j}{2}$.  We repeat nine colors from the
 hue color circle, with the objective that small changes in the imaginary center
 result in clearly distinguishable colors. Specifically, we chose to traverse
-the color cycle in steps of $80^\circ$. As the smallest shift in imaginary
-centers is $0.5$, \eg, a 1-nt bulge, this yields $h = \lfloor c/9 \rfloor + 160
-c \mod 360$, where the first term $\lfloor c/9 \rfloor$ is added to ensure that
-color codes cannot repeat for sequences shorter than 360 nucleotides. 
+the color cycle in steps of $80^\circ$. Additionally, we ensure that color
+codes cannot repeat for sequences shorter than 360 nucleotides, but those
+differences are not distingushable by eye. 
 
 <img width='2000px' src="./img/colorrange.svg"> 
 
