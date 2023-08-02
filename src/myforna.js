@@ -1,5 +1,4 @@
 import { FornaContainer, RNAUtilities } from 'fornac';
-import * as d3new from "d3"
 
 /**
  * Function to set up the FornaContainer for visualization.
@@ -14,7 +13,6 @@ export function getFornaContainer(rid, sequence, structure, colors) {
         transitionDuration: 0
     });
     fc.addRNA(structure, { "sequence": sequence })
-    //fc.transitionRNA(structure); // TODO: why?
     let colorStrings = colors.map(function(d, i) {
         return `${i+1}:${d}`;
     });
@@ -26,13 +24,16 @@ export function getFornaContainer(rid, sequence, structure, colors) {
 /**
  * Function to determine the color of each nucleotide.
  */
-export function calculateNucleotideColors(structure, sequenceLength) {
+export function calculateNucleotideColors(structure) {
     // uses an old d3 version!
-    const rainbowScale = (h) => { 
-        // TODO: cp is a parameter to adjust the color scale. 
-        // Maybe we make cp adjustable at some point?
-        let cp = 4
-        return d3.hcl(cp*h, 100, 55);
+    const rainbowScale = (i) => { 
+        // minimum distance between i's is 0.5 (a bulge loop).
+        // Thus two consequtive i's make steps of 80 through the
+        // 360 color cycle. In total, we have 9 distinguishalbe 
+        // colors, but we add the Math.floor(i/9) to ensure that 
+        // color codes can only repeat after sequence lengths > 360.
+        const h = Math.floor(i/9) + (i*160) % 360
+        return d3.hcl(h, 100, 55);
     };
     // get a pairtable and a list of the secondary structure elements
     const rnaUtilities = new RNAUtilities();
@@ -50,11 +51,7 @@ export function calculateNucleotideColors(structure, sequenceLength) {
             (a,b) => { return a+b }, 0) / (elements[i][2].length);
         // convert center to color
         elements[i][2].map((d) => {
-            let colorScale = d3new.scaleLinear()
-                .range([0, 360])
-                .domain([0, sequenceLength]);
-            let nucleotideNormPosition = colorScale(+averageBpNum);
-                colors[d-1] = rainbowScale(nucleotideNormPosition);
+            colors[d-1] = rainbowScale(+averageBpNum);
         });
     }
     return colors;
