@@ -337,8 +337,13 @@ function createTable(strToPlot, sequence) {
                         })
                         .join('');
                     cell.innerHTML = coloredString;
-                } else if (column.column === 'id' && column.bgc) {
-                    cell.innerHTML = `<span style="background-color: rgb(247, 200, 194);">${column.value}</span>`;
+                } else if (column.column === 'id') {
+                    if (column.bgc) {
+                        cell.innerHTML = `<span style="background-color: rgb(247, 200, 194);">${column.value}</span>`;
+                    } else {
+                        cell.textContent = column.value;
+                    }
+                    cell.style.textAlign = 'right';
                 } else {
                     cell.textContent = column.value;
                 }
