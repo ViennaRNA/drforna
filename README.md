@@ -166,6 +166,10 @@ All commands are defined in [package.json](package.json).
 
 
 ## Version
+ - v0.11 -- Many minor changes and a few major ones:
+    - new color scheme
+    - new buttons for play/pause/step (ArrowLeft/ArrowRight Keybindings)
+    - summary table in new window (resizes on click only)
 
  - v0.10 -- many new features and a new layout after user feedback.
 
