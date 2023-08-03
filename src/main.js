@@ -911,7 +911,7 @@ function read_drf_file() {
         const reader = new FileReader();
         reader.onload = (val) => {
             const data = parse_drf(val.target.result)
-            ShowData(data, null, '', '');
+            ShowData(data, null, 'drforna', '');
         };
         let st = document.getElementById("seqtext")
         st.value = "";

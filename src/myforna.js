@@ -32,7 +32,7 @@ export function calculateNucleotideColors(structure) {
         // 360 color cycle. In total, we have 9 distinguishalbe 
         // colors, but we add the Math.floor(i/9) to ensure that 
         // color codes can only repeat after sequence lengths > 360.
-        const h = Math.floor(i/9) + (i*160) % 360
+        const h = Math.floor(i/9) + i * 160
         return d3.hcl(h, 100, 55);
     };
     // get a pairtable and a list of the secondary structure elements
