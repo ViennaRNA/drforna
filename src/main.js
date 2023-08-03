@@ -827,6 +827,25 @@ function start() {
     load_examples("grow.drf", "grow.fa");
     read_drf_file();
     read_seq_file();
+
+    // Function to handle the keyboard event
+    function handleKeyDown(event) {
+        if (event.keyCode === 37 || event.key === "ArrowLeft") {
+            const prevTimeButton = document.getElementById("PrevTime");
+            // Check if the button exists and is visible
+            if (prevTimeButton && !prevTimeButton.disabled) {
+                prevTimeButton.click();
+            }
+        }
+        if (event.keyCode === 39 || event.key === "ArrowRight") {
+            const nextTimeButton = document.getElementById("NextTime");
+            // Check if the button exists and is visible
+            if (nextTimeButton && !nextTimeButton.disabled) {
+                nextTimeButton.click();
+            }
+        }
+    }
+    document.addEventListener("keydown", handleKeyDown);
 } 
 
 function hideseq() { 
